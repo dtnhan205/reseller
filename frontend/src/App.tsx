@@ -8,7 +8,13 @@ import HistoryPage from './pages/HistoryPage';
 import TransactionsPage from './pages/TransactionsPage';
 import TopupPage from './pages/TopupPage';
 import AdminPage from './pages/AdminPage';
+import AboutPage from './pages/AboutPage';
+import SupportPage from './pages/SupportPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import ToastContainer from './components/ui/ToastContainer';
+import ScrollToTop from './components/ScrollToTop';
+import RainEffect from './components/RainEffect';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
@@ -31,6 +37,8 @@ function App() {
 
   return (
     <>
+      <RainEffect />
+      <ScrollToTop />
       <ToastContainer />
       <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -91,6 +99,11 @@ function App() {
             </SellerRoute>
           }
         />
+        {/* Public Pages */}
+        <Route path="about" element={<AboutPage />} />
+        <Route path="support" element={<SupportPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
       </Route>
     </Routes>
     </>

@@ -15,18 +15,63 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'font-semibold py-4 px-8 rounded-lg transition-all duration-200 shadow-soft hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center';
+  const baseClasses = 'water-droplet font-semibold py-3 px-6 sm:py-3.5 sm:px-8 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center backdrop-blur-xl relative z-10';
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white',
-    secondary: 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white',
-    outline: 'border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500/10',
+    primary: 'text-white',
+    secondary: 'text-white',
+    outline: 'text-cyan-400 border-2 border-cyan-400/50 hover:border-cyan-400/80',
+  };
+  
+  const glassStyles = {
+    primary: {
+      background: 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(7px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      /* iOS 26 3D multi-layer shadows */
+      boxShadow: `
+        0 20px 60px -12px rgba(0, 0, 0, 0.5),
+        0 12px 40px -8px rgba(0, 0, 0, 0.4),
+        0 4px 16px -4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+        inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+        inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.1)
+      `,
+    },
+    secondary: {
+      background: 'rgba(255, 255, 255, 0.12)',
+      backdropFilter: 'blur(7px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      border: '1px solid rgba(255, 255, 255, 0.25)',
+      boxShadow: `
+        0 20px 60px -12px rgba(0, 0, 0, 0.5),
+        0 12px 40px -8px rgba(0, 0, 0, 0.4),
+        0 4px 16px -4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+        inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+        inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.1)
+      `,
+    },
+    outline: {
+      background: 'rgba(6, 182, 212, 0.12)',
+      backdropFilter: 'blur(7px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      boxShadow: `
+        0 20px 60px -12px rgba(6, 182, 212, 0.3),
+        0 12px 40px -8px rgba(6, 182, 212, 0.2),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.2)
+      `,
+    },
   };
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${className} ${!disabled && !isLoading ? '' : ''}`}
       disabled={disabled || isLoading}
+      style={glassStyles[variant]}
       {...props}
     >
       {isLoading ? (

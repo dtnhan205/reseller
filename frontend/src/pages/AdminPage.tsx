@@ -183,9 +183,28 @@ export default function AdminPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-gray-950/50 rounded-xl border border-gray-800 w-full sm:w-auto justify-center sm:justify-start">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-300 truncate">{user?.email}</span>
+          <div 
+            className="droplet-container px-3 sm:px-4 py-2 w-full sm:w-auto justify-center sm:justify-start"
+            style={{
+              background: 'rgba(168, 85, 247, 0.15)',
+              backdropFilter: 'blur(50px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              boxShadow: `
+                0 24px 72px -16px rgba(168, 85, 247, 0.4),
+                0 16px 48px -12px rgba(168, 85, 247, 0.3),
+                0 8px 24px -8px rgba(168, 85, 247, 0.2),
+                inset 0 2px 0 0 rgba(255, 255, 255, 0.3),
+                inset -3px -3px 8px 0 rgba(255, 255, 255, 0.15),
+                inset 4px 4px 8px 0 rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(168, 85, 247, 0.25)
+              `,
+            }}
+          >
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-white font-medium truncate">{user?.email}</span>
+            </div>
           </div>
         </div>
 

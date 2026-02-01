@@ -215,6 +215,30 @@ async function deleteProduct(req, res) {
   res.json({ message: "Product deleted successfully" });
 }
 
+async function getProductKeys(req, res) {
+  const { id } = req.params;
+  
+  const product = await Product.findById(id).lean();
+  if (!product) throw new HttpError(404, "Product not found");
+
+  // Chỉ trả về các keys còn lại (qtyAvailable > 0)
+  const availableKeys = (product.inventory || [])
+    .filter(item => item.qtyAvailable > 0)
+    .map(item => ({
+      _id: item._id,
+      value: item.value,
+      qtyAvailable: item.qtyAvailable,
+      createdAt: item.createdAt
+    }));
+
+  res.json({
+    productId: product._id,
+    productName: product.name,
+    totalAvailable: product.totalQtyAvailable || 0,
+    keys: availableKeys
+  });
+}
+
 async function addInventory(req, res) {
   const { productId } = req.params;
   const { keys } = req.body || {};
@@ -485,6 +509,7 @@ module.exports = {
   updateProduct,
   deleteProduct,
   addInventory,
+  getProductKeys,
   listSellers,
   getSellerTopupHistory,
   manualTopupSeller,

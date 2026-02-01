@@ -44,10 +44,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    // Only redirect to login if we're not already on login page and have a token
+    // This prevents redirecting when login fails
+    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -140,6 +145,20 @@ export const adminApi = {
     const res = await api.post(`/admin/products/${productId}/inventory`, {
       keys,
     });
+    return res.data;
+  },
+  getProductKeys: async (productId: string): Promise<{
+    productId: string;
+    productName: string;
+    totalAvailable: number;
+    keys: Array<{
+      _id: string;
+      value: string;
+      qtyAvailable: number;
+      createdAt: string;
+    }>;
+  }> => {
+    const res = await api.get(`/admin/products/${productId}/keys`);
     return res.data;
   },
   // Bank accounts management

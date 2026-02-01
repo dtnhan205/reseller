@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { sellerApi } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Product, Order } from '@/types';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
-import { Minus, Plus, Zap, Package, Search, X, Copy, Check } from 'lucide-react';
+import { Minus, Plus, Zap, Package, Search, X, Copy, Check, Wallet, TrendingUp, ShoppingCart } from 'lucide-react';
 import { formatPrice, formatBalance } from '@/utils/format';
 
 // Product Image Component
@@ -256,37 +255,278 @@ export default function GeneratePage() {
   const selectedProductData = products.find((p) => p._id === selectedProduct);
   const totalPrice = selectedProductData ? selectedProductData.price * quantity : 0;
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
-          <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
-            {t('generate.title')}
-          </h1>
-          <p className="text-gray-400 text-xs sm:text-sm mt-1">
-            {t('generate.subtitle')}
-          </p>
-        </div>
-      </div>
+  const totalProducts = products.length;
+  const availableProducts = products.filter(p => (p.remainingQuantity || 0) > 0).length;
+  const totalValue = products.reduce((sum, p) => sum + (p.price * (p.remainingQuantity || 0)), 0);
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Product Selection */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card title={t('generate.selectProduct')}>
+  // Sparkle particles cursor effect
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number }>>([]);
+  const particleIdRef = useRef(0);
+  const lastParticleTimeRef = useRef(0);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const now = Date.now();
+      // Throttle: chỉ tạo particle mỗi 50ms
+      if (now - lastParticleTimeRef.current < 50) return;
+      lastParticleTimeRef.current = now;
+
+      // Random size và delay cho đa dạng
+      const size = 3 + Math.random() * 4; // 3-7px (nhỏ hơn, nhạt hơn)
+      const delay = Math.random() * 0.2; // 0-0.2s delay
+
+      const newParticle = {
+        id: particleIdRef.current++,
+        x: e.clientX,
+        y: e.clientY,
+        size: size,
+        delay: delay,
+      };
+      setParticles((prev) => {
+        // Giới hạn tối đa 20 particles
+        const updated = [...prev, newParticle];
+        return updated.slice(-20);
+      });
+      
+      // Remove particle after animation completes
+      setTimeout(() => {
+        setParticles((prev) => prev.filter((p) => p.id !== newParticle.id));
+      }, 1200);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <div className="min-h-screen animate-fade-in pb-8 relative overflow-hidden">
+      {/* Sparkle Particles Cursor Effect */}
+      {particles.map((particle) => (
+        <div
+          key={particle.id}
+          className="fixed pointer-events-none z-[9999]"
+          style={{
+            left: `${particle.x}px`,
+            top: `${particle.y}px`,
+            transform: 'translate(-50%, -50%)',
+            animation: `sparkleFade 1.2s ease-out ${particle.delay}s forwards`,
+          }}
+        >
+          {/* Main sparkle particle */}
+          <div
+            className="absolute"
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(6, 182, 212, 0.25) 40%, transparent 70%)',
+              borderRadius: '50%',
+              boxShadow: `
+                0 0 ${particle.size * 1.5}px rgba(255, 255, 255, 0.3),
+                0 0 ${particle.size * 2}px rgba(6, 182, 212, 0.2),
+                0 0 ${particle.size * 2.5}px rgba(6, 182, 212, 0.1)
+              `,
+            }}
+          />
+          {/* Outer glow ring */}
+          <div
+            className="absolute"
+            style={{
+              width: `${particle.size * 2.5}px`,
+              height: `${particle.size * 2.5}px`,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%)',
+              borderRadius: '50%',
+              animation: `sparkleExpand 1.2s ease-out ${particle.delay}s forwards`,
+            }}
+          />
+        </div>
+      ))}
+      {/* Main Layout - 2 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0 overflow-x-hidden">
+        {/* Left Sidebar - Stats Widgets */}
+        <div className="hidden lg:block lg:col-span-2 space-y-4">
+          {/* Header Widget */}
+          <div 
+            className="droplet-container p-4 sm:p-5"
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: `
+                0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.05)
+              `,
+            }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div 
+                className="water-droplet w-10 h-10 flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: `
+                    0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                    inset -1px -1px 2px 0 rgba(255, 255, 255, 0.15),
+                    inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                    0 0 0 1px rgba(255, 255, 255, 0.08)
+                  `,
+                }}
+              >
+                <Zap className="w-5 h-5 text-white relative z-10" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold text-white leading-tight">
+                  {t('generate.title')}
+                </h1>
+                <p className="text-white text-sm mt-0.5">
+                  {t('generate.subtitle')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Admin Email Widget */}
+          {user?.email && (
+            <div 
+              className="droplet-container p-4"
+              style={{
+                background: 'rgba(168, 85, 247, 0.15)',
+                border: '1px solid rgba(168, 85, 247, 0.3)',
+                boxShadow: `
+                  0 4px 8px -2px rgba(168, 85, 247, 0.3),
+                  0 2px 4px -1px rgba(168, 85, 247, 0.2),
+                  inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                  inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                  inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                  0 0 0 1px rgba(168, 85, 247, 0.15)
+                `,
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+                <span className="text-white text-xs font-medium">{t('generate.seller')}</span>
+              </div>
+                <p className="text-white text-base font-semibold truncate">{user.email}</p>
+            </div>
+          )}
+
+          {/* Balance Widget */}
+          <div 
+            className="droplet-container p-4"
+            style={{
+              background: 'rgba(6, 182, 212, 0.15)',
+              border: '1px solid rgba(6, 182, 212, 0.3)',
+              boxShadow: `
+                0 4px 8px -2px rgba(6, 182, 212, 0.3),
+                0 2px 4px -1px rgba(6, 182, 212, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(6, 182, 212, 0.2)
+              `,
+            }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Wallet className="w-5 h-5 text-white" />
+              <span className="text-white text-sm font-semibold">{t('generate.yourBalance')}</span>
+            </div>
+            <p className="text-3xl font-bold text-white">{formatBalance(user?.wallet || 0)}$</p>
+          </div>
+
+          {/* Stats Widgets */}
+          <div 
+            className="droplet-container p-4"
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: `
+                0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.05)
+              `,
+            }}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-white" />
+                  <span className="text-white text-sm font-medium">{t('generate.totalProducts')}</span>
+                </div>
+                <span className="text-white font-bold text-lg">{totalProducts}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                  <span className="text-white text-sm font-medium">{t('generate.available')}</span>
+                </div>
+                <span className="text-white font-bold text-lg">{availableProducts}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4 text-white" />
+                  <span className="text-white text-sm font-medium">{t('generate.totalValue')}</span>
+                </div>
+                <span className="text-white font-bold text-lg">${formatPrice(totalValue)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Product Selection & Purchase Panel (Horizontal Layout) */}
+        <div className="col-span-1 lg:col-span-10 space-y-4 min-w-0 overflow-hidden">
+          {/* Product Selection and Purchase Panel in one row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
+            {/* Product Selection */}
+            <div className="space-y-4 min-w-0 overflow-visible relative z-10">
+              <div 
+                className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-visible relative z-10"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: `
+                    0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                    inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                    inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                    0 0 0 1px rgba(255, 255, 255, 0.05)
+                  `,
+                }}
+              >
+                <h3 className="text-sm sm:text-base font-bold text-white mb-2">{t('generate.selectProduct')}</h3>
             {/* Search */}
-            <div className="mb-4">
+            <div className="mb-2.5">
               <div className="relative">
-                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 <input
                   type="text"
                   placeholder={t('generate.searchProducts')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-base text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-base text-white placeholder-gray-300 focus:outline-none transition-all"
+                  style={{
+                    borderRadius: '50px 50px 50px 8px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    boxShadow: '0 4px 16px 0 rgba(0, 0, 0, 0.15)',
+                  }}
                 />
               </div>
             </div>
@@ -294,26 +534,42 @@ export default function GeneratePage() {
             {isLoadingProducts ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
-                <p className="text-gray-400 mt-4">{t('common.loading')}</p>
+                <p className="text-white mt-4">{t('common.loading')}</p>
               </div>
             ) : Object.keys(groupedProducts).length === 0 ? (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-                <p className="text-gray-400">
+                <Package className="w-16 h-16 mx-auto mb-4 text-white/60" />
+                <p className="text-white">
                   {searchQuery ? t('admin.noSearchResults') : t('generate.noProductsAvailable')}
                 </p>
               </div>
             ) : (
-              <div className="space-y-3 sm:space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
+              <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 relative z-0">
                 {Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
-                  <div key={categoryName} className="space-y-2">
+                  <div key={categoryName} className="space-y-2 relative z-0">
                     {/* Category Header */}
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-l-4 border-purple-500 rounded-lg">
-                      <h3 className="text-sm sm:text-base md:text-lg font-bold text-purple-300 truncate">{categoryName}</h3>
+                    <div 
+                      className="droplet-container flex items-center gap-2 px-2 sm:px-2.5 py-1 sm:py-1.5 relative z-10"
+                      style={{
+                        background: 'rgba(168, 85, 247, 0.18)',
+                        backdropFilter: 'blur(7px) saturate(200%)',
+                        WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                        border: '1px solid rgba(168, 85, 247, 0.35)',
+                        boxShadow: `
+                          0 4px 8px -2px rgba(168, 85, 247, 0.3),
+                          0 2px 4px -1px rgba(168, 85, 247, 0.2),
+                          inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                          inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                          inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                          0 0 0 1px rgba(168, 85, 247, 0.15)
+                        `,
+                      }}
+                    >
+                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-white truncate relative z-10">{categoryName}</h3>
                     </div>
                     
                     {/* Products in Category */}
-                    <div className="space-y-2 pl-2 sm:pl-4">
+                    <div className="space-y-2 pl-1.5 sm:pl-2 relative z-0">
                       {categoryProducts.map((product) => {
                         const isSelected = selectedProduct === product._id;
                         const isOutOfStock = (product.remainingQuantity || 0) === 0;
@@ -321,45 +577,77 @@ export default function GeneratePage() {
                           <div
                             key={product._id}
                             onClick={() => !isOutOfStock && setSelectedProduct(product._id)}
-                            className={`group p-2.5 sm:p-3 rounded-lg border transition-all duration-300 ${
+                            className={`droplet-container group p-2 sm:p-2.5 transition-all duration-300 min-w-0 overflow-visible ${
                               isOutOfStock
-                                ? 'border-gray-800 bg-gray-950/30 opacity-60 cursor-not-allowed'
+                                ? 'opacity-60 cursor-not-allowed relative z-10'
                                 : isSelected
-                                ? 'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20 cursor-pointer'
-                                : 'border-gray-800 bg-gray-950/50 hover:border-cyan-500/50 hover:bg-gray-900/50 cursor-pointer'
+                                ? 'cursor-pointer relative z-30'
+                                : 'cursor-pointer hover:z-20 relative z-10'
                             }`}
+                            style={{
+                              background: isOutOfStock 
+                                ? 'rgba(255, 255, 255, 0.06)'
+                                : isSelected
+                                ? 'rgba(6, 182, 212, 0.22)'
+                                : 'rgba(255, 255, 255, 0.1)',
+                              backdropFilter: 'blur(7px) saturate(200%)',
+                              WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                              border: isOutOfStock
+                                ? '1px solid rgba(255, 255, 255, 0.12)'
+                                : isSelected
+                                ? '1px solid rgba(6, 182, 212, 0.45)'
+                                : '1px solid rgba(255, 255, 255, 0.2)',
+                              boxShadow: isSelected 
+                                ? `
+                                  0 4px 8px -2px rgba(6, 182, 212, 0.4),
+                                  0 2px 4px -1px rgba(6, 182, 212, 0.3),
+                                  inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                                  inset -1px -1px 2px 0 rgba(255, 255, 255, 0.15),
+                                  inset 1px 1px 2px 0 rgba(0, 0, 0, 0.1),
+                                  0 0 0 1px rgba(6, 182, 212, 0.25),
+                                  0 0 4px rgba(6, 182, 212, 0.15)
+                                `
+                                : `
+                                  0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                                  0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                                  inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                                  inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                                  inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                                  0 0 0 1px rgba(255, 255, 255, 0.05)
+                                `,
+                            }}
                           >
-                            <div className="flex items-center justify-between gap-2 sm:gap-4">
-                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1.5 sm:gap-2 min-w-0 w-full">
+                              <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0 overflow-hidden">
                                 <div className="flex-shrink-0">
                                 <ProductImage product={product} />
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 overflow-hidden pr-1 max-w-full">
                                   <p className={`font-semibold text-sm sm:text-base truncate ${
-                                    isSelected ? 'text-cyan-400' : isOutOfStock ? 'text-gray-500' : 'text-white'
+                                    isSelected ? 'text-cyan-200' : isOutOfStock ? 'text-white/70' : 'text-white'
                                   }`}>
                                     {product.name}
                                   </p>
-                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm mt-1">
-                                    <span className={`font-bold ${
-                                      isOutOfStock ? 'text-gray-500' : 'text-cyan-400'
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-xs mt-0.5 sm:mt-1">
+                                    <span className={`font-bold flex-shrink-0 text-sm ${
+                                      isOutOfStock ? 'text-white/70' : 'text-cyan-200'
                                     }`}>
                                       ${formatPrice(product.price)}
                                     </span>
-                                    <span className={isOutOfStock ? 'text-red-400' : 'text-gray-500'}>
+                                    <span className={`flex-shrink-0 text-sm ${isOutOfStock ? 'text-red-200' : 'text-white'}`}>
                                       {isOutOfStock ? t('generate.outOfStock') : `${t('generate.stock')}: ${product.remainingQuantity}`}
                                     </span>
                                   </div>
                                 </div>
                               </div>
                               {isSelected && !isOutOfStock && (
-                                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full"></div>
+                                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                                 </div>
                               )}
                               {isOutOfStock && (
-                                <div className="w-4 h-4 sm:w-5 sm:h-5 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-red-400 text-xs">×</span>
+                                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-red-300 text-sm font-bold">×</span>
                                 </div>
                               )}
                             </div>
@@ -371,23 +659,61 @@ export default function GeneratePage() {
                 ))}
               </div>
             )}
-          </Card>
-        </div>
+              </div>
+            </div>
 
-        {/* Purchase Panel */}
-        <div className="space-y-6">
-          <Card title={t('generate.purchaseDetails')} className="h-fit">
+            {/* Purchase Panel */}
+            <div className="space-y-4 min-w-0 overflow-visible relative z-10">
+              <div 
+                className="droplet-container p-3 sm:p-4 h-fit overflow-visible relative z-10"
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: `
+                0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.05)
+              `,
+            }}
+          >
+            <h3 className="text-sm sm:text-base font-bold text-white mb-2">{t('generate.purchaseDetails')}</h3>
             {selectedProductData ? (
-              <div className="space-y-6">
+              <div className="space-y-4 min-w-0 overflow-visible relative z-10">
                 {/* Selected Product Info */}
-                <div className="p-3 sm:p-4 bg-gray-950/50 rounded-xl border border-gray-800">
+                <div 
+                  className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-visible relative z-10"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: `
+                      0 24px 72px -16px rgba(0, 0, 0, 0.5),
+                      0 16px 48px -12px rgba(0, 0, 0, 0.4),
+                      0 8px 24px -8px rgba(0, 0, 0, 0.3),
+                      inset 0 2px 0 0 rgba(255, 255, 255, 0.3),
+                      inset -3px -3px 8px 0 rgba(255, 255, 255, 0.15),
+                      inset 4px 4px 8px 0 rgba(0, 0, 0, 0.12),
+                      0 0 0 1px rgba(255, 255, 255, 0.08)
+                    `,
+                  }}
+                >
                   <div className="flex items-center gap-2 sm:gap-3 mb-3">
                     <div className="flex-shrink-0">
                     <ProductImage product={selectedProductData} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-md text-purple-300 text-xs font-semibold whitespace-nowrap">
+                        <span 
+                          className="px-2 py-0.5 rounded-full text-white text-xs font-semibold whitespace-nowrap"
+                          style={{
+                            background: 'rgba(168, 85, 247, 0.2)',
+                        backdropFilter: 'blur(7px) saturate(200%)',
+                        WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                            border: '1px solid rgba(168, 85, 247, 0.3)',
+                          }}
+                        >
                           {typeof selectedProductData.category === 'object'
                             ? selectedProductData.category.name
                             : 'N/A'}
@@ -396,7 +722,7 @@ export default function GeneratePage() {
                       <p className="text-white font-medium truncate text-sm sm:text-base">
                         {selectedProductData.name}
                       </p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-white/90 text-sm">
                         ${formatPrice(selectedProductData.price)} each
                       </p>
                     </div>
@@ -405,16 +731,30 @@ export default function GeneratePage() {
 
                 {/* Quantity */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     {t('generate.quantity')}
                   </label>
                   <div className="flex items-center gap-2 sm:gap-4">
                     <button
                       type="button"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
+                      className="water-droplet w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center flex-shrink-0 relative z-20"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        boxShadow: `
+                          0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                          0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                          inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                          inset -1px -1px 2px 0 rgba(255, 255, 255, 0.15),
+                          inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                          0 0 0 1px rgba(255, 255, 255, 0.08)
+                        `,
+                      }}
                     >
-                      <Minus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-300" />
+                      <Minus className="w-4 h-4 sm:w-5 sm:w-5 md:w-6 md:h-6 text-white relative z-10" />
                     </button>
                     <input
                       type="number"
@@ -425,37 +765,79 @@ export default function GeneratePage() {
                         const val = Math.max(1, Math.min(selectedProductData.remainingQuantity, parseInt(e.target.value) || 1));
                         setQuantity(val);
                       }}
-                      className="flex-1 sm:w-28 text-center bg-black/50 border border-gray-800 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-gray-100 text-base sm:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="flex-1 sm:w-28 text-center px-3 sm:px-4 py-2 sm:py-3 text-white text-base sm:text-lg font-semibold focus:outline-none"
+                      style={{
+                        borderRadius: '50px 50px 50px 8px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        boxShadow: `
+                          0 3px 5px -2px rgba(0, 0, 0, 0.15),
+                          0 2px 4px -1px rgba(0, 0, 0, 0.1),
+                          inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+                          inset -1px -1px 2px 0 rgba(255, 255, 255, 0.05),
+                          0 0 0 1px rgba(255, 255, 255, 0.05)
+                        `,
+                      }}
                     />
                     <button
                       type="button"
                       onClick={() => setQuantity(Math.min(selectedProductData.remainingQuantity, quantity + 1))}
-                      className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
+                      className="water-droplet w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center flex-shrink-0 relative z-20"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        boxShadow: `
+                          0 4px 8px -2px rgba(0, 0, 0, 0.3),
+                          0 2px 4px -1px rgba(0, 0, 0, 0.2),
+                          inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                          inset -1px -1px 2px 0 rgba(255, 255, 255, 0.15),
+                          inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                          0 0 0 1px rgba(255, 255, 255, 0.08)
+                        `,
+                      }}
                     >
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-300" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:w-5 md:w-6 md:h-6 text-white relative z-10" />
                     </button>
                   </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      {t('generate.maxAvailable')}: {selectedProductData.remainingQuantity} available
+                    <p className="text-sm text-white/80 mt-1.5 text-center">
+                      {t('generate.maxAvailable')}: {selectedProductData.remainingQuantity}
                     </p>
                 </div>
 
                 {/* Price Summary */}
-                <div className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/30 rounded-xl p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-300 text-sm">{t('generate.pricePerKey')}</span>
-                    <span className="text-cyan-400 font-semibold">
+                <div 
+                  className="droplet-container p-3 overflow-visible relative z-10"
+                  style={{
+                    background: 'rgba(6, 182, 212, 0.18)',
+                    border: '1px solid rgba(6, 182, 212, 0.35)',
+                    boxShadow: `
+                      0 4px 8px -2px rgba(6, 182, 212, 0.3),
+                      0 2px 4px -1px rgba(6, 182, 212, 0.2),
+                      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                      inset -1px -1px 2px 0 rgba(255, 255, 255, 0.1),
+                      inset 1px 1px 2px 0 rgba(0, 0, 0, 0.08),
+                      0 0 0 1px rgba(6, 182, 212, 0.2)
+                    `,
+                  }}
+                >
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-white text-sm font-medium">{t('generate.pricePerKey')}</span>
+                    <span className="text-cyan-300 font-semibold text-base">
                       ${formatPrice(selectedProductData.price)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-300 text-sm">{t('generate.quantity')}:</span>
-                    <span className="text-gray-300 font-medium">{quantity}</span>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-white text-sm font-medium">{t('generate.quantity')}:</span>
+                    <span className="text-white font-semibold text-base">{quantity}</span>
                   </div>
-                  <div className="border-t border-gray-800 pt-2 mt-2">
+                  <div className="border-t border-white/20 pt-1.5 mt-1.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300 font-medium">{t('generate.total')}</span>
-                      <span className="text-teal-400 font-bold text-2xl">
+                      <span className="text-white font-semibold text-base">{t('generate.total')}</span>
+                      <span className="text-teal-300 font-bold text-2xl">
                         ${formatPrice(totalPrice)}
                       </span>
                     </div>
@@ -463,15 +845,30 @@ export default function GeneratePage() {
                 </div>
 
                 {/* Wallet Balance */}
-                <div className="bg-gray-950/50 rounded-xl p-4 border border-gray-800">
+                <div 
+                  className="droplet-container p-3 overflow-visible relative z-10"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: `
+                      0 24px 72px -16px rgba(0, 0, 0, 0.5),
+                      0 16px 48px -12px rgba(0, 0, 0, 0.4),
+                      0 8px 24px -8px rgba(0, 0, 0, 0.3),
+                      inset 0 2px 0 0 rgba(255, 255, 255, 0.3),
+                      inset -3px -3px 8px 0 rgba(255, 255, 255, 0.15),
+                      inset 4px 4px 8px 0 rgba(0, 0, 0, 0.12),
+                      0 0 0 1px rgba(255, 255, 255, 0.08)
+                    `,
+                  }}
+                >
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">{t('generate.yourBalance')}</span>
-                    <span className="text-white font-semibold">
+                    <span className="text-white text-sm font-medium">{t('generate.yourBalance')}</span>
+                    <span className="text-white font-bold text-base">
                       {formatBalance(user?.wallet || 0)}$
                     </span>
                   </div>
                   {totalPrice > (user?.wallet || 0) && (
-                    <p className="text-red-400 text-xs mt-2 text-right">
+                    <p className="text-red-300 text-sm mt-1.5 text-right font-medium">
                       {t('generate.insufficientBalance')}
                     </p>
                   )}
@@ -480,7 +877,7 @@ export default function GeneratePage() {
                 {/* Purchase Button */}
                 <Button
                   onClick={handlePurchase}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 shadow-lg"
+                  className="w-full relative z-20"
                   isLoading={isLoading}
                   disabled={!selectedProduct || quantity < 1 || totalPrice > (user?.wallet || 0)}
                 >
@@ -489,39 +886,84 @@ export default function GeneratePage() {
                 </Button>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <Package className="w-12 h-12 mx-auto mb-3 text-gray-600" />
-                <p className="text-sm">{t('generate.selectProductToPurchase')}</p>
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 mx-auto mb-3 text-white/50" />
+                <p className="text-base text-white/80">{t('generate.selectProductToPurchase')}</p>
               </div>
             )}
-          </Card>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Key Modal */}
       {showKeyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in">
+          <div 
+            className="droplet-container p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(7px) saturate(200%)',
+                      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              boxShadow: `
+                0 4px 8px -2px rgba(0, 0, 0, 0.4),
+                0 2px 4px -1px rgba(0, 0, 0, 0.3),
+                0 2px 4px -1px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+                inset -1px -1px 2px 0 rgba(255, 255, 255, 0.15),
+                inset 1px 1px 2px 0 rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.08),
+                0 0 4px rgba(255, 255, 255, 0.05)
+              `,
+            }}
+          >
             {/* Header */}
             <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <div 
+                  className="water-droplet w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.25)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    boxShadow: `
+                      0 20px 60px -12px rgba(16, 185, 129, 0.4),
+                      0 12px 40px -8px rgba(16, 185, 129, 0.3),
+                      0 4px 16px -4px rgba(16, 185, 129, 0.2),
+                      inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                      inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+                      inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                      0 0 0 1px rgba(16, 185, 129, 0.25),
+                      0 0 30px rgba(16, 185, 129, 0.2)
+                    `,
+                  }}
+                >
+                  <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white relative z-10" />
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white truncate">
                     {t('generate.keysGenerated')}
                   </h2>
-                  <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                  <p className="text-white/60 text-xs sm:text-sm mt-1">
                     {purchasedKeys.length} {t('generate.key')}(s) {t('generate.purchased')}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowKeyModal(false)}
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors flex-shrink-0"
+                className="water-droplet w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(7px) saturate(200%)',
+                      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
+                }}
               >
-                <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white relative z-10" />
               </button>
             </div>
 
@@ -535,17 +977,39 @@ export default function GeneratePage() {
                 return (
                 <div
                     key={order._id || index}
-                    className="bg-gray-950/50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-700 hover:border-cyan-500/50 transition-colors"
+                    className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-hidden"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(50px) saturate(200%)',
+                      WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: `
+                      0 24px 72px -16px rgba(0, 0, 0, 0.5),
+                      0 16px 48px -12px rgba(0, 0, 0, 0.4),
+                      0 8px 24px -8px rgba(0, 0, 0, 0.3),
+                      inset 0 2px 0 0 rgba(255, 255, 255, 0.3),
+                      inset -3px -3px 8px 0 rgba(255, 255, 255, 0.15),
+                      inset 4px 4px 8px 0 rgba(0, 0, 0, 0.12),
+                      0 0 0 1px rgba(255, 255, 255, 0.08)
+                    `,
+                    }}
                 >
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                       <div className="flex-1 min-w-0 w-full sm:w-auto">
-                        <p className="text-gray-400 text-xs sm:text-sm mb-1 truncate">{order.productName || 'N/A'}</p>
+                        <p className="text-white/60 text-xs sm:text-sm mb-1 truncate">{order.productName || 'N/A'}</p>
                         <p className="font-mono text-sm sm:text-base md:text-lg font-bold text-cyan-400 break-all">{order.key}</p>
                     </div>
                     <button
                       onClick={() => copyToClipboard(order.key, index)}
-                        className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 rounded-lg transition-all flex items-center gap-2 min-w-[100px] justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
                         disabled={!order.key}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(7px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
+                        }}
                     >
                       {copiedKeyIndex === index ? (
                         <>
@@ -569,14 +1033,15 @@ export default function GeneratePage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={copyAllKeys}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                className="flex-1"
               >
                 <Copy className="w-5 h-5 inline mr-2" />
                 {t('generate.copyAllKeys')}
               </Button>
               <Button
                 onClick={() => setShowKeyModal(false)}
-                className="flex-1 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500"
+                variant="secondary"
+                className="flex-1"
               >
                 {t('common.close')}
               </Button>

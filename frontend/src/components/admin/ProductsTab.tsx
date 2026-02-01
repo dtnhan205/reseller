@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCategories, useProducts } from '@/hooks/useAdminData';
+import { adminApi } from '@/services/api';
+import { useToastStore } from '@/store/toastStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
-import { Plus, Search, X, Package, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, X, Package, Edit, Trash2, Key, Eye, Copy, Check } from 'lucide-react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/utils/format';
 
@@ -22,6 +24,7 @@ export default function ProductsTab({
   onDeleteProduct,
 }: ProductsTabProps) {
   const { t } = useTranslation();
+  const { success: showSuccess, error: showError } = useToastStore();
   const { categories } = useCategories();
   const { products, isLoading: isLoadingProducts } = useProducts();
   const [productForm, setProductForm] = useState({
@@ -31,6 +34,15 @@ export default function ProductsTab({
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productSearch, setProductSearch] = useState('');
+  const [viewingKeysProductId, setViewingKeysProductId] = useState<string | null>(null);
+  const [productKeys, setProductKeys] = useState<Array<{
+    _id: string;
+    value: string;
+    qtyAvailable: number;
+    createdAt: string;
+  }>>([]);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
   const filteredProducts = useMemo(() => {
     if (!productSearch) return products;
@@ -88,6 +100,30 @@ export default function ProductsTab({
   const handleCancelEditProduct = () => {
     setEditingProduct(null);
     setProductForm({ name: '', categoryId: '', price: '' });
+  };
+
+  const handleViewKeys = async (productId: string) => {
+    setIsLoadingKeys(true);
+    try {
+      const data = await adminApi.getProductKeys(productId);
+      setProductKeys(data.keys);
+      setViewingKeysProductId(productId);
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to load product keys');
+    } finally {
+      setIsLoadingKeys(false);
+    }
+  };
+
+  const handleCopyKey = async (key: string, keyId: string) => {
+    try {
+      await navigator.clipboard.writeText(key);
+      setCopiedKeyId(keyId);
+      showSuccess('Key copied!');
+      setTimeout(() => setCopiedKeyId(null), 2000);
+    } catch (err) {
+      showError('Failed to copy key');
+    }
   };
 
   return (
@@ -258,6 +294,13 @@ export default function ProductsTab({
                   </div>
                   <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
+                      onClick={() => handleViewKeys(product._id)}
+                      className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                      title="View Keys"
+                    >
+                      <Key className="w-4 h-4 text-yellow-400" />
+                    </button>
+                    <button
                       onClick={() => handleEditProduct(product)}
                       className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
                       title={t('common.edit')}
@@ -278,6 +321,169 @@ export default function ProductsTab({
           </div>
         )}
       </Card>
+
+      {/* Keys Modal */}
+      {viewingKeysProductId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in">
+          <div 
+            className="droplet-container p-4 sm:p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'blur(60px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(60px) saturate(200%)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              boxShadow: `
+                0 32px 96px -20px rgba(0, 0, 0, 0.7),
+                0 20px 64px -16px rgba(0, 0, 0, 0.6),
+                0 10px 32px -10px rgba(0, 0, 0, 0.5),
+                inset 0 2px 0 0 rgba(255, 255, 255, 0.4),
+                inset -4px -4px 10px 0 rgba(255, 255, 255, 0.2),
+                inset 5px 5px 10px 0 rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.12),
+                0 0 60px rgba(255, 255, 255, 0.08)
+              `,
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div 
+                  className="water-droplet w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: 'rgba(234, 179, 8, 0.25)',
+                    backdropFilter: 'blur(30px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                    border: '1px solid rgba(234, 179, 8, 0.4)',
+                    boxShadow: `
+                      0 20px 60px -12px rgba(234, 179, 8, 0.4),
+                      0 12px 40px -8px rgba(234, 179, 8, 0.3),
+                      0 4px 16px -4px rgba(234, 179, 8, 0.2),
+                      inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                      inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+                      inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                      0 0 0 1px rgba(234, 179, 8, 0.25),
+                      0 0 30px rgba(234, 179, 8, 0.2)
+                    `,
+                  }}
+                >
+                  <Key className="w-5 h-5 sm:w-6 sm:h-6 text-white relative z-10" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white truncate">
+                    Available Keys
+                  </h2>
+                  <p className="text-white/60 text-xs sm:text-sm mt-1">
+                    {productKeys.length} key(s) available
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setViewingKeysProductId(null);
+                  setProductKeys([]);
+                }}
+                className="water-droplet w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  backdropFilter: 'blur(30px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: `
+                    0 20px 60px -12px rgba(0, 0, 0, 0.5),
+                    0 12px 40px -8px rgba(0, 0, 0, 0.4),
+                    0 4px 16px -4px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                    inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+                    inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                    0 0 0 1px rgba(255, 255, 255, 0.1)
+                  `,
+                }}
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-white relative z-10" />
+              </button>
+            </div>
+
+            {/* Keys List */}
+            {isLoadingKeys ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+                <p className="text-white/60 mt-4">Loading keys...</p>
+              </div>
+            ) : productKeys.length === 0 ? (
+              <div className="text-center py-12">
+                <Key className="w-16 h-16 mx-auto mb-4 text-white/30" />
+                <p className="text-white/60">No available keys</p>
+              </div>
+            ) : (
+              <div className="space-y-2 sm:space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {productKeys.map((keyItem) => (
+                  <div
+                    key={keyItem._id}
+                    className="droplet-container p-3 sm:p-4"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(50px) saturate(200%)',
+                      WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: `
+                        0 24px 72px -16px rgba(0, 0, 0, 0.5),
+                        0 16px 48px -12px rgba(0, 0, 0, 0.4),
+                        0 8px 24px -8px rgba(0, 0, 0, 0.3),
+                        inset 0 2px 0 0 rgba(255, 255, 255, 0.3),
+                        inset -3px -3px 8px 0 rgba(255, 255, 255, 0.15),
+                        inset 4px 4px 8px 0 rgba(0, 0, 0, 0.12),
+                        0 0 0 1px rgba(255, 255, 255, 0.08)
+                      `,
+                    }}
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0 w-full sm:w-auto">
+                        <p className="font-mono text-sm sm:text-base md:text-lg font-bold text-yellow-400 break-all">
+                          {keyItem.value}
+                        </p>
+                        <p className="text-white/50 text-xs mt-1">
+                          Quantity: {keyItem.qtyAvailable} • Added: {new Date(keyItem.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleCopyKey(keyItem.value, keyItem._id)}
+                        className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm relative z-10"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.18)',
+                          backdropFilter: 'blur(30px) saturate(200%)',
+                          WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          boxShadow: `
+                            0 20px 60px -12px rgba(0, 0, 0, 0.5),
+                            0 12px 40px -8px rgba(0, 0, 0, 0.4),
+                            0 4px 16px -4px rgba(0, 0, 0, 0.3),
+                            inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                            inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+                            inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                            0 0 0 1px rgba(255, 255, 255, 0.1)
+                          `,
+                        }}
+                      >
+                        {copiedKeyId === keyItem._id ? (
+                          <>
+                            <Check className="w-4 h-4 text-white" />
+                            <span className="text-white">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 text-white" />
+                            <span className="text-white">Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

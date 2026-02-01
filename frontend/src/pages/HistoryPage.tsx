@@ -208,7 +208,7 @@ export default function HistoryPage() {
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mx-auto mb-4" />
-              <p className="text-gray-400">{t('common.loading')}</p>
+              <p className="text-white">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -226,7 +226,7 @@ export default function HistoryPage() {
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
               {t('history.title')}
             </h1>
-            <p className="text-gray-400 text-xs sm:text-sm mt-1">
+            <p className="text-white/90 text-xs sm:text-sm mt-1">
               {t('history.subtitle')}
             </p>
           </div>
@@ -247,7 +247,7 @@ export default function HistoryPage() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/90" />
             <Input
               type="text"
               placeholder={t('history.searchPlaceholder')}
@@ -258,7 +258,7 @@ export default function HistoryPage() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/90 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -268,13 +268,13 @@ export default function HistoryPage() {
 
         {orders.length === 0 ? (
           <div className="text-center py-12">
-            <Key className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-400">{t('history.noHistory')}</p>
+            <Key className="w-16 h-16 mx-auto mb-4 text-white/60" />
+            <p className="text-white">{t('history.noHistory')}</p>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
-            <Search className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-400">{t('history.noResults')}</p>
+            <Search className="w-16 h-16 mx-auto mb-4 text-white/60" />
+            <p className="text-white">{t('history.noResults')}</p>
           </div>
         ) : (
           <>
@@ -283,12 +283,12 @@ export default function HistoryPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800">
-                    <th className="text-left py-4 px-4 text-gray-300 font-semibold text-sm">#</th>
-                    <th className="text-left py-4 px-4 text-gray-300 font-semibold text-sm">KEY</th>
-                    <th className="text-left py-4 px-4 text-gray-300 font-semibold text-sm">TYPE</th>
-                    <th className="text-right py-4 px-4 text-gray-300 font-semibold text-sm">PRICE</th>
-                    <th className="text-right py-4 px-4 text-gray-300 font-semibold text-sm">DATE</th>
-                    <th className="text-center py-4 px-4 text-gray-300 font-semibold text-sm">ACTION</th>
+                    <th className="text-left py-4 px-4 text-white font-semibold text-sm">#</th>
+                    <th className="text-left py-4 px-4 text-white font-semibold text-sm">KEY</th>
+                    <th className="text-left py-4 px-4 text-white font-semibold text-sm">TYPE</th>
+                    <th className="text-right py-4 px-4 text-white font-semibold text-sm">PRICE</th>
+                    <th className="text-right py-4 px-4 text-white font-semibold text-sm">DATE</th>
+                    <th className="text-center py-4 px-4 text-white font-semibold text-sm">ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -297,20 +297,20 @@ export default function HistoryPage() {
                     if (!order || !order._id) return null;
                     return (
                   <tr key={order._id} className="border-b border-gray-800/50 hover:bg-gray-900/50 transition-colors">
-                    <td className="py-4 px-4 text-gray-200">#{idx + 1}</td>
+                    <td className="py-4 px-4 text-white">#{idx + 1}</td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <Key className="w-4 h-4 text-cyan-400" />
-                        <span className="text-gray-200 font-mono text-sm">
+                        <span className="text-white font-mono text-sm">
                           {truncateKey(order.key || '', 30)}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-gray-200 font-medium">{order.productName || 'N/A'}</td>
+                    <td className="py-4 px-4 text-white font-medium">{order.productName || 'N/A'}</td>
                     <td className="py-4 px-4 text-right text-teal-400 font-semibold">
                       ${formatPrice(order.price || 0)}
                     </td>
-                    <td className="py-4 px-4 text-right text-gray-400 text-sm">
+                    <td className="py-4 px-4 text-right text-white/90 text-sm">
                       {order.createdAt ? formatDateShort(order.createdAt) : 'N/A'}
                     </td>
                     <td className="py-4 px-4 text-center">
@@ -393,14 +393,14 @@ export default function HistoryPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-gray-400 text-xs">#{idx + 1}</span>
-                          <span className="text-gray-500">•</span>
-                          <span className="text-gray-400 text-xs">{order.createdAt ? formatDateShort(order.createdAt) : 'N/A'}</span>
+                          <span className="text-white/90 text-xs">#{idx + 1}</span>
+                          <span className="text-white/70">•</span>
+                          <span className="text-white/90 text-xs">{order.createdAt ? formatDateShort(order.createdAt) : 'N/A'}</span>
                         </div>
                         <p className="text-white font-medium text-sm mb-1">{order.productName || 'N/A'}</p>
                         <div className="flex items-center gap-2 mb-2">
                           <Key className="w-3 h-3 text-cyan-400 flex-shrink-0" />
-                          <span className="text-gray-200 font-mono text-xs break-all">{order.key || 'N/A'}</span>
+                          <span className="text-white font-mono text-xs break-all">{order.key || 'N/A'}</span>
                         </div>
                         <p className="text-teal-400 font-semibold text-sm">${formatPrice(order.price || 0)}</p>
                       </div>
@@ -460,7 +460,7 @@ export default function HistoryPage() {
         )}
 
         {filteredOrders.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-gray-800 text-center text-sm text-gray-400">
+          <div className="mt-6 pt-4 border-t border-gray-800 text-center text-sm text-white/90">
             {t('history.showing')} {filteredOrders.length} {t('history.of')} {orders.length} {t('history.orders')}
           </div>
         )}

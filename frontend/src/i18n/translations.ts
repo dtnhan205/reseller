@@ -68,6 +68,10 @@ export type TranslationKey =
   | 'generate.key'
   | 'generate.purchased'
   | 'generate.copyAllKeys'
+  | 'generate.seller'
+  | 'generate.totalProducts'
+  | 'generate.available'
+  | 'generate.totalValue'
   
   // Stats Page
   | 'stats.title'
@@ -143,6 +147,85 @@ export type TranslationKey =
   | 'transactions.total'
   | 'transactions.transaction'
   | 'transactions.transactions'
+  
+  // Footer
+  | 'footer.brand'
+  | 'footer.description'
+  | 'footer.quickLinks'
+  | 'footer.about'
+  | 'footer.support'
+  | 'footer.privacy'
+  | 'footer.terms'
+  | 'footer.contact'
+  | 'footer.zalo'
+  | 'footer.telegram'
+  | 'footer.allRightsReserved'
+  | 'footer.madeWith'
+  | 'footer.by'
+  | 'footer.team'
+  
+  // About Page
+  | 'about.title'
+  | 'about.subtitle'
+  | 'about.introduction'
+  | 'about.introText'
+  | 'about.mission'
+  | 'about.missionText'
+  | 'about.vision'
+  | 'about.visionText'
+  | 'about.values'
+  | 'about.valueSecurity'
+  | 'about.valueSecurityText'
+  | 'about.valueReliability'
+  | 'about.valueReliabilityText'
+  | 'about.valueInnovation'
+  | 'about.valueInnovationText'
+  
+  // Support Page
+  | 'support.title'
+  | 'support.subtitle'
+  | 'support.contactUs'
+  | 'support.zalo'
+  | 'support.zaloDesc'
+  | 'support.telegram'
+  | 'support.telegramDesc'
+  | 'support.faq'
+  | 'support.faq1Q'
+  | 'support.faq1A'
+  | 'support.faq2Q'
+  | 'support.faq2A'
+  | 'support.faq3Q'
+  | 'support.faq3A'
+  | 'support.responseTime'
+  | 'support.responseTimeDesc'
+  
+  // Privacy Page
+  | 'privacy.title'
+  | 'privacy.subtitle'
+  | 'privacy.intro'
+  | 'privacy.collectionTitle'
+  | 'privacy.collectionText'
+  | 'privacy.usageTitle'
+  | 'privacy.usageText'
+  | 'privacy.protectionTitle'
+  | 'privacy.protectionText'
+  | 'privacy.rightsTitle'
+  | 'privacy.rightsText'
+  | 'privacy.contact'
+  
+  // Terms Page
+  | 'terms.title'
+  | 'terms.subtitle'
+  | 'terms.intro'
+  | 'terms.acceptanceTitle'
+  | 'terms.acceptanceText'
+  | 'terms.usageTitle'
+  | 'terms.usageText'
+  | 'terms.prohibitedTitle'
+  | 'terms.prohibitedText'
+  | 'terms.liabilityTitle'
+  | 'terms.liabilityText'
+  | 'terms.contact'
   
   // Admin
   | 'admin.dashboard'
@@ -308,6 +391,10 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'generate.key': 'key',
     'generate.purchased': 'đã mua',
     'generate.copyAllKeys': 'Sao Chép Tất Cả Keys',
+    'generate.seller': 'Seller',
+    'generate.totalProducts': 'Tổng Sản phẩm',
+    'generate.available': 'Có sẵn',
+    'generate.totalValue': 'Tổng Giá trị',
     
     // Stats Page
     'stats.title': 'Thống kê',
@@ -453,6 +540,86 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.topupHistory': 'Lịch sử nạp tiền',
     'admin.noTopupHistory': 'Chưa có lịch sử nạp tiền',
     'admin.date': 'Ngày',
+    
+    // Footer
+    'footer.brand': 'Reseller Platform',
+    'footer.description': 'Nền tảng quản lý và phân phối key sản phẩm chuyên nghiệp, an toàn và hiệu quả.',
+    'footer.quickLinks': 'Liên kết nhanh',
+    'footer.about': 'Về chúng tôi',
+    'footer.support': 'Hỗ trợ',
+    'footer.privacy': 'Chính sách bảo mật',
+    'footer.terms': 'Điều khoản sử dụng',
+    'footer.contact': 'Liên hệ',
+    'footer.zalo': 'Zalo',
+    'footer.telegram': 'Telegram',
+    'footer.allRightsReserved': 'Tất cả quyền được bảo lưu.',
+    'footer.madeWith': 'Được tạo',
+    'footer.by': 'bởi',
+    'footer.team': 'Thế Nhân Dev',
+    
+    // About Page
+    'about.title': 'Về chúng tôi',
+    'about.subtitle': 'Tìm hiểu về nền tảng của chúng tôi',
+    'about.introduction': 'Giới thiệu',
+    'about.introText': 'Reseller Platform là nền tảng quản lý và phân phối key sản phẩm chuyên nghiệp, được thiết kế để mang lại trải nghiệm tốt nhất cho cả người bán và người mua. Chúng tôi cam kết cung cấp dịch vụ an toàn, nhanh chóng và đáng tin cậy.',
+    'about.mission': 'Sứ mệnh',
+    'about.missionText': 'Mang đến giải pháp quản lý key hiện đại, an toàn và hiệu quả, giúp các nhà bán hàng quản lý sản phẩm một cách dễ dàng và chuyên nghiệp.',
+    'about.vision': 'Tầm nhìn',
+    'about.visionText': 'Trở thành nền tảng hàng đầu trong lĩnh vực quản lý và phân phối key sản phẩm, được tin dùng bởi hàng nghìn người dùng trên toàn quốc.',
+    'about.values': 'Giá trị cốt lõi',
+    'about.valueSecurity': 'Bảo mật',
+    'about.valueSecurityText': 'Bảo vệ thông tin và dữ liệu người dùng với công nghệ mã hóa tiên tiến nhất.',
+    'about.valueReliability': 'Đáng tin cậy',
+    'about.valueReliabilityText': 'Hệ thống ổn định, hoạt động 24/7 với độ tin cậy cao.',
+    'about.valueInnovation': 'Đổi mới',
+    'about.valueInnovationText': 'Liên tục cải tiến và phát triển các tính năng mới để đáp ứng nhu cầu người dùng.',
+    
+    // Support Page
+    'support.title': 'Hỗ trợ',
+    'support.subtitle': 'Chúng tôi luôn sẵn sàng hỗ trợ bạn',
+    'support.contactUs': 'Liên hệ với chúng tôi',
+    'support.zalo': 'Zalo',
+    'support.zaloDesc': 'Liên hệ qua Zalo để được hỗ trợ nhanh chóng',
+    'support.telegram': 'Telegram',
+    'support.telegramDesc': 'Liên hệ qua Telegram để được tư vấn',
+    'support.faq': 'Câu hỏi thường gặp',
+    'support.faq1Q': 'Làm thế nào để nạp tiền vào tài khoản?',
+    'support.faq1A': 'Bạn có thể nạp tiền vào tài khoản bằng cách chuyển khoản ngân hàng. Hệ thống sẽ tự động cập nhật số dư sau khi nhận được thanh toán.',
+    'support.faq2Q': 'Key sản phẩm có thời hạn sử dụng không?',
+    'support.faq2A': 'Key sản phẩm có thời hạn sử dụng tùy thuộc vào từng loại sản phẩm. Vui lòng kiểm tra thông tin chi tiết trên trang sản phẩm.',
+    'support.faq3Q': 'Tôi có thể hoàn tiền nếu không hài lòng không?',
+    'support.faq3A': 'Chúng tôi có chính sách hoàn tiền trong vòng 24 giờ nếu key không hoạt động. Vui lòng liên hệ hỗ trợ để được xử lý.',
+    'support.responseTime': 'Thời gian phản hồi',
+    'support.responseTimeDesc': 'Chúng tôi cam kết phản hồi trong vòng 2 giờ làm việc (8:00 - 22:00 hàng ngày).',
+    
+    // Privacy Page
+    'privacy.title': 'Chính sách bảo mật',
+    'privacy.subtitle': 'Bảo vệ thông tin của bạn là ưu tiên hàng đầu',
+    'privacy.intro': 'Chúng tôi cam kết bảo vệ quyền riêng tư và thông tin cá nhân của người dùng. Chính sách này mô tả cách chúng tôi thu thập, sử dụng và bảo vệ thông tin của bạn.',
+    'privacy.collectionTitle': 'Thu thập thông tin',
+    'privacy.collectionText': 'Chúng tôi chỉ thu thập thông tin cần thiết để cung cấp dịch vụ, bao gồm: email, tên người dùng, và thông tin giao dịch. Tất cả thông tin được mã hóa và bảo mật an toàn.',
+    'privacy.usageTitle': 'Sử dụng thông tin',
+    'privacy.usageText': 'Thông tin của bạn được sử dụng để cung cấp dịch vụ, xử lý giao dịch, và cải thiện trải nghiệm người dùng. Chúng tôi không chia sẻ thông tin với bên thứ ba mà không có sự đồng ý của bạn.',
+    'privacy.protectionTitle': 'Bảo vệ thông tin',
+    'privacy.protectionText': 'Chúng tôi sử dụng công nghệ mã hóa SSL/TLS để bảo vệ dữ liệu trong quá trình truyền tải. Tất cả dữ liệu được lưu trữ trên máy chủ an toàn với các biện pháp bảo mật tiên tiến.',
+    'privacy.rightsTitle': 'Quyền của bạn',
+    'privacy.rightsText': 'Bạn có quyền truy cập, chỉnh sửa, hoặc xóa thông tin cá nhân của mình bất cứ lúc nào. Vui lòng liên hệ với chúng tôi nếu bạn muốn thực hiện các quyền này.',
+    'privacy.contact': 'Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ với chúng tôi qua Zalo hoặc Telegram.',
+    
+    // Terms Page
+    'terms.title': 'Điều khoản sử dụng',
+    'terms.subtitle': 'Điều khoản và điều kiện sử dụng dịch vụ',
+    'terms.intro': 'Bằng việc sử dụng nền tảng Reseller Platform, bạn đồng ý với các điều khoản và điều kiện sau đây. Vui lòng đọc kỹ trước khi sử dụng dịch vụ.',
+    'terms.acceptanceTitle': 'Chấp nhận điều khoản',
+    'terms.acceptanceText': 'Khi bạn đăng ký và sử dụng dịch vụ, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý tuân thủ tất cả các điều khoản này. Nếu bạn không đồng ý, vui lòng không sử dụng dịch vụ.',
+    'terms.usageTitle': 'Sử dụng dịch vụ',
+    'terms.usageText': 'Bạn được phép sử dụng dịch vụ cho mục đích hợp pháp. Bạn không được sử dụng dịch vụ để thực hiện bất kỳ hoạt động bất hợp pháp nào hoặc vi phạm quyền của người khác.',
+    'terms.prohibitedTitle': 'Hành vi bị cấm',
+    'terms.prohibitedText': 'Bạn không được: chia sẻ key với người khác, sử dụng key cho mục đích thương mại trái phép, cố gắng hack hoặc phá hoại hệ thống, hoặc thực hiện bất kỳ hành vi nào vi phạm pháp luật.',
+    'terms.liabilityTitle': 'Trách nhiệm',
+    'terms.liabilityText': 'Chúng tôi không chịu trách nhiệm về bất kỳ thiệt hại nào phát sinh từ việc sử dụng dịch vụ. Bạn sử dụng dịch vụ với rủi ro của chính mình.',
+    'terms.contact': 'Nếu bạn có bất kỳ câu hỏi nào về điều khoản sử dụng, vui lòng liên hệ với chúng tôi qua Zalo hoặc Telegram.',
+    
     'admin.completedAt': 'Hoàn thành lúc',
     'admin.currentBalance': 'Số dư hiện tại',
     'admin.newRate': 'Tỷ giá mới (VNĐ)',
@@ -544,6 +711,10 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       'generate.key': 'key',
       'generate.purchased': 'purchased',
       'generate.copyAllKeys': 'Copy All Keys',
+      'generate.seller': 'Seller',
+      'generate.totalProducts': 'Total Products',
+      'generate.available': 'Available',
+      'generate.totalValue': 'Total Value',
     
     // Stats Page
     'stats.title': 'Statistics',
@@ -691,6 +862,86 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.topupHistory': 'Topup History',
     'admin.noTopupHistory': 'No topup history yet',
     'admin.date': 'Date',
+    
+    // Footer
+    'footer.brand': 'Reseller Platform',
+    'footer.description': 'Professional, secure, and efficient product key management and distribution platform.',
+    'footer.quickLinks': 'Quick Links',
+    'footer.about': 'About Us',
+    'footer.support': 'Support',
+    'footer.privacy': 'Privacy Policy',
+    'footer.terms': 'Terms of Service',
+    'footer.contact': 'Contact',
+    'footer.zalo': 'Zalo',
+    'footer.telegram': 'Telegram',
+    'footer.allRightsReserved': 'All rights reserved.',
+    'footer.madeWith': 'Made',
+    'footer.by': 'by',
+    'footer.team': 'The Nhan Dev',
+    
+    // About Page
+    'about.title': 'About Us',
+    'about.subtitle': 'Learn about our platform',
+    'about.introduction': 'Introduction',
+    'about.introText': 'Reseller Platform is a professional product key management and distribution platform, designed to provide the best experience for both sellers and buyers. We are committed to providing safe, fast, and reliable services.',
+    'about.mission': 'Mission',
+    'about.missionText': 'To provide modern, secure, and efficient key management solutions, helping sellers manage products easily and professionally.',
+    'about.vision': 'Vision',
+    'about.visionText': 'To become the leading platform in product key management and distribution, trusted by thousands of users nationwide.',
+    'about.values': 'Core Values',
+    'about.valueSecurity': 'Security',
+    'about.valueSecurityText': 'Protect user information and data with the most advanced encryption technology.',
+    'about.valueReliability': 'Reliability',
+    'about.valueReliabilityText': 'Stable system, operating 24/7 with high reliability.',
+    'about.valueInnovation': 'Innovation',
+    'about.valueInnovationText': 'Continuously improve and develop new features to meet user needs.',
+    
+    // Support Page
+    'support.title': 'Support',
+    'support.subtitle': 'We are always ready to help you',
+    'support.contactUs': 'Contact Us',
+    'support.zalo': 'Zalo',
+    'support.zaloDesc': 'Contact via Zalo for quick support',
+    'support.telegram': 'Telegram',
+    'support.telegramDesc': 'Contact via Telegram for consultation',
+    'support.faq': 'Frequently Asked Questions',
+    'support.faq1Q': 'How to top up my account?',
+    'support.faq1A': 'You can top up your account by bank transfer. The system will automatically update your balance after receiving payment.',
+    'support.faq2Q': 'Do product keys have an expiration date?',
+    'support.faq2A': 'Product keys have an expiration date depending on each product. Please check the detailed information on the product page.',
+    'support.faq3Q': 'Can I get a refund if I am not satisfied?',
+    'support.faq3A': 'We have a refund policy within 24 hours if the key does not work. Please contact support for processing.',
+    'support.responseTime': 'Response Time',
+    'support.responseTimeDesc': 'We commit to respond within 2 working hours (8:00 - 22:00 daily).',
+    
+    // Privacy Page
+    'privacy.title': 'Privacy Policy',
+    'privacy.subtitle': 'Protecting your information is our top priority',
+    'privacy.intro': 'We are committed to protecting user privacy and personal information. This policy describes how we collect, use, and protect your information.',
+    'privacy.collectionTitle': 'Information Collection',
+    'privacy.collectionText': 'We only collect necessary information to provide services, including: email, username, and transaction information. All information is encrypted and securely protected.',
+    'privacy.usageTitle': 'Information Usage',
+    'privacy.usageText': 'Your information is used to provide services, process transactions, and improve user experience. We do not share information with third parties without your consent.',
+    'privacy.protectionTitle': 'Information Protection',
+    'privacy.protectionText': 'We use SSL/TLS encryption technology to protect data during transmission. All data is stored on secure servers with advanced security measures.',
+    'privacy.rightsTitle': 'Your Rights',
+    'privacy.rightsText': 'You have the right to access, edit, or delete your personal information at any time. Please contact us if you wish to exercise these rights.',
+    'privacy.contact': 'If you have any questions about the privacy policy, please contact us via Zalo or Telegram.',
+    
+    // Terms Page
+    'terms.title': 'Terms of Service',
+    'terms.subtitle': 'Terms and conditions for using the service',
+    'terms.intro': 'By using the Reseller Platform, you agree to the following terms and conditions. Please read carefully before using the service.',
+    'terms.acceptanceTitle': 'Acceptance of Terms',
+    'terms.acceptanceText': 'When you register and use the service, you confirm that you have read, understood, and agree to comply with all these terms. If you do not agree, please do not use the service.',
+    'terms.usageTitle': 'Service Usage',
+    'terms.usageText': 'You are permitted to use the service for lawful purposes. You may not use the service to perform any illegal activities or violate the rights of others.',
+    'terms.prohibitedTitle': 'Prohibited Conduct',
+    'terms.prohibitedText': 'You may not: share keys with others, use keys for illegal commercial purposes, attempt to hack or damage the system, or perform any illegal activities.',
+    'terms.liabilityTitle': 'Liability',
+    'terms.liabilityText': 'We are not responsible for any damages arising from the use of the service. You use the service at your own risk.',
+    'terms.contact': 'If you have any questions about the terms of service, please contact us via Zalo or Telegram.',
+    
     'admin.completedAt': 'Completed At',
     'admin.currentBalance': 'Current Balance',
     'admin.placeholderEmail': 'seller@example.com',
