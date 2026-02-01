@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { authApi } from '@/services/api';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const { error: showError, success: showSuccess } = useToastStore();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +20,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
-      showError('Please enter both email and password', 5000);
+      showError(t('auth.enterBoth'), 5000);
       return;
     }
     
@@ -31,7 +33,7 @@ export default function LoginPage() {
       
       if (response && response.token && response.user) {
         setAuth(response.user, response.token);
-        showSuccess('Login successful!');
+        showSuccess(t('auth.loginSuccess'));
         setTimeout(() => {
           navigate('/');
         }, 500);
@@ -40,7 +42,7 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      let errorMessage = 'Login failed';
+      let errorMessage = t('auth.loginFailed');
       
       if (err.response) {
         // Server responded with error
@@ -108,7 +110,7 @@ export default function LoginPage() {
               {/* Email Field */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  USERNAME
+                  {t('auth.username').toUpperCase()}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-teal-500/0 to-emerald-500/0 group-hover:from-cyan-500/10 group-hover:via-teal-500/10 group-hover:to-emerald-500/10 rounded-lg transition-all duration-300"></div>
@@ -116,7 +118,7 @@ export default function LoginPage() {
                     <Mail className="absolute left-4 w-5 h-5 text-gray-400 group-focus-within:text-cyan-400 transition-colors z-10" />
                     <Input
                       type="email"
-                      placeholder="Enter your username"
+                      placeholder={t('auth.enterUsername')}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="pl-12 bg-black/50 border-gray-800 focus:border-cyan-500 focus:ring-cyan-500/20"
@@ -129,7 +131,7 @@ export default function LoginPage() {
               {/* Password Field */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  PASSWORD
+                  {t('auth.password').toUpperCase()}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-teal-500/0 to-emerald-500/0 group-hover:from-cyan-500/10 group-hover:via-teal-500/10 group-hover:to-emerald-500/10 rounded-lg transition-all duration-300"></div>
@@ -137,7 +139,7 @@ export default function LoginPage() {
                     <Lock className="absolute left-4 w-5 h-5 text-gray-400 group-focus-within:text-cyan-400 transition-colors z-10" />
                     <Input
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder={t('auth.enterPassword')}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="pl-12 bg-black/50 border-gray-800 focus:border-cyan-500 focus:ring-cyan-500/20"
@@ -164,7 +166,7 @@ export default function LoginPage() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <Sparkles className="w-5 h-5" />
-                  AUTHENTICATE
+                  {t('auth.authenticate')}
                 </span>
               </Button>
             </form>

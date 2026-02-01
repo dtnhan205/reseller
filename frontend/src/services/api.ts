@@ -11,6 +11,9 @@ import type {
   TopupRequest,
   PurchaseRequest,
   PurchaseResponse,
+  BankAccount,
+  Payment,
+  ExchangeRate,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -83,13 +86,29 @@ export const adminApi = {
     const res = await api.get('/admin/sellers');
     return res.data;
   },
+  getSellerTopupHistory: async (sellerId: string): Promise<Payment[]> => {
+    const res = await api.get(`/admin/sellers/${sellerId}/topup-history`);
+    return res.data;
+  },
+  manualTopupSeller: async (sellerId: string, data: { amountUSD: number; note?: string }): Promise<{ payment: Payment; newBalance: number; message: string }> => {
+    const res = await api.post(`/admin/sellers/${sellerId}/topup`, data);
+    return res.data;
+  },
   getCategories: async (): Promise<Category[]> => {
     const res = await api.get('/admin/categories');
     return res.data;
   },
-  createCategory: async (name: string): Promise<Category> => {
-    const res = await api.post('/admin/categories', { name });
+  createCategory: async (name: string, image?: string): Promise<Category> => {
+    const res = await api.post('/admin/categories', { name, image });
+    // Backend returns { category }, so we need to extract it
+    return res.data.category || res.data;
+  },
+  updateCategory: async (id: string, data: { name?: string; image?: string }): Promise<Category> => {
+    const res = await api.put(`/admin/categories/${id}`, data);
     return res.data;
+  },
+  deleteCategory: async (id: string): Promise<void> => {
+    await api.delete(`/admin/categories/${id}`);
   },
   getProducts: async (): Promise<Product[]> => {
     const res = await api.get('/admin/products');
@@ -103,6 +122,17 @@ export const adminApi = {
     const res = await api.post('/admin/products', data);
     return res.data;
   },
+  updateProduct: async (id: string, data: {
+    name?: string;
+    categoryId?: string;
+    price?: number;
+  }): Promise<Product> => {
+    const res = await api.put(`/admin/products/${id}`, data);
+    return res.data;
+  },
+  deleteProduct: async (id: string): Promise<void> => {
+    await api.delete(`/admin/products/${id}`);
+  },
   addInventory: async (
     productId: string,
     keys: string[]
@@ -112,11 +142,63 @@ export const adminApi = {
     });
     return res.data;
   },
+  // Bank accounts management
+  getBankAccounts: async (): Promise<BankAccount[]> => {
+    const res = await api.get('/admin/bank-accounts');
+    return res.data;
+  },
+  createBankAccount: async (data: {
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+    apiUrl?: string;
+  }): Promise<BankAccount> => {
+    const res = await api.post('/admin/bank-accounts', data);
+    return res.data;
+  },
+  updateBankAccount: async (
+    id: string,
+    data: {
+      bankName?: string;
+      accountNumber?: string;
+      accountHolder?: string;
+      apiUrl?: string;
+      isActive?: boolean;
+    }
+  ): Promise<BankAccount> => {
+    const res = await api.put(`/admin/bank-accounts/${id}`, data);
+    return res.data;
+  },
+  deleteBankAccount: async (id: string): Promise<void> => {
+    await api.delete(`/admin/bank-accounts/${id}`);
+  },
+  // Exchange rate management
+  getExchangeRate: async (): Promise<{ usdToVnd: number }> => {
+    const res = await api.get('/admin/exchange-rate');
+    return res.data;
+  },
+  updateExchangeRate: async (usdToVnd: number): Promise<{ usdToVnd: number }> => {
+    const res = await api.put('/admin/exchange-rate', { usdToVnd });
+    return res.data;
+  },
+  // Reset requests
+  getResetRequests: async (): Promise<any[]> => {
+    const res = await api.get('/admin/reset-requests');
+    return res.data;
+  },
+  approveResetRequest: async (id: string): Promise<any> => {
+    const res = await api.put(`/admin/reset-requests/${id}/approve`);
+    return res.data;
+  },
+  rejectResetRequest: async (id: string): Promise<any> => {
+    const res = await api.put(`/admin/reset-requests/${id}/reject`);
+    return res.data;
+  },
 };
 
 // Seller APIs
 export const sellerApi = {
-  topup: async (data: TopupRequest): Promise<{ newBalance: number }> => {
+  topup: async (data: TopupRequest): Promise<Payment> => {
     const res = await api.post('/wallet/topup', data);
     return res.data;
   },
@@ -147,7 +229,31 @@ export const sellerApi = {
       throw error;
     }
   },
-};
-
-export default api;
+  // Payment APIs
+  getPayments: async (): Promise<Payment[]> => {
+    const res = await api.get('/payments');
+    return res.data;
+  },
+  getPaymentDetail: async (id: string): Promise<Payment> => {
+    const res = await api.get(`/payments/${id}`);
+    return res.data;
+  },
+  deletePayment: async (id: string): Promise<void> => {
+    await api.delete(`/payments/${id}`);
+  },
+  // Exchange rate (public for sellers)
+      getExchangeRate: async (): Promise<ExchangeRate> => {
+        const res = await api.get('/exchange-rate');
+        return res.data;
+      },
+      // Reset requests
+      createResetRequest: async (orderId: string): Promise<any> => {
+        const res = await api.post('/reset-request', { orderId });
+        return res.data;
+      },
+      getResetRequests: async (): Promise<any[]> => {
+        const res = await api.get('/reset-requests');
+        return res.data;
+      },
+    };
 

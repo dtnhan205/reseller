@@ -5,6 +5,7 @@ export interface User {
   email: string;
   role: UserRole;
   wallet?: number;
+  totalTopup?: number; // Tổng nạp tiền (USD)
   createdAt: string;
 }
 
@@ -12,6 +13,7 @@ export interface Category {
   _id: string;
   name: string;
   slug: string;
+  image?: string;
   createdAt: string;
 }
 
@@ -46,7 +48,8 @@ export interface Order {
 export interface TopupTransaction {
   _id: string;
   seller: string;
-  amount: number;
+  amount: number; // VND (backward compatibility)
+  amountUSD?: number; // USD
   createdAt: string;
 }
 
@@ -66,7 +69,7 @@ export interface RegisterRequest {
 }
 
 export interface TopupRequest {
-  amount: number;
+  amountUSD: number; // Amount in USD
 }
 
 export interface PurchaseRequest {
@@ -76,5 +79,51 @@ export interface PurchaseRequest {
 export interface PurchaseResponse {
   order: Order;
   newBalance: number;
+}
+
+export interface BankAccount {
+  _id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  apiUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Payment {
+  _id: string;
+  sellerId: string;
+  amount: number; // VNĐ (backward compatibility)
+  amountUSD?: number;
+  amountVND?: number;
+  transferContent: string;
+  bankAccountId: BankAccount | string | null;
+  status: 'pending' | 'completed' | 'expired';
+  completedAt?: string;
+  expiresAt: string;
+  note?: string; // Ghi chú cho manual topup
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExchangeRate {
+  usdToVnd: number;
+}
+
+export interface ResetRequest {
+  _id: string;
+  orderId: string | Order;
+  sellerId: string | User;
+  categoryName: string;
+  productName: string;
+  key: string;
+  requestedBy: string;
+  status: 'pending' | 'approved' | 'rejected';
+  processedAt?: string;
+  processedBy?: string | User;
+  createdAt: string;
+  updatedAt: string;
 }
 

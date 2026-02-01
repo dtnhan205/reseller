@@ -4,22 +4,81 @@ const { User } = require("../models/User");
 const { Product } = require("../models/Product");
 const { Order } = require("../models/Order");
 const { TopupTransaction } = require("../models/TopupTransaction");
+const { Payment } = require("../models/Payment");
+const { BankAccount } = require("../models/BankAccount");
+const { ExchangeRate } = require("../models/ExchangeRate");
+const { ResetRequest } = require("../models/ResetRequest");
+const { generateTransferContent } = require("../controllers/adminController");
 
 async function topupWallet(req, res) {
-  const { amount } = req.body || {};
-  const num = Number(amount);
-  if (!Number.isFinite(num) || num <= 0) throw new HttpError(400, "Invalid amount");
+  const { amountUSD } = req.body || {};
+  const numUSD = Number(amountUSD);
+  if (!Number.isFinite(numUSD) || numUSD <= 0) throw new HttpError(400, "Invalid amount");
+
+  // Lấy tỷ giá hiện tại
+  const exchangeRate = await ExchangeRate.getRate();
+  const amountVND = Math.round(numUSD * exchangeRate.usdToVnd);
 
   const user = await User.findById(req.user._id);
   if (!user) throw new HttpError(404, "User not found");
   if (user.role !== "seller") throw new HttpError(403, "Only seller can topup");
 
-  user.walletBalance += num;
-  await user.save();
-  
-  await TopupTransaction.create({ sellerId: user._id, amount: num });
-  
-  res.json({ newBalance: user.walletBalance });
+  // Kiểm tra số lượng đơn chưa thanh toán (pending)
+  const pendingPayments = await Payment.countDocuments({
+    sellerId: req.user._id,
+    status: "pending",
+  });
+
+  if (pendingPayments >= 3) {
+    throw new HttpError(400, "Bạn đã có 3 đơn chưa thanh toán. Vui lòng thanh toán hoặc xóa đơn cũ trước khi tạo đơn mới.");
+  }
+
+  // Kiểm tra chống spam: không cho tạo payment mới nếu đã tạo payment PENDING trong 5 phút gần đây
+  const fiveMinutesAgo = new Date();
+  fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+
+  const recentPendingPayment = await Payment.findOne({
+    sellerId: req.user._id,
+    status: "pending",
+    createdAt: { $gte: fiveMinutesAgo },
+  }).sort({ createdAt: -1 });
+
+  if (recentPendingPayment) {
+    const paymentTime = new Date(recentPendingPayment.createdAt);
+    const fiveMinutesAfterPayment = new Date(paymentTime.getTime() + 5 * 60000);
+    const now = new Date();
+    const timeRemainingMs = fiveMinutesAfterPayment.getTime() - now.getTime();
+
+    if (timeRemainingMs > 0) {
+      const timeRemainingSeconds = Math.ceil(timeRemainingMs / 1000);
+      const timeRemainingMinutes = Math.ceil(timeRemainingMs / 60000);
+      throw new HttpError(429, `Bạn đã tạo hóa đơn chưa thanh toán gần đây. Vui lòng đợi ${timeRemainingMinutes} phút nữa hoặc thanh toán/xóa đơn cũ trước khi tạo hóa đơn mới.`);
+    }
+  }
+
+  // Lấy tài khoản ngân hàng active
+  const bankAccount = await BankAccount.findOne({ isActive: true });
+  if (!bankAccount) {
+    throw new HttpError(404, "Hiện tại không có tài khoản ngân hàng nào hoạt động.");
+  }
+
+  // Tạo mã nội dung chuyển khoản unique
+  const transferContent = await generateTransferContent();
+
+  // Tạo payment
+  const payment = await Payment.create({
+    sellerId: user._id,
+    amount: amountVND, // Lưu VNĐ để tương thích với code cũ
+    amountUSD: numUSD,
+    amountVND: amountVND,
+    transferContent,
+    bankAccountId: bankAccount._id,
+  });
+
+  // Populate bank account để trả về thông tin đầy đủ
+  await payment.populate("bankAccountId");
+
+  res.status(201).json(payment);
 }
 
 async function purchase(req, res) {
@@ -73,8 +132,21 @@ async function purchase(req, res) {
     });
 
     const updatedSeller = await User.findById(req.user._id);
+    const order = createdOrder?.[0];
+    
+    // Transform order to match frontend format
+    const transformedOrder = order ? {
+      _id: order._id,
+      product: order.productId,
+      productName: order.productName,
+      key: order.keyValue, // Transform keyValue to key for frontend
+      price: order.price,
+      seller: order.sellerId,
+      createdAt: order.purchasedAt || order.createdAt,
+    } : null;
+    
     res.status(201).json({ 
-      order: createdOrder?.[0],
+      order: transformedOrder,
       newBalance: updatedSeller?.walletBalance || 0
     });
   } finally {
@@ -102,10 +174,17 @@ async function listOrders(req, res) {
 
 async function getProducts(req, res) {
   try {
+    console.log('Seller getProducts: User:', req.user?.email, 'Role:', req.user?.role);
+    // Chỉ select các field cần thiết, loại bỏ inventory để bảo mật
     const products = await Product.find()
-      .populate("categoryId", "name slug")
+      .select('-inventory') // Loại bỏ inventory để không trả về keys
+      .populate("categoryId", "name slug image")
+      .sort({ createdAt: -1 })
       .lean();
-    // Transform để match frontend format
+    
+    console.log('Seller getProducts: Found', products.length, 'products in database');
+    
+    // Transform để match frontend format - đảm bảo không có inventory
     const transformed = products.map((p) => ({
       _id: p._id,
       name: p.name,
@@ -115,8 +194,12 @@ async function getProducts(req, res) {
       remainingQuantity: p.totalQtyAvailable || 0,
       soldQuantity: p.totalQtySold || 0,
       createdAt: p.createdAt,
+      // KHÔNG bao gồm inventory để bảo mật
     }));
+    
     console.log('Seller getProducts: Returning', transformed.length, 'products');
+    console.log('Seller getProducts: Sample product:', transformed[0] || 'No products');
+    
     res.json(transformed);
   } catch (error) {
     console.error('Seller getProducts error:', error);
@@ -127,19 +210,175 @@ async function getProducts(req, res) {
 
 async function getTopupHistory(req, res) {
   if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
-  const transactions = await TopupTransaction.find({ sellerId: req.user._id })
-    .sort({ createdAt: -1 })
-    .lean();
+  
+  // Lấy cả TopupTransaction (cũ) và Payment (mới)
+  const [oldTransactions, payments] = await Promise.all([
+    TopupTransaction.find({ sellerId: req.user._id })
+      .sort({ createdAt: -1 })
+      .lean(),
+    Payment.find({ sellerId: req.user._id })
+      .populate("bankAccountId")
+      .sort({ createdAt: -1 })
+      .lean(),
+  ]);
+
   // Transform để match frontend format
-  const transformed = transactions.map((t) => ({
+  const oldTransformed = oldTransactions.map((t) => ({
     _id: t._id,
     seller: t.sellerId,
-    amount: t.amount,
+    amount: t.amount, // VND (backward compatibility)
+    amountUSD: t.amountUSD || (t.amount / 25000), // USD - fallback nếu không có
     createdAt: t.createdAt,
+    type: "manual", // Đánh dấu là nạp thủ công (cũ)
   }));
-  res.json(transformed);
+
+  const paymentTransformed = payments.map((p) => ({
+    _id: p._id,
+    seller: p.sellerId,
+    amount: p.amount, // VND (backward compatibility)
+    amountUSD: p.amountUSD || (p.amount / 25000), // USD - fallback nếu không có
+    createdAt: p.createdAt,
+    type: "payment", // Đánh dấu là payment (mới)
+    transferContent: p.transferContent,
+    status: p.status,
+    bankAccount: p.bankAccountId,
+    expiresAt: p.expiresAt,
+    completedAt: p.completedAt,
+  }));
+
+  // Gộp và sắp xếp theo thời gian
+  const allTransactions = [...oldTransformed, ...paymentTransformed].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  res.json(allTransactions);
 }
 
-module.exports = { topupWallet, purchase, listOrders, getProducts, getTopupHistory };
+// GET /api/payments - Seller: Xem danh sách payments
+async function getPayments(req, res) {
+  if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
+  const payments = await Payment.find({ sellerId: req.user._id })
+    .populate("bankAccountId")
+    .sort({ createdAt: -1 })
+    .lean();
+  res.json(payments);
+}
+
+// GET /api/payments/:id - Seller: Xem chi tiết payment
+async function getPaymentDetail(req, res) {
+  if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
+  const { id } = req.params;
+  const payment = await Payment.findOne({
+    _id: id,
+    sellerId: req.user._id,
+  }).populate("bankAccountId");
+
+  if (!payment) {
+    throw new HttpError(404, "Không tìm thấy hóa đơn.");
+  }
+
+  res.json(payment);
+}
+
+// DELETE /api/payments/:id - Seller: Xóa payment (chỉ được xóa đơn pending)
+async function deletePayment(req, res) {
+  if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
+  const { id } = req.params;
+  const payment = await Payment.findOne({
+    _id: id,
+    sellerId: req.user._id,
+  });
+
+  if (!payment) {
+    throw new HttpError(404, "Không tìm thấy hóa đơn.");
+  }
+
+  // Chỉ cho phép xóa đơn pending hoặc expired
+  if (payment.status === "completed") {
+    throw new HttpError(400, "Không thể xóa đơn đã thanh toán.");
+  }
+
+  await Payment.findByIdAndDelete(id);
+  res.json({ message: "Đã xóa hóa đơn thành công." });
+}
+
+// GET /api/exchange-rate - Public: Lấy tỷ giá hiện tại
+async function getExchangeRate(req, res) {
+  const rate = await ExchangeRate.getRate();
+  res.json({ usdToVnd: rate.usdToVnd });
+}
+
+// POST /api/reset-request - Seller: Tạo yêu cầu reset key
+async function createResetRequest(req, res) {
+  const { orderId } = req.body || {};
+  if (!orderId) throw new HttpError(400, "Missing orderId");
+
+  if (req.user.role !== "seller") throw new HttpError(403, "Only seller can request reset");
+
+  // Lấy order và populate product để lấy category
+  const order = await Order.findById(orderId)
+    .populate({
+      path: "productId",
+      populate: { path: "categoryId", select: "name" },
+    })
+    .lean();
+
+  if (!order) throw new HttpError(404, "Order not found");
+  if (order.sellerId.toString() !== req.user._id.toString()) {
+    throw new HttpError(403, "You can only request reset for your own orders");
+  }
+
+  // Kiểm tra xem đã có request pending chưa
+  const existingRequest = await ResetRequest.findOne({
+    orderId: order._id,
+    status: "pending",
+  });
+
+  if (existingRequest) {
+    throw new HttpError(400, "You already have a pending reset request for this order");
+  }
+
+  // Lấy category name
+  const categoryName =
+    order.productId?.categoryId?.name || "Unknown Category";
+
+  // Tạo reset request
+  const resetRequest = await ResetRequest.create({
+    orderId: order._id,
+    sellerId: req.user._id,
+    categoryName,
+    productName: order.productName,
+    key: order.keyValue,
+    requestedBy: req.user.email,
+  });
+
+  res.status(201).json(resetRequest);
+}
+
+// GET /api/reset-requests - Seller: Xem danh sách yêu cầu reset của mình
+async function getResetRequests(req, res) {
+  if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
+
+  const requests = await ResetRequest.find({ sellerId: req.user._id })
+    .populate("orderId", "productName keyValue")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  res.json(requests);
+}
+
+module.exports = { 
+  topupWallet, 
+  purchase, 
+  listOrders, 
+  getProducts, 
+  getTopupHistory,
+  getPayments,
+  getPaymentDetail,
+  deletePayment,
+  getExchangeRate,
+  createResetRequest,
+  getResetRequests,
+};
 
 

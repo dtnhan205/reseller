@@ -3,6 +3,7 @@ import { create } from 'zustand';
 // @ts-ignore
 import { persist } from 'zustand/middleware';
 import type { User } from '@/types';
+import { authApi } from '@/services/api';
 
 interface AuthState {
   user: User | null;
@@ -10,6 +11,7 @@ interface AuthState {
   setAuth: (user: User, token: string) => void;
   logout: () => void;
   updateUser: (user: User) => void;
+  refreshUser: () => Promise<void>;
 }
 
 type SetState<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>)) => void;
@@ -29,6 +31,15 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null });
       },
       updateUser: (user: User) => set({ user }),
+      refreshUser: async () => {
+        try {
+          const updatedUser = await authApi.me();
+          set({ user: updatedUser });
+        } catch (err) {
+          console.error('Failed to refresh user:', err);
+          // Don't throw error, just log it
+        }
+      },
     }),
     {
       name: 'auth-storage',

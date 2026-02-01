@@ -11,6 +11,7 @@ const { authRouter } = require("./routes/authRoutes");
 const { adminRouter } = require("./routes/adminRoutes");
 const { sellerRouter } = require("./routes/sellerRoutes");
 const { requireAuth } = require("./middleware/auth");
+const { checkAndUpdatePayments } = require("./services/bankTransactionService");
 
 const app = express();
 app.use(cors());
@@ -38,7 +39,40 @@ connectDb()
     app.listen(port, () => {
       // eslint-disable-next-line no-console
       console.log(`Backend listening on http://localhost:${port}`);
+      console.log("[Cron] Đang khởi động cron job kiểm tra thanh toán mỗi 15 giây...");
     });
+
+    // Cron job: Check thanh toán mỗi 15 giây
+    setInterval(async () => {
+      try {
+        const result = await checkAndUpdatePayments();
+        if (result.checked > 0) {
+          console.log(`[Cron] ✓ Đã kiểm tra ${result.checked} payment(s)`);
+        }
+        if (result.updated > 0) {
+          console.log(`[Cron] ✓ Đã cập nhật ${result.updated} payment(s) thành công!`);
+        }
+        if (result.deleted > 0) {
+          console.log(`[Cron] ✓ Đã xóa ${result.deleted} payment(s) đã hết hạn!`);
+        }
+        if (result.error) {
+          console.error(`[Cron] ✗ Lỗi: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("[Cron] ✗ Lỗi khi check thanh toán:", error.message);
+      }
+    }, 15000); // 15 giây
+
+    // Chạy ngay lần đầu sau 5 giây khi server start
+    setTimeout(async () => {
+      try {
+        console.log("[Cron] Chạy kiểm tra thanh toán lần đầu...");
+        const result = await checkAndUpdatePayments();
+        console.log(`[Cron] ✓ Lần đầu: Đã kiểm tra ${result.checked} payment(s), cập nhật ${result.updated} payment(s).`);
+      } catch (error) {
+        console.error("[Cron] ✗ Lỗi khi check thanh toán lần đầu:", error.message);
+      }
+    }, 5000); // 5 giây
   })
   .catch((err) => {
     // eslint-disable-next-line no-console

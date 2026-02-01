@@ -4,11 +4,12 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   title?: string;
+  id?: string;
 }
 
-export default function Card({ children, className = '', title }: CardProps) {
+export default function Card({ children, className = '', title, id }: CardProps) {
   return (
-    <div className={`card ${className}`}>
+    <div id={id} className={`card ${className}`}>
       {title && (
         <h3 className="text-3xl font-bold text-cyan-400 mb-6">{title}</h3>
       )}

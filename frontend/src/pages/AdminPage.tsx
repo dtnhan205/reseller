@@ -1,194 +1,225 @@
-import { useState, useEffect } from 'react';
-import { adminApi } from '@/services/api';
+import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useSellers, useCategories, useProducts } from '@/hooks/useAdminData';
 import {
   UserPlus,
-  Mail,
-  Lock,
   Shield,
   Package,
   Folder,
   Key,
-  Plus,
+  Building2,
+  DollarSign,
+  Users,
+  ShoppingBag,
+  Layers,
+  RotateCcw,
 } from 'lucide-react';
-import type { User, Category, Product } from '@/types';
-import { formatCurrency } from '@/utils/format';
+import { adminApi } from '@/services/api';
+import StatCard from '@/components/admin/StatCard';
+import SellersTab from '@/components/admin/SellersTab';
+import CategoriesTab from '@/components/admin/CategoriesTab';
+import ProductsTab from '@/components/admin/ProductsTab';
+import InventoryTab from '@/components/admin/InventoryTab';
+import BankAccountsTab from '@/components/admin/BankAccountsTab';
+import ExchangeRateTab from '@/components/admin/ExchangeRateTab';
+import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 
-type TabType = 'sellers' | 'categories' | 'products' | 'inventory';
+type TabType = 'sellers' | 'categories' | 'products' | 'inventory' | 'bank-accounts' | 'exchange-rate' | 'reset-requests';
 
 export default function AdminPage() {
   const { user } = useAuthStore();
-  const { success: showSuccess, error: showError } = useToastStore();
+  const { error: showError, success: showSuccess } = useToastStore();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('sellers');
 
-  // Sellers state
-  const [sellerForm, setSellerForm] = useState({ email: '', password: '' });
-  const [sellers, setSellers] = useState<User[]>([]);
-  const [isLoadingSellers, setIsLoadingSellers] = useState(false);
+  // Use custom hooks
+  const { sellers, createSeller } = useSellers();
+  const {
+    categories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  } = useCategories();
+  const {
+    products,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    addInventory,
+  } = useProducts();
 
-  // Categories state
-  const [categoryName, setCategoryName] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const totalSellers = sellers.length;
+    const totalCategories = categories.length;
+    const totalProducts = products.length;
+    const totalSold = products.reduce(
+      (sum, p) => sum + (p.soldQuantity || 0),
+      0
+    );
 
-  // Products state
-  const [productForm, setProductForm] = useState({ name: '', categoryId: '', price: '' });
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+    return {
+      totalSellers,
+      totalCategories,
+      totalProducts,
+      totalSold,
+    };
+  }, [sellers, categories, products]);
 
-  // Inventory state
-  const [selectedProductForInventory, setSelectedProductForInventory] = useState('');
-  const [inventoryKeys, setInventoryKeys] = useState('');
-  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
-
-  useEffect(() => {
-    if (activeTab === 'sellers') {
-      loadSellers();
-    } else if (activeTab === 'categories') {
-      loadCategories();
-    } else if (activeTab === 'products') {
-      loadProducts();
-      loadCategories(); // Need categories for product form
-    } else if (activeTab === 'inventory') {
-      loadProducts();
-    }
-  }, [activeTab]);
-
-  // Sellers
-  const loadSellers = async () => {
-    setIsLoadingSellers(true);
-    try {
-      const data = await adminApi.getSellers();
-      setSellers(data);
-    } catch (err) {
-      showError('Failed to load sellers');
-    } finally {
-      setIsLoadingSellers(false);
-    }
+  // Handlers
+  const handleCreateSeller = async (data: { email: string; password: string }) => {
+    return await createSeller(data);
   };
 
-  const handleCreateSeller = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateCategory = async (name: string, image?: string) => {
+    return await createCategory(name, image);
+  };
+
+  const handleUpdateCategory = async (id: string, data: { name?: string; image?: string }) => {
+    return await updateCategory(id, data);
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    return await deleteCategory(id);
+  };
+
+  const handleCreateProduct = async (data: { name: string; categoryId: string; price: number }) => {
+    return await createProduct(data);
+  };
+
+  const handleUpdateProduct = async (id: string, data: { name?: string; categoryId?: string; price?: number }) => {
+    return await updateProduct(id, data);
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    return await deleteProduct(id);
+  };
+
+  const handleAddInventory = async (productId: string, keys: string[]) => {
+    return await addInventory(productId, keys);
+  };
+
+  const handleCreateBankAccount = async (data: {
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+    apiUrl?: string;
+  }) => {
     try {
-      await adminApi.createSeller(sellerForm);
-      showSuccess('Seller created successfully!');
-      setSellerForm({ email: '', password: '' });
-      loadSellers();
+      const account = await adminApi.createBankAccount(data);
+      showSuccess('Bank account created successfully!');
+      return account;
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to create seller');
+      showError(err.response?.data?.message || 'Failed to create bank account');
+      throw err;
     }
   };
 
-  // Categories
-  const loadCategories = async () => {
-    setIsLoadingCategories(true);
+  const handleUpdateBankAccount = async (id: string, data: {
+    bankName?: string;
+    accountNumber?: string;
+    accountHolder?: string;
+    apiUrl?: string;
+    isActive?: boolean;
+  }) => {
     try {
-      const data = await adminApi.getCategories();
-      setCategories(data);
-    } catch (err) {
-      showError('Failed to load categories');
-    } finally {
-      setIsLoadingCategories(false);
-    }
-  };
-
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await adminApi.createCategory(categoryName);
-      showSuccess('Category created successfully!');
-      setCategoryName('');
-      loadCategories();
+      const account = await adminApi.updateBankAccount(id, data);
+      showSuccess('Bank account updated successfully!');
+      return account;
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to create category');
+      showError(err.response?.data?.message || 'Failed to update bank account');
+      throw err;
     }
   };
 
-  // Products
-  const loadProducts = async () => {
-    setIsLoadingProducts(true);
+  const handleDeleteBankAccount = async (id: string) => {
     try {
-      const data = await adminApi.getProducts();
-      setProducts(data);
-    } catch (err) {
-      showError('Failed to load products');
-    } finally {
-      setIsLoadingProducts(false);
-    }
-  };
-
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await adminApi.createProduct({
-        name: productForm.name,
-        categoryId: productForm.categoryId,
-        price: parseFloat(productForm.price),
-      });
-      showSuccess('Product created successfully!');
-      setProductForm({ name: '', categoryId: '', price: '' });
-      loadProducts();
+      await adminApi.deleteBankAccount(id);
+      showSuccess('Bank account deleted successfully!');
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to create product');
+      showError(err.response?.data?.message || 'Failed to delete bank account');
+      throw err;
     }
   };
 
-  // Inventory
-  const handleAddInventory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedProductForInventory || !inventoryKeys.trim()) {
-      showError('Please select a product and enter keys');
-      return;
-    }
-
-    setIsLoadingInventory(true);
+  const handleUpdateExchangeRate = async (rate: number) => {
     try {
-      const keys = inventoryKeys
-        .split('\n')
-        .map((k) => k.trim())
-        .filter((k) => k.length > 0);
-      
-      await adminApi.addInventory(selectedProductForInventory, keys);
-      showSuccess(`Added ${keys.length} key(s) to inventory!`);
-      setInventoryKeys('');
-      loadProducts();
+      const updated = await adminApi.updateExchangeRate(rate);
+      showSuccess('Exchange rate updated successfully!');
+      return updated;
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to add inventory');
-    } finally {
-      setIsLoadingInventory(false);
+      showError(err.response?.data?.message || 'Failed to update exchange rate');
+      throw err;
     }
   };
 
   const tabs = [
-    { id: 'sellers' as TabType, label: 'SELLERS', icon: UserPlus },
-    { id: 'categories' as TabType, label: 'CATEGORIES', icon: Folder },
-    { id: 'products' as TabType, label: 'PRODUCTS', icon: Package },
-    { id: 'inventory' as TabType, label: 'INVENTORY', icon: Key },
+    { id: 'sellers' as TabType, labelKey: 'admin.sellers', icon: UserPlus },
+    { id: 'categories' as TabType, labelKey: 'admin.categories', icon: Folder },
+    { id: 'products' as TabType, labelKey: 'admin.products', icon: Package },
+    { id: 'inventory' as TabType, labelKey: 'admin.inventory', icon: Key },
+    { id: 'bank-accounts' as TabType, labelKey: 'admin.bankAccounts', icon: Building2 },
+    { id: 'exchange-rate' as TabType, labelKey: 'admin.exchangeRate', icon: DollarSign },
+    { id: 'reset-requests' as TabType, labelKey: 'admin.resetRequests', icon: RotateCcw },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-            <Shield className="w-6 h-6 text-white" />
+    <div className="space-y-8 animate-fade-in">
+      {/* Header with Stats */}
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+              <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                {t('admin.dashboard')}
+              </h1>
+              <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                {t('admin.managePlatform')}
+              </p>
+            </div>
           </div>
-          <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
-            Admin Dashboard
-          </h2>
-            <p className="text-gray-400 text-sm">Manage sellers and system settings</p>
+          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-gray-950/50 rounded-xl border border-gray-800 w-full sm:w-auto justify-center sm:justify-start">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-gray-300 truncate">{user?.email}</span>
           </div>
+        </div>
+
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatCard
+            icon={Users}
+            label={t('admin.totalSellers')}
+            value={stats.totalSellers}
+            color="purple"
+          />
+          <StatCard
+            icon={Layers}
+            label={t('admin.totalCategories')}
+            value={stats.totalCategories}
+            color="blue"
+          />
+          <StatCard
+            icon={Package}
+            label={t('admin.totalProducts')}
+            value={stats.totalProducts}
+            color="cyan"
+          />
+          <StatCard
+            icon={ShoppingBag}
+            label={t('admin.totalSold')}
+            value={stats.totalSold}
+            color="green"
+          />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-3 border-b border-gray-800 pb-2">
+      <div className="flex flex-wrap gap-2 sm:gap-2 border-b border-gray-800 pb-2 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -196,308 +227,69 @@ export default function AdminPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+              className={`group relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-xs sm:text-sm md:text-base whitespace-nowrap flex-shrink-0 ${
                 isActive
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-medium'
-                  : 'bg-gray-950 text-gray-300 hover:bg-gray-900 border border-gray-800'
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/30'
+                  : 'bg-gray-950/50 text-gray-300 hover:bg-gray-900 border border-gray-800 hover:border-gray-700'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <Icon
+                className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${
+                  isActive ? 'scale-110' : 'group-hover:scale-110'
+                }`}
+              />
+              <span className="hidden sm:inline">{t(tab.labelKey as any)}</span>
+              <span className="sm:hidden">{t(tab.labelKey as any).split(' ')[0]}</span>
+              {isActive && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 rounded-full" />
+              )}
             </button>
           );
         })}
       </div>
 
       {/* Tab Content */}
-      <div>
-        {/* Sellers Tab */}
+      <div className="min-h-[400px]">
         {activeTab === 'sellers' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card title="Create New Seller">
-              <form onSubmit={handleCreateSeller} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Email</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
-                    <Input
-                      type="email"
-                      placeholder="Enter seller email"
-                      value={sellerForm.email}
-                      onChange={(e) => setSellerForm({ ...sellerForm, email: e.target.value })}
-                      className="pl-12 bg-black/50 border-gray-800"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Password</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      value={sellerForm.password}
-                      onChange={(e) => setSellerForm({ ...sellerForm, password: e.target.value })}
-                      className="pl-12 bg-black/50 border-gray-800"
-                      required
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500"
-                >
-                  <UserPlus className="w-5 h-5 inline mr-2" />
-                  CREATE SELLER
-                </Button>
-              </form>
-            </Card>
-
-            <Card title="Sellers List">
-              {isLoadingSellers ? (
-                <div className="text-center py-8 text-gray-400">Loading...</div>
-              ) : sellers.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <UserPlus className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                  <p>No sellers yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {sellers.map((seller) => (
-                    <div
-                      key={seller._id}
-                      className="flex items-center justify-between p-4 bg-gray-950/50 rounded-lg border border-gray-800"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm">
-                            {seller.email.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">{seller.email}</p>
-                          <p className="text-gray-400 text-xs">
-                            Wallet: {formatCurrency(seller.wallet || 0)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
+          <SellersTab onCreateSeller={handleCreateSeller} />
         )}
 
-        {/* Categories Tab */}
         {activeTab === 'categories' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card title="Create Category">
-              <form onSubmit={handleCreateCategory} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Category Name</label>
-                  <Input
-                    placeholder="Enter category name"
-                    value={categoryName}
-                    onChange={(e) => setCategoryName(e.target.value)}
-                    className="bg-black/50 border-gray-800"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500"
-                >
-                  <Plus className="w-5 h-5 inline mr-2" />
-                  CREATE CATEGORY
-                </Button>
-              </form>
-            </Card>
-
-            <Card title="Categories List">
-              {isLoadingCategories ? (
-                <div className="text-center py-8 text-gray-400">Loading...</div>
-              ) : categories.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <Folder className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                  <p>No categories yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {categories.map((category) => (
-                    <div
-                      key={category._id}
-                      className="flex items-center justify-between p-4 bg-gray-950/50 rounded-lg border border-gray-800"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Folder className="w-5 h-5 text-cyan-400" />
-                        <div>
-                          <p className="text-white font-medium">{category.name}</p>
-                          <p className="text-gray-400 text-xs">{category.slug}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
+          <CategoriesTab
+            onCreateCategory={handleCreateCategory}
+            onUpdateCategory={handleUpdateCategory}
+            onDeleteCategory={handleDeleteCategory}
+          />
         )}
 
-        {/* Products Tab */}
         {activeTab === 'products' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card title="Create Product">
-              <form onSubmit={handleCreateProduct} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Product Name</label>
-                  <Input
-                    placeholder="Enter product name"
-                    value={productForm.name}
-                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    className="bg-black/50 border-gray-800"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Category</label>
-                  <select
-                    value={productForm.categoryId}
-                    onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value })}
-                    className="input-field bg-black/50 border-gray-800"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">Price</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value={productForm.price}
-                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                    className="bg-black/50 border-gray-800"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500"
-                >
-                  <Plus className="w-5 h-5 inline mr-2" />
-                  CREATE PRODUCT
-                </Button>
-              </form>
-            </Card>
-
-            <Card title="Products List">
-              {isLoadingProducts ? (
-                <div className="text-center py-8 text-gray-400">Loading...</div>
-              ) : products.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <Package className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-                  <p>No products yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {products.map((product) => (
-                    <div
-                      key={product._id}
-                      className="p-4 bg-gray-950/50 rounded-lg border border-gray-800"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <Package className="w-5 h-5 text-blue-400" />
-                          <div>
-                            <p className="text-white font-medium">{product.name}</p>
-                            <p className="text-gray-400 text-xs">
-                              {typeof product.category === 'object' ? product.category.name : 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-cyan-400 font-semibold">
-                          {formatCurrency(product.price)}
-                        </p>
-                      </div>
-                      <div className="flex gap-4 text-xs text-gray-400 mt-2">
-                        <span>Stock: {product.remainingQuantity}</span>
-                        <span>Sold: {product.soldQuantity}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
+          <ProductsTab
+            onCreateProduct={handleCreateProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+          />
         )}
 
-        {/* Inventory Tab */}
         {activeTab === 'inventory' && (
-          <Card title="Add Inventory Keys" className="max-w-2xl">
-            <form onSubmit={handleAddInventory} className="space-y-5">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">Product</label>
-                <select
-                  value={selectedProductForInventory}
-                  onChange={(e) => setSelectedProductForInventory(e.target.value)}
-                  className="input-field bg-black/50 border-gray-800"
-                  required
-                >
-                  <option value="">Select a product</option>
-                  {products.map((product) => (
-                    <option key={product._id} value={product._id}>
-                      {product.name} - {formatCurrency(product.price)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  Keys (one per line)
-                </label>
-                <textarea
-                  value={inventoryKeys}
-                  onChange={(e) => setInventoryKeys(e.target.value)}
-                  placeholder="Enter keys, one per line..."
-                  rows={8}
-                  className="w-full bg-black/50 border border-gray-800 rounded-lg px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-              <Button
-                type="submit"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500"
-                  isLoading={isLoadingInventory}
-              >
-                <Key className="w-5 h-5 inline mr-2" />
-                ADD INVENTORY
-              </Button>
-            </form>
-          </Card>
+          <InventoryTab onAddInventory={handleAddInventory} />
+        )}
+
+        {activeTab === 'bank-accounts' && (
+          <BankAccountsTab
+            onCreateBankAccount={handleCreateBankAccount}
+            onUpdateBankAccount={handleUpdateBankAccount}
+            onDeleteBankAccount={handleDeleteBankAccount}
+          />
+        )}
+
+        {activeTab === 'exchange-rate' && (
+          <ExchangeRateTab onUpdateExchangeRate={handleUpdateExchangeRate} />
+        )}
+
+        {activeTab === 'reset-requests' && (
+          <ResetRequestsTab />
         )}
       </div>
-
-      {/* Admin Info */}
-      <Card className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border-cyan-500/30">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-            <Shield className="w-6 h-6 text-cyan-400" />
-          </div>
-          <div>
-            <p className="text-gray-300 text-sm">Logged in as</p>
-            <p className="text-cyan-400 font-semibold">{user?.email}</p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
