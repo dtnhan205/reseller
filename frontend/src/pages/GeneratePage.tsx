@@ -400,7 +400,7 @@ export default function GeneratePage() {
             className="droplet-container p-4 sm:p-5"
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'saturate(200%)',
+              backdropFilter: 'saturate(120%)',
               WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: `
@@ -450,7 +450,7 @@ export default function GeneratePage() {
               className="droplet-container p-4"
               style={{
                 background: 'rgba(168, 85, 247, 0.06)',
-                         backdropFilter: 'blur(8px) saturate(200%)',
+                         backdropFilter: 'saturate(120%)',
                          WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                 border: '1px solid rgba(168, 85, 247, 0.3)',
                 boxShadow: `
@@ -476,7 +476,7 @@ export default function GeneratePage() {
             className="droplet-container p-4"
             style={{
               background: 'rgba(6, 182, 212, 0.06)',
-              backdropFilter: 'blur(8px) saturate(200%)',
+              backdropFilter: 'saturate(120%)',
               WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(6, 182, 212, 0.3)',
               boxShadow: `
@@ -501,7 +501,7 @@ export default function GeneratePage() {
             className="droplet-container p-4"
             style={{
               background: 'rgba(255, 255, 255, 0.04)',
-              backdropFilter: 'blur(8px) saturate(200%)',
+              backdropFilter: 'saturate(120%)',
               WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: `
