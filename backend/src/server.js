@@ -15,12 +15,64 @@ const { checkAndUpdatePayments } = require("./services/bankTransactionService");
 const { getExchangeRate } = require("./controllers/sellerController");
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+
+// Test routes - để kiểm tra API
+app.get("/api/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "API is working!",
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    headers: {
+      authorization: req.headers.authorization ? "Present" : "Not present",
+      "content-type": req.headers["content-type"] || "Not set"
+    }
+  });
+});
+
+app.post("/api/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "POST API is working!",
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    headers: {
+      authorization: req.headers.authorization ? "Present" : "Not present",
+      "content-type": req.headers["content-type"] || "Not set"
+    }
+  });
+});
+
+app.get("/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Test endpoint is working!",
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path
+  });
+});
 
 // Auth routes - không yêu cầu token (đăng ký trước requireAuth)
 app.use("/api/auth", authRouter);
@@ -33,9 +85,11 @@ app.get("/exchange-rate", getExchangeRate); // Keep for backward compatibility
 // Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);
 app.use("/api/admin", adminRouter);
-app.use("/api", sellerRouter);
 // Keep old routes for backward compatibility
 app.use("/admin", adminRouter);
+
+// Seller routes - phải đăng ký sau /api/admin để tránh conflict
+app.use("/api", sellerRouter);
 app.use("/", sellerRouter);
 
 app.use(errorHandler);
