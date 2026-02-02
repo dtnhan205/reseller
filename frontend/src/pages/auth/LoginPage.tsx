@@ -132,18 +132,18 @@ export default function LoginPage() {
           }}
         >
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-            {/* Email Field */}
-            <div className="space-y-2">
+              {/* Email Field */}
+              <div className="space-y-2">
               <label className="block text-sm font-semibold text-white mb-2">
-                {t('auth.username').toUpperCase()}
-              </label>
+                  {t('auth.username').toUpperCase()}
+                </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
                 <input
-                  type="email"
-                  placeholder={t('auth.enterUsername')}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      type="email"
+                      placeholder={t('auth.enterUsername')}
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 sm:py-3.5 text-white placeholder-white/50 focus:outline-none transition-all text-sm sm:text-base"
                   style={{
                     borderRadius: '50px 50px 50px 8px',
@@ -160,23 +160,23 @@ export default function LoginPage() {
                       0 0 0 1px rgba(255, 255, 255, 0.05)
                     `,
                   }}
-                  required
-                />
+                      required
+                    />
+                </div>
               </div>
-            </div>
 
-            {/* Password Field */}
-            <div className="space-y-2">
+              {/* Password Field */}
+              <div className="space-y-2">
               <label className="block text-sm font-semibold text-white mb-2">
-                {t('auth.password').toUpperCase()}
-              </label>
+                  {t('auth.password').toUpperCase()}
+                </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
                 <input
-                  type="password"
-                  placeholder={t('auth.enterPassword')}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      type="password"
+                      placeholder={t('auth.enterPassword')}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 sm:py-3.5 text-white placeholder-white/50 focus:outline-none transition-all text-sm sm:text-base"
                   style={{
                     borderRadius: '50px 50px 50px 8px',
@@ -193,14 +193,14 @@ export default function LoginPage() {
                       0 0 0 1px rgba(255, 255, 255, 0.05)
                     `,
                   }}
-                  required
-                />
+                      required
+                    />
               </div>
-            </div>
+              </div>
 
-            {/* Submit Button */}
+              {/* Submit Button */}
             <button
-              type="submit"
+                type="submit" 
               disabled={isLoading}
               className="water-droplet w-full mt-6 sm:mt-8 py-3.5 sm:py-4 px-6 sm:px-8 font-bold text-white transition-all duration-300 text-sm sm:text-base relative z-10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
@@ -233,7 +233,7 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-          </form>
+            </form>
         </div>
       </div>
     </div>

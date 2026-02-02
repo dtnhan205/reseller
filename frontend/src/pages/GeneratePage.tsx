@@ -427,8 +427,8 @@ export default function GeneratePage() {
             {t('generate.subtitle')}
           </p>
               </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
           {/* Admin Email Widget */}
           {user?.email && (
