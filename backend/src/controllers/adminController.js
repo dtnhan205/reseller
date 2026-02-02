@@ -9,6 +9,7 @@ const { BankAccount } = require("../models/BankAccount");
 const { ExchangeRate } = require("../models/ExchangeRate");
 const { Payment } = require("../models/Payment");
 const { ResetRequest } = require("../models/ResetRequest");
+const { Order } = require("../models/Order");
 
 async function createSeller(req, res) {
   const { email, password } = req.body || {};
@@ -498,6 +499,35 @@ async function rejectResetRequest(req, res) {
   res.json(request);
 }
 
+async function getAllOrders(req, res) {
+  const orders = await Order.find()
+    .populate("sellerId", "email")
+    .populate("productId", "name")
+    .sort({ purchasedAt: -1 })
+    .lean();
+
+  const formattedOrders = orders.map((order) => ({
+    _id: order._id,
+    sellerEmail: order.sellerId?.email || "Unknown",
+    sellerId: order.sellerId?._id || order.sellerId,
+    productName: order.productName || order.productId?.name || "Unknown",
+    productId: order.productId?._id || order.productId,
+    keyValue: order.keyValue,
+    price: order.price,
+    purchasedAt: order.purchasedAt || order.createdAt,
+    createdAt: order.createdAt,
+  }));
+
+  // Tính tổng doanh thu
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.price || 0), 0);
+
+  res.json({
+    orders: formattedOrders,
+    totalRevenue,
+    totalOrders: orders.length,
+  });
+}
+
 module.exports = {
   createSeller,
   createCategory,
@@ -523,6 +553,7 @@ module.exports = {
   getResetRequests,
   approveResetRequest,
   rejectResetRequest,
+  getAllOrders,
 };
 
 

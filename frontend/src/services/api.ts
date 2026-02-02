@@ -218,6 +218,25 @@ export const adminApi = {
     const res = await api.put(`/admin/reset-requests/${id}/reject`);
     return res.data;
   },
+  // Orders history
+  getAllOrders: async (): Promise<{
+    orders: Array<{
+      _id: string;
+      sellerEmail: string;
+      sellerId: string;
+      productName: string;
+      productId: string;
+      keyValue: string;
+      price: number;
+      purchasedAt: string;
+      createdAt: string;
+    }>;
+    totalRevenue: number;
+    totalOrders: number;
+  }> => {
+    const res = await api.get('/admin/orders');
+    return res.data;
+  },
 };
 
 // Seller APIs

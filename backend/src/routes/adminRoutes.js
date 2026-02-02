@@ -24,6 +24,7 @@ const {
   getResetRequests,
   approveResetRequest,
   rejectResetRequest,
+  getAllOrders,
 } = require("../controllers/adminController");
 
 const router = express.Router();
@@ -61,6 +62,9 @@ router.delete("/bank-accounts/:id", deleteBankAccount);
     router.get("/reset-requests", getResetRequests);
     router.put("/reset-requests/:id/approve", approveResetRequest);
     router.put("/reset-requests/:id/reject", rejectResetRequest);
+
+    // Orders history management
+    router.get("/orders", getAllOrders);
 
     module.exports = { adminRouter: router };
 
