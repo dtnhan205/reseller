@@ -12,8 +12,8 @@ export default function AboutPage() {
           className="water-droplet w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(7px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: `
               0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -32,7 +32,7 @@ export default function AboutPage() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             {t('about.title')}
           </h1>
-          <p className="text-white/90 text-xs sm:text-sm mt-1">
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {t('about.subtitle')}
           </p>
         </div>
@@ -42,7 +42,9 @@ export default function AboutPage() {
       <div 
         className="droplet-container p-6 sm:p-8 md:p-10"
         style={{
-          background: 'rgba(255, 255, 255, 0.15)',
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
           border: '1px solid rgba(255, 255, 255, 0.15)',
           boxShadow: `
             0 36px 108px -18px rgba(0, 0, 0, 0.65),
@@ -69,7 +71,7 @@ export default function AboutPage() {
             <h2 className="text-xl sm:text-2xl font-bold text-white">
               {t('about.introduction')}
             </h2>
-            <p className="text-white/90 text-sm sm:text-base leading-relaxed">
+            <p className="text-white/80 text-sm sm:text-base leading-relaxed">
               {t('about.introText')}
             </p>
           </div>
@@ -80,8 +82,8 @@ export default function AboutPage() {
               className="droplet-container p-4 sm:p-5"
               style={{
                 background: 'rgba(255, 255, 255, 0.06)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 boxShadow: `
                   0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -99,7 +101,7 @@ export default function AboutPage() {
                   {t('about.mission')}
                 </h3>
               </div>
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                 {t('about.missionText')}
               </p>
             </div>
@@ -108,8 +110,8 @@ export default function AboutPage() {
               className="droplet-container p-4 sm:p-5"
               style={{
                 background: 'rgba(255, 255, 255, 0.06)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 boxShadow: `
                   0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -127,7 +129,7 @@ export default function AboutPage() {
                   {t('about.vision')}
                 </h3>
               </div>
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
                 {t('about.visionText')}
               </p>
             </div>
@@ -149,8 +151,8 @@ export default function AboutPage() {
                   className="droplet-container p-4"
                   style={{
                     background: 'rgba(255, 255, 255, 0.06)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                     border: '1px solid rgba(255, 255, 255, 0.12)',
                     boxShadow: `
                       0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -164,10 +166,10 @@ export default function AboutPage() {
                 >
                   <Icon className="w-6 h-6 text-cyan-400 mb-2" />
                   <h4 className="text-base font-semibold text-white mb-2">
-                    {t(`about.value${key.charAt(0).toUpperCase() + key.slice(1)}`)}
+                    {t(`about.value${key.charAt(0).toUpperCase() + key.slice(1)}` as any)}
                   </h4>
                   <p className="text-white/70 text-sm leading-relaxed">
-                    {t(`about.value${key.charAt(0).toUpperCase() + key.slice(1)}Text`)}
+                    {t(`about.value${key.charAt(0).toUpperCase() + key.slice(1)}Text` as any)}
                   </p>
                 </div>
               ))}

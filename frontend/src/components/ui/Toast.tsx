@@ -17,23 +17,23 @@ interface ToastProps {
 
 export default function ToastComponent({ toast, onClose }: ToastProps) {
   useEffect(() => {
-    console.log('✅ ToastComponent mounted:', toast.id, 'duration:', toast.duration);
+    // console.log('✅ ToastComponent mounted:', toast.id, 'duration:', toast.duration);
     const duration = toast.duration || 5000;
     
     if (duration <= 0) {
       // Nếu duration = 0 hoặc âm, không tự đóng
-      console.log('⚠️ Toast has no duration, will not auto-close');
+      // console.log('⚠️ Toast has no duration, will not auto-close');
       return;
     }
     
-    console.log('⏰ Setting timer for', duration, 'ms');
+    // console.log('⏰ Setting timer for', duration, 'ms');
     const timer = setTimeout(() => {
-      console.log('⏰ Timer expired, closing toast:', toast.id);
+      // console.log('⏰ Timer expired, closing toast:', toast.id);
       onClose(toast.id);
     }, duration);
 
     return () => {
-      console.log('🧹 Toast cleanup (should only happen on unmount):', toast.id);
+      // console.log('🧹 Toast cleanup (should only happen on unmount):', toast.id);
       clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

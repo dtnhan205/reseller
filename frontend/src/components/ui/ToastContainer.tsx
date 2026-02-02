@@ -6,7 +6,7 @@ export default function ToastContainer() {
 
   // Debug: log toasts để kiểm tra
   if (toasts.length > 0) {
-    console.log('ToastContainer: Rendering toasts', toasts);
+    // console.log('ToastContainer: Rendering toasts', toasts);
   }
 
   if (toasts.length === 0) return null;

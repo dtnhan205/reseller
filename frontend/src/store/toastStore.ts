@@ -19,10 +19,10 @@ export const useToastStore = create<ToastState>((set) => ({
     set((state) => ({ toasts: [...state.toasts, toast] }));
   },
   removeToast: (id) => {
-    console.log('🗑️ Removing toast:', id);
+    // console.log('🗑️ Removing toast:', id);
     set((state) => {
       const filtered = state.toasts.filter((t) => t.id !== id);
-      console.log('🗑️ Toasts after removal:', filtered.length);
+      // console.log('🗑️ Toasts after removal:', filtered.length);
       return { toasts: filtered };
     });
   },
@@ -34,10 +34,10 @@ export const useToastStore = create<ToastState>((set) => ({
   error: (message, duration = 7000) => {
     const id = Math.random().toString(36).substring(7);
     const toast: Toast = { id, message, type: 'error', duration };
-    console.log('🔴 Toast error called:', { id, message, duration });
+    // console.log('🔴 Toast error called:', { id, message, duration });
     set((state) => {
       const newToasts = [...state.toasts, toast];
-      console.log('🔴 Toast state updated, total toasts:', newToasts.length);
+      // console.log('🔴 Toast state updated, total toasts:', newToasts.length);
       return { toasts: newToasts };
     });
   },

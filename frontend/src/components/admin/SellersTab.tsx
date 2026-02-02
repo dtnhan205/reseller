@@ -60,9 +60,21 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
     e.preventDefault();
     if (!selectedSeller) return;
     
-    const amount = parseFloat(topupForm.amountUSD);
-    if (!amount || amount <= 0) {
+    const trimmedAmount = topupForm.amountUSD.trim();
+    if (!trimmedAmount) {
+      showError('Please enter an amount');
+      return;
+    }
+    
+    const amount = parseFloat(trimmedAmount);
+    if (isNaN(amount) || amount <= 0 || !isFinite(amount)) {
       showError('Please enter a valid amount');
+      return;
+    }
+    
+    // Prevent extremely large amounts (security check)
+    if (amount > 1000000) {
+      showError('Amount is too large. Maximum is $1,000,000');
       return;
     }
 
@@ -130,7 +142,14 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
-        <Card title={t('admin.createSeller')} className="h-fit">
+        <Card 
+          title={t('admin.createSeller')} 
+          className="h-fit"
+          style={{
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
           <form onSubmit={handleCreateSeller} className="space-y-5">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
@@ -181,7 +200,14 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
           </form>
         </Card>
 
-        <Card title={t('admin.sellersList')} className="h-fit">
+        <Card 
+          title={t('admin.sellersList')} 
+          className="h-fit"
+          style={{
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
           <div className="mb-4">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -277,7 +303,13 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
       {/* Topup Modal */}
       {isTopupModalOpen && selectedSeller && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md animate-fade-in">
+          <Card 
+            className="w-full max-w-md animate-fade-in"
+            style={{
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+            }}
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{t('admin.topupSeller')}</h2>
               <button
@@ -360,7 +392,13 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
       {/* History Modal */}
       {isHistoryModalOpen && selectedSeller && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl max-h-[80vh] animate-fade-in">
+          <Card 
+            className="w-full max-w-2xl max-h-[80vh] animate-fade-in"
+            style={{
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+            }}
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{t('admin.topupHistory')} - {selectedSeller.email}</h2>
               <button

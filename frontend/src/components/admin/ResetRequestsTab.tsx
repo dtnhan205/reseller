@@ -6,7 +6,7 @@ import type { ResetRequest } from '@/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { RotateCcw, Loader2, Check, X, Clock } from 'lucide-react';
-import { formatDateShort, formatTimeAgo, truncateKey } from '@/utils/format';
+import { formatDateShort, truncateKey } from '@/utils/format';
 
 export default function ResetRequestsTab() {
   const { t } = useTranslation();
@@ -100,7 +100,12 @@ export default function ResetRequestsTab() {
   }
 
   return (
-    <Card>
+    <Card
+      style={{
+        backdropFilter: 'blur(2px) saturate(120%)',
+        WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+      }}
+    >
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-200 mb-2">{t('admin.resetRequestTitle')}</h2>
         <p className="text-gray-400 text-sm">{t('admin.resetRequestSubtitle')}</p>

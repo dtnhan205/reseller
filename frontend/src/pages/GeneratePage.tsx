@@ -30,7 +30,7 @@ function ProductImage({ product }: { product: Product }) {
     );
   }
   return (
-    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform flex-shrink-0">
+    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
       <Package className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
     </div>
   );
@@ -57,19 +57,19 @@ export default function GeneratePage() {
   const loadProducts = async () => {
     setIsLoadingProducts(true);
     try {
-      console.log('GeneratePage: Loading products...');
+      // console.log('GeneratePage: Loading products...');
       const data = await sellerApi.getProducts();
-      console.log('GeneratePage: Products received:', data);
-      console.log('GeneratePage: Products count:', data?.length || 0);
+      // console.log('GeneratePage: Products received:', data);
+      // console.log('GeneratePage: Products count:', data?.length || 0);
       
       if (!Array.isArray(data)) {
-        console.error('GeneratePage: Products is not an array:', data);
+        // console.error('GeneratePage: Products is not an array:', data);
         showError('Invalid products data format');
         return;
       }
       
       if (data.length === 0) {
-        console.warn('GeneratePage: No products found in database');
+        // console.warn('GeneratePage: No products found in database');
         setProducts([]);
         return;
       }
@@ -77,18 +77,18 @@ export default function GeneratePage() {
       // Show all products, but filter available ones for selection
       setProducts(data);
       const availableProducts = data.filter((p) => (p.remainingQuantity || 0) > 0);
-      console.log('GeneratePage: Available products:', availableProducts.length);
+      // console.log('GeneratePage: Available products:', availableProducts.length);
       
       if (availableProducts.length > 0 && !selectedProduct) {
         setSelectedProduct(availableProducts[0]._id);
       } else if (availableProducts.length === 0 && data.length > 0) {
         // Don't show error, just show out of stock message in UI
-        console.warn('GeneratePage: All products are out of stock');
+        // console.warn('GeneratePage: All products are out of stock');
       }
     } catch (err: any) {
-      console.error('GeneratePage: Error loading products:', err);
-      console.error('GeneratePage: Error response:', err.response?.data);
-      console.error('GeneratePage: Error status:', err.response?.status);
+      // console.error('GeneratePage: Error loading products:', err);
+      // console.error('GeneratePage: Error response:', err.response?.data);
+      // console.error('GeneratePage: Error status:', err.response?.status);
       
       let errorMessage = 'Failed to load products';
       if (err.response?.status === 401) {
@@ -148,6 +148,37 @@ export default function GeneratePage() {
       return;
     }
 
+    // Validate quantity
+    if (!quantity || quantity < 1 || !Number.isInteger(quantity) || !isFinite(quantity)) {
+      showError('Please enter a valid quantity');
+      return;
+    }
+
+    // Prevent extremely large quantities (security check)
+    if (quantity > 1000) {
+      showError('Quantity is too large. Maximum is 1000');
+      return;
+    }
+
+    // Check if product has enough stock
+    const selectedProductData = products.find((p) => p._id === selectedProduct);
+    if (!selectedProductData) {
+      showError('Product not found');
+      return;
+    }
+
+    if (quantity > (selectedProductData.remainingQuantity || 0)) {
+      showError('Not enough stock available');
+      return;
+    }
+
+    // Check if user has enough balance
+    const totalPrice = quantity * selectedProductData.price;
+    if (totalPrice > (user?.wallet || 0)) {
+      showError('Insufficient balance');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const promises = [];
@@ -198,7 +229,7 @@ export default function GeneratePage() {
         try {
           document.execCommand('copy');
         } catch (err) {
-          console.error('Fallback copy failed:', err);
+          // console.error('Fallback copy failed:', err);
           throw err;
         }
         document.body.removeChild(textArea);
@@ -207,7 +238,7 @@ export default function GeneratePage() {
       showSuccess('Copied!');
       setTimeout(() => setCopiedKeyIndex(null), 2000);
     } catch (err) {
-      console.error('Copy error:', err);
+      // console.error('Copy error:', err);
       showError('Failed to copy. Please try selecting and copying manually.');
     }
   };
@@ -240,14 +271,14 @@ export default function GeneratePage() {
         try {
           document.execCommand('copy');
         } catch (err) {
-          console.error('Fallback copy failed:', err);
+          // console.error('Fallback copy failed:', err);
           throw err;
         }
         document.body.removeChild(textArea);
       }
       showSuccess('All keys copied!');
     } catch (err) {
-      console.error('Copy all keys error:', err);
+      // console.error('Copy all keys error:', err);
       showError('Failed to copy. Please try selecting and copying manually.');
     }
   };
@@ -354,7 +385,9 @@ export default function GeneratePage() {
           <div 
             className="droplet-container p-4 sm:p-5"
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'saturate(200%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: `
                 0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -370,9 +403,9 @@ export default function GeneratePage() {
               <div 
                 className="water-droplet w-10 h-10 flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: ' saturate(200%)',
+                  WebkitBackdropFilter: 'blur(6px) saturate(200%)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: `
                     0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -388,11 +421,11 @@ export default function GeneratePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-xl font-bold text-white leading-tight">
-                  {t('generate.title')}
-                </h1>
-                <p className="text-white text-sm mt-0.5">
-                  {t('generate.subtitle')}
-                </p>
+            {t('generate.title')}
+          </h1>
+                <p className="text-white/80 text-sm mt-0.5">
+            {t('generate.subtitle')}
+          </p>
               </div>
             </div>
           </div>
@@ -402,7 +435,9 @@ export default function GeneratePage() {
             <div 
               className="droplet-container p-4"
               style={{
-                background: 'rgba(168, 85, 247, 0.15)',
+                background: 'rgba(168, 85, 247, 0.06)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                 border: '1px solid rgba(168, 85, 247, 0.3)',
                 boxShadow: `
                   0 4px 8px -2px rgba(168, 85, 247, 0.3),
@@ -426,7 +461,9 @@ export default function GeneratePage() {
           <div 
             className="droplet-container p-4"
             style={{
-              background: 'rgba(6, 182, 212, 0.15)',
+              background: 'rgba(6, 182, 212, 0.06)',
+              backdropFilter: 'blur(8px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(6, 182, 212, 0.3)',
               boxShadow: `
                 0 4px 8px -2px rgba(6, 182, 212, 0.3),
@@ -449,7 +486,9 @@ export default function GeneratePage() {
           <div 
             className="droplet-container p-4"
             style={{
-              background: 'rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.04)',
+              backdropFilter: 'blur(8px) saturate(200%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: `
                 0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -484,19 +523,21 @@ export default function GeneratePage() {
                 <span className="text-white font-bold text-lg">${formatPrice(totalValue)}</span>
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
         {/* Right Side - Product Selection & Purchase Panel (Horizontal Layout) */}
         <div className="col-span-1 lg:col-span-10 space-y-4 min-w-0 overflow-hidden">
           {/* Product Selection and Purchase Panel in one row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
-            {/* Product Selection */}
+        {/* Product Selection */}
             <div className="space-y-4 min-w-0 overflow-visible relative z-10">
               <div 
                 className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-visible relative z-10"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                     backdropFilter: 'blur(1px) saturate(120%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   boxShadow: `
                     0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -512,7 +553,7 @@ export default function GeneratePage() {
             {/* Search */}
             <div className="mb-2.5">
               <div className="relative">
-                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/70" />
                 <input
                   type="text"
                   placeholder={t('generate.searchProducts')}
@@ -521,9 +562,9 @@ export default function GeneratePage() {
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 text-sm sm:text-base text-white placeholder-gray-300 focus:outline-none transition-all"
                   style={{
                     borderRadius: '50px 50px 50px 8px',
-                    background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                     border: '1px solid rgba(255, 255, 255, 0.25)',
                     boxShadow: '0 4px 16px 0 rgba(0, 0, 0, 0.15)',
                   }}
@@ -534,12 +575,12 @@ export default function GeneratePage() {
             {isLoadingProducts ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto"></div>
-                <p className="text-white mt-4">{t('common.loading')}</p>
+                <p className="text-white/80 mt-4">{t('common.loading')}</p>
               </div>
             ) : Object.keys(groupedProducts).length === 0 ? (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 mx-auto mb-4 text-white/60" />
-                <p className="text-white">
+                <Package className="w-16 h-16 mx-auto mb-4 text-white/40" />
+                <p className="text-white/80">
                   {searchQuery ? t('admin.noSearchResults') : t('generate.noProductsAvailable')}
                 </p>
               </div>
@@ -552,8 +593,8 @@ export default function GeneratePage() {
                       className="droplet-container flex items-center gap-2 px-2 sm:px-2.5 py-1 sm:py-1.5 relative z-10"
                       style={{
                         background: 'rgba(168, 85, 247, 0.18)',
-                        backdropFilter: 'blur(7px) saturate(200%)',
-                        WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                         border: '1px solid rgba(168, 85, 247, 0.35)',
                         boxShadow: `
                           0 4px 8px -2px rgba(168, 85, 247, 0.3),
@@ -586,12 +627,12 @@ export default function GeneratePage() {
                             }`}
                             style={{
                               background: isOutOfStock 
-                                ? 'rgba(255, 255, 255, 0.06)'
+                                ? 'rgba(255, 255, 255, 0.08)'
                                 : isSelected
                                 ? 'rgba(6, 182, 212, 0.22)'
-                                : 'rgba(255, 255, 255, 0.1)',
-                              backdropFilter: 'blur(7px) saturate(200%)',
-                              WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                                : 'rgba(255, 255, 255, 0.3)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                               border: isOutOfStock
                                 ? '1px solid rgba(255, 255, 255, 0.12)'
                                 : isSelected
@@ -624,17 +665,17 @@ export default function GeneratePage() {
                                 </div>
                                 <div className="flex-1 min-w-0 overflow-hidden pr-1 max-w-full">
                                   <p className={`font-semibold text-sm sm:text-base truncate ${
-                                    isSelected ? 'text-cyan-200' : isOutOfStock ? 'text-white/70' : 'text-white'
+                                    isSelected ? 'text-cyan-300' : isOutOfStock ? 'text-gray-1000' : 'text-white'
                                   }`}>
                                     {product.name}
                                   </p>
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-xs mt-0.5 sm:mt-1">
                                     <span className={`font-bold flex-shrink-0 text-sm ${
-                                      isOutOfStock ? 'text-white/70' : 'text-cyan-200'
+                                      isOutOfStock ? 'text-gray-400' : 'text-cyan-300'
                                     }`}>
                                       ${formatPrice(product.price)}
                                     </span>
-                                    <span className={`flex-shrink-0 text-sm ${isOutOfStock ? 'text-red-200' : 'text-white'}`}>
+                                    <span className={`flex-shrink-0 text-sm ${isOutOfStock ? 'text-red-800' : 'text-white/90'}`}>
                                       {isOutOfStock ? t('generate.outOfStock') : `${t('generate.stock')}: ${product.remainingQuantity}`}
                                     </span>
                                   </div>
@@ -660,14 +701,16 @@ export default function GeneratePage() {
               </div>
             )}
               </div>
-            </div>
+        </div>
 
-            {/* Purchase Panel */}
+        {/* Purchase Panel */}
             <div className="space-y-4 min-w-0 overflow-visible relative z-10">
               <div 
                 className="droplet-container p-3 sm:p-4 h-fit overflow-visible relative z-10"
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(1px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow: `
                 0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -686,7 +729,9 @@ export default function GeneratePage() {
                 <div 
                   className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-visible relative z-10"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.15)',
+                    background: 'rgba(255, 255, 255, 0.07)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     boxShadow: `
                       0 24px 72px -16px rgba(0, 0, 0, 0.5),
@@ -709,8 +754,8 @@ export default function GeneratePage() {
                           className="px-2 py-0.5 rounded-full text-white text-xs font-semibold whitespace-nowrap"
                           style={{
                             background: 'rgba(168, 85, 247, 0.2)',
-                        backdropFilter: 'blur(7px) saturate(200%)',
-                        WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                             backdropFilter: 'blur(8px) saturate(180%)',
+                             WebkitBackdropFilter: 'blur(8px) saturate(180%)',
                             border: '1px solid rgba(168, 85, 247, 0.3)',
                           }}
                         >
@@ -741,8 +786,8 @@ export default function GeneratePage() {
                       className="water-droplet w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center flex-shrink-0 relative z-20"
                       style={{
                         background: 'rgba(255, 255, 255, 0.12)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
                         boxShadow: `
                           0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -762,15 +807,25 @@ export default function GeneratePage() {
                       max={selectedProductData.remainingQuantity}
                       value={quantity}
                       onChange={(e) => {
-                        const val = Math.max(1, Math.min(selectedProductData.remainingQuantity, parseInt(e.target.value) || 1));
+                        const inputValue = e.target.value.trim();
+                        if (!inputValue) {
+                          setQuantity(1);
+                          return;
+                        }
+                        const parsed = parseInt(inputValue, 10);
+                        if (isNaN(parsed) || !isFinite(parsed) || parsed < 1) {
+                          setQuantity(1);
+                          return;
+                        }
+                        const val = Math.max(1, Math.min(selectedProductData.remainingQuantity, parsed));
                         setQuantity(val);
                       }}
                       className="flex-1 sm:w-28 text-center px-3 sm:px-4 py-2 sm:py-3 text-white text-base sm:text-lg font-semibold focus:outline-none"
                       style={{
                         borderRadius: '50px 50px 50px 8px',
-                        background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                        background: 'rgba(255, 255, 255, 0.08)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                         border: '1px solid rgba(255, 255, 255, 0.25)',
                         boxShadow: `
                           0 3px 5px -2px rgba(0, 0, 0, 0.15),
@@ -787,8 +842,8 @@ export default function GeneratePage() {
                       className="water-droplet w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center flex-shrink-0 relative z-20"
                       style={{
                         background: 'rgba(255, 255, 255, 0.12)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
                         boxShadow: `
                           0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -813,6 +868,8 @@ export default function GeneratePage() {
                   className="droplet-container p-3 overflow-visible relative z-10"
                   style={{
                     background: 'rgba(6, 182, 212, 0.18)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                     border: '1px solid rgba(6, 182, 212, 0.35)',
                     boxShadow: `
                       0 4px 8px -2px rgba(6, 182, 212, 0.3),
@@ -848,7 +905,9 @@ export default function GeneratePage() {
                 <div 
                   className="droplet-container p-3 overflow-visible relative z-10"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.15)',
+                    background: 'rgba(255, 255, 255, 0.07)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     boxShadow: `
                       0 24px 72px -16px rgba(0, 0, 0, 0.5),
@@ -903,9 +962,9 @@ export default function GeneratePage() {
           <div 
             className="droplet-container p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl"
             style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(7px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+              background: 'rgba(255, 255, 255, 0.08)',
+               backdropFilter: 'blur(15px) saturate(200%)',
+               WebkitBackdropFilter: 'blur(15px) saturate(200%)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
               boxShadow: `
                 0 4px 8px -2px rgba(0, 0, 0, 0.4),
@@ -926,8 +985,8 @@ export default function GeneratePage() {
                   className="water-droplet w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0"
                   style={{
                     background: 'rgba(16, 185, 129, 0.25)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                         backdropFilter: 'blur(8px) saturate(200%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                     border: '1px solid rgba(16, 185, 129, 0.4)',
                     boxShadow: `
                       0 20px 60px -12px rgba(16, 185, 129, 0.4),
@@ -956,9 +1015,9 @@ export default function GeneratePage() {
                 onClick={() => setShowKeyModal(false)}
                 className="water-droplet w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(7px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(6px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(6px) saturate(200%)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
                 }}
@@ -971,7 +1030,7 @@ export default function GeneratePage() {
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
               {purchasedKeys.map((order, index) => {
                 if (!order || !order.key) {
-                  console.warn('Invalid order in purchasedKeys:', order);
+                  // console.warn('Invalid order in purchasedKeys:', order);
                   return null;
                 }
                 return (
@@ -979,9 +1038,9 @@ export default function GeneratePage() {
                     key={order._id || index}
                     className="droplet-container p-2.5 sm:p-3 min-w-0 overflow-hidden"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(50px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+                      background: 'rgba(255, 255, 255, 0.07)',
+                     backdropFilter: 'blur(12px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(12px) saturate(200%)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       boxShadow: `
                       0 24px 72px -16px rgba(0, 0, 0, 0.5),
@@ -1005,8 +1064,8 @@ export default function GeneratePage() {
                         disabled={!order.key}
                         style={{
                           background: 'rgba(255, 255, 255, 0.12)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                         backdropFilter: 'blur(2px) saturate(120%)',
+                         WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                           border: '1px solid rgba(255, 255, 255, 0.3)',
                           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
                         }}

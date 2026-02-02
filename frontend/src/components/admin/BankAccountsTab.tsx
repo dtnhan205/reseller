@@ -5,7 +5,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { Plus, Building2, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Building2, Edit, Trash2 } from 'lucide-react';
 import type { BankAccount } from '@/types';
 import { useToastStore } from '@/store/toastStore';
 
@@ -78,7 +78,7 @@ export default function BankAccountsTab({
       });
       await loadBankAccounts();
     } catch (err) {
-      console.error('Failed to create bank account:', err);
+      // console.error('Failed to create bank account:', err);
     }
   };
 
@@ -114,7 +114,7 @@ export default function BankAccountsTab({
       setEditingBankAccount(null);
       await loadBankAccounts();
     } catch (err) {
-      console.error('Failed to update bank account:', err);
+      // console.error('Failed to update bank account:', err);
     }
   };
 
@@ -124,7 +124,7 @@ export default function BankAccountsTab({
         await onDeleteBankAccount(id);
         await loadBankAccounts();
       } catch (err) {
-        console.error('Failed to delete bank account:', err);
+        // console.error('Failed to delete bank account:', err);
       }
     }
   };
@@ -142,7 +142,14 @@ export default function BankAccountsTab({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
-      <Card title={editingBankAccount ? t('common.edit') : t('admin.createBankAccount')} className="h-fit">
+      <Card 
+        title={editingBankAccount ? t('common.edit') : t('admin.createBankAccount')} 
+        className="h-fit"
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         <form onSubmit={editingBankAccount ? handleUpdateBankAccount : handleCreateBankAccount} className="space-y-5">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
@@ -232,7 +239,14 @@ export default function BankAccountsTab({
         </form>
       </Card>
 
-      <Card title={t('admin.bankAccountsList')} className="h-fit">
+      <Card 
+        title={t('admin.bankAccountsList')} 
+        className="h-fit"
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         {isLoadingBankAccounts ? (
           <SkeletonLoader />
         ) : bankAccounts.length === 0 ? (

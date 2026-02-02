@@ -76,7 +76,14 @@ export default function CategoriesTab({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-      <Card title={t('admin.createCategory')} className="h-fit">
+      <Card 
+        title={t('admin.createCategory')} 
+        className="h-fit"
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         <form onSubmit={editingCategory ? handleUpdateCategory : handleCreateCategory} className="space-y-5">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
@@ -153,7 +160,14 @@ export default function CategoriesTab({
         </form>
       </Card>
 
-      <Card title={t('admin.categoriesList')} className="h-fit">
+      <Card 
+        title={t('admin.categoriesList')} 
+        className="h-fit"
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         <div className="mb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />

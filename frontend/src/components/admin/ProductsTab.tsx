@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
-import { Plus, Search, X, Package, Edit, Trash2, Key, Eye, Copy, Check } from 'lucide-react';
+import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check } from 'lucide-react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/utils/format';
 
@@ -58,10 +58,28 @@ export default function ProductsTab({
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedPrice = productForm.price.trim();
+    if (!trimmedPrice) {
+      showError('Please enter a price');
+      return;
+    }
+    
+    const price = parseFloat(trimmedPrice);
+    if (isNaN(price) || price <= 0 || !isFinite(price)) {
+      showError('Please enter a valid price');
+      return;
+    }
+    
+    // Prevent extremely large prices (security check)
+    if (price > 1000000) {
+      showError('Price is too large. Maximum is $1,000,000');
+      return;
+    }
+    
     const success = await onCreateProduct({
       name: productForm.name,
       categoryId: productForm.categoryId,
-      price: parseFloat(productForm.price),
+      price: price,
     });
     if (success) {
       setProductForm({ name: '', categoryId: '', price: '' });
@@ -80,10 +98,29 @@ export default function ProductsTab({
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
+    
+    const trimmedPrice = productForm.price.trim();
+    if (!trimmedPrice) {
+      showError('Please enter a price');
+      return;
+    }
+    
+    const price = parseFloat(trimmedPrice);
+    if (isNaN(price) || price <= 0 || !isFinite(price)) {
+      showError('Please enter a valid price');
+      return;
+    }
+    
+    // Prevent extremely large prices (security check)
+    if (price > 1000000) {
+      showError('Price is too large. Maximum is $1,000,000');
+      return;
+    }
+    
     const success = await onUpdateProduct(editingProduct._id, {
       name: productForm.name,
       categoryId: productForm.categoryId,
-      price: parseFloat(productForm.price),
+      price: price,
     });
     if (success) {
       setProductForm({ name: '', categoryId: '', price: '' });
@@ -329,8 +366,8 @@ export default function ProductsTab({
             className="droplet-container p-4 sm:p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             style={{
               background: 'rgba(255, 255, 255, 0.12)',
-              backdropFilter: 'blur(60px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(60px) saturate(200%)',
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
               boxShadow: `
                 0 32px 96px -20px rgba(0, 0, 0, 0.7),
@@ -351,8 +388,8 @@ export default function ProductsTab({
                   className="water-droplet w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0"
                   style={{
                     background: 'rgba(234, 179, 8, 0.25)',
-                    backdropFilter: 'blur(30px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                    backdropFilter: 'blur(2px) saturate(120%)',
+                    WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                     border: '1px solid rgba(234, 179, 8, 0.4)',
                     boxShadow: `
                       0 20px 60px -12px rgba(234, 179, 8, 0.4),
@@ -385,8 +422,8 @@ export default function ProductsTab({
                 className="water-droplet w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0"
                 style={{
                   background: 'rgba(255, 255, 255, 0.18)',
-                  backdropFilter: 'blur(30px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                  backdropFilter: 'blur(2px) saturate(120%)',
+                  WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: `
                     0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -422,8 +459,8 @@ export default function ProductsTab({
                     className="droplet-container p-3 sm:p-4"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(50px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+                      backdropFilter: 'blur(2px) saturate(120%)',
+                      WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       boxShadow: `
                         0 24px 72px -16px rgba(0, 0, 0, 0.5),
@@ -450,8 +487,8 @@ export default function ProductsTab({
                         className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm relative z-10"
                         style={{
                           background: 'rgba(255, 255, 255, 0.18)',
-                          backdropFilter: 'blur(30px) saturate(200%)',
-                          WebkitBackdropFilter: 'blur(30px) saturate(200%)',
+                          backdropFilter: 'blur(2px) saturate(120%)',
+                          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                           border: '1px solid rgba(255, 255, 255, 0.3)',
                           boxShadow: `
                             0 20px 60px -12px rgba(0, 0, 0, 0.5),

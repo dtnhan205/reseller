@@ -4,8 +4,6 @@ import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { authApi } from '@/services/api';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import { Lock, Mail, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
@@ -28,9 +26,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log('Attempting login with:', { email: formData.email });
+      // console.log('Attempting login with:', { email: formData.email });
       const response = await authApi.login(formData);
-      console.log('Login response:', response);
+      // console.log('Login response:', response);
       
       if (response && response.token && response.user) {
         setAuth(response.user, response.token);
@@ -42,7 +40,7 @@ export default function LoginPage() {
         throw new Error('Invalid response format');
       }
     } catch (err: any) {
-      console.error('Login error:', err);
+      // console.error('Login error:', err);
       let errorMessage = t('auth.loginFailed');
       
       if (err.response) {
@@ -50,18 +48,18 @@ export default function LoginPage() {
         const status = err.response.status;
         const data = err.response.data;
         errorMessage = data?.message || data?.error || `Error ${status}: ${status === 401 ? 'Invalid credentials' : status === 400 ? 'Bad request' : 'Server error'}`;
-        console.error('Server error response:', { status, data });
+        // console.error('Server error response:', { status, data });
       } else if (err.request) {
         // Request was made but no response received
         errorMessage = 'Cannot connect to server. Please check if backend is running.';
-        console.error('No response received:', err.request);
+        // console.error('No response received:', err.request);
       } else {
         // Something else happened
         errorMessage = err.message || 'An unexpected error occurred';
-        console.error('Error:', err);
+        // console.error('Error:', err);
       }
       
-      console.log('Showing error toast:', errorMessage);
+      // console.log('Showing error toast:', errorMessage);
       showError(errorMessage, 7000);
       setIsLoading(false);
       // Prevent any default form submission behavior
@@ -79,8 +77,8 @@ export default function LoginPage() {
               className="water-droplet w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0"
               style={{
                 background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(20px) saturate(200%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                backdropFilter: 'blur(5px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(5px) saturate(200%)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -110,7 +108,9 @@ export default function LoginPage() {
         <div 
           className="droplet-container p-6 sm:p-8 md:p-10"
           style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(2px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(5px) saturate(200%)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: `
               0 36px 108px -18px rgba(0, 0, 0, 0.65),
@@ -138,7 +138,7 @@ export default function LoginPage() {
                 {t('auth.username').toUpperCase()}
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/80 z-10" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
                 <input
                   type="email"
                   placeholder={t('auth.enterUsername')}
@@ -147,9 +147,9 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 sm:py-3.5 text-white placeholder-white/50 focus:outline-none transition-all text-sm sm:text-base"
                   style={{
                     borderRadius: '50px 50px 50px 8px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(7px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(4px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(4px) saturate(200%)',
                     border: '1px solid rgba(255, 255, 255, 0.25)',
                     boxShadow: `
                       0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -171,7 +171,7 @@ export default function LoginPage() {
                 {t('auth.password').toUpperCase()}
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/80 z-10" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
                 <input
                   type="password"
                   placeholder={t('auth.enterPassword')}
@@ -180,9 +180,9 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 sm:py-3.5 text-white placeholder-white/50 focus:outline-none transition-all text-sm sm:text-base"
                   style={{
                     borderRadius: '50px 50px 50px 8px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(7px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    backdropFilter: 'blur(4px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(4px) saturate(200%)',
                     border: '1px solid rgba(255, 255, 255, 0.25)',
                     boxShadow: `
                       0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -207,8 +207,8 @@ export default function LoginPage() {
                 background: isLoading
                   ? 'rgba(255, 255, 255, 0.15)'
                   : 'rgba(6, 182, 212, 0.25)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(5px) saturate(200%)',
+                 WebkitBackdropFilter: 'blur(5px) saturate(200%)',
                 border: '1px solid rgba(6, 182, 212, 0.4)',
                 boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),

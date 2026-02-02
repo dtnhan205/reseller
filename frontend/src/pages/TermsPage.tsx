@@ -12,8 +12,8 @@ export default function TermsPage() {
           className="water-droplet w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(7px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: `
               0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -32,7 +32,7 @@ export default function TermsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             {t('terms.title')}
           </h1>
-          <p className="text-white/90 text-xs sm:text-sm mt-1">
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {t('terms.subtitle')}
           </p>
         </div>
@@ -42,7 +42,9 @@ export default function TermsPage() {
       <div 
         className="droplet-container p-6 sm:p-8 md:p-10"
         style={{
-          background: 'rgba(255, 255, 255, 0.15)',
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
           border: '1px solid rgba(255, 255, 255, 0.15)',
           boxShadow: `
             0 36px 108px -18px rgba(0, 0, 0, 0.65),
@@ -66,7 +68,7 @@ export default function TermsPage() {
         <div className="space-y-6 sm:space-y-8">
           {/* Introduction */}
           <div className="space-y-4">
-            <p className="text-white/90 text-sm sm:text-base leading-relaxed">
+            <p className="text-white/80 text-sm sm:text-base leading-relaxed">
               {t('terms.intro')}
             </p>
           </div>
@@ -83,8 +85,8 @@ export default function TermsPage() {
               className="droplet-container p-4 sm:p-5"
               style={{
                 background: 'rgba(255, 255, 255, 0.025)',
-                backdropFilter: 'blur(7px) saturate(200%)',
-                WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 boxShadow: `
                   0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -99,18 +101,18 @@ export default function TermsPage() {
               <div className="flex items-center gap-3 mb-3">
                 <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                 <h2 className="text-lg sm:text-xl font-semibold text-white">
-                  {t(`terms.${key}Title`)}
+                  {t(`terms.${key}Title` as any)}
                 </h2>
               </div>
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed">
-                {t(`terms.${key}Text`)}
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                {t(`terms.${key}Text` as any)}
               </p>
             </div>
           ))}
 
           {/* Contact */}
           <div className="pt-4 border-t border-white/10">
-            <p className="text-white/90 text-sm sm:text-base">
+            <p className="text-white/70 text-sm sm:text-base">
               {t('terms.contact')}
             </p>
           </div>

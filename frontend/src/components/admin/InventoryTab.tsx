@@ -41,7 +41,7 @@ export default function InventoryTab({ onAddInventory }: InventoryTabProps) {
         setInventoryKeys('');
       }
     } catch (err: any) {
-      console.error('Failed to add inventory:', err);
+      // console.error('Failed to add inventory:', err);
     } finally {
       setIsLoadingInventory(false);
     }
@@ -49,7 +49,13 @@ export default function InventoryTab({ onAddInventory }: InventoryTabProps) {
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
-      <Card title={t('admin.addInventory')}>
+      <Card 
+        title={t('admin.addInventory')}
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         <form onSubmit={handleAddInventory} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">

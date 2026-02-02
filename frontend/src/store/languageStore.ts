@@ -14,8 +14,15 @@ const getStoredLanguage = (): Language => {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        return parsed.state?.language || 'vi';
-      } catch {
+        const language = parsed.state?.language;
+        // Validate language value
+        if (language === 'vi' || language === 'en') {
+          return language;
+        }
+        return 'vi';
+      } catch (err) {
+        // Invalid JSON, clear corrupted data
+        localStorage.removeItem('language-storage');
         return 'vi';
       }
     }

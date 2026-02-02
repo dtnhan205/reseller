@@ -58,16 +58,16 @@ export function useCategories() {
     setIsLoading(true);
     try {
       const data = await adminApi.getCategories();
-      console.log('[useCategories] Loaded categories:', data);
+      // console.log('[useCategories] Loaded categories:', data);
       // Ensure data is an array
       if (Array.isArray(data)) {
         setCategories(data);
       } else {
-        console.warn('[useCategories] Expected array but got:', data);
+        // console.warn('[useCategories] Expected array but got:', data);
         setCategories([]);
       }
     } catch (err) {
-      console.error('[useCategories] Error loading categories:', err);
+      // console.error('[useCategories] Error loading categories:', err);
       showError('Failed to load categories');
     } finally {
       setIsLoading(false);
@@ -77,9 +77,9 @@ export function useCategories() {
   const createCategory = useCallback(
     async (name: string, image?: string) => {
       try {
-        console.log('[useCategories] Creating category:', name, image);
+        // console.log('[useCategories] Creating category:', name, image);
         const newCategory = await adminApi.createCategory(name, image);
-        console.log('[useCategories] Category created:', newCategory);
+        // console.log('[useCategories] Category created:', newCategory);
         
         // Optimistically update the state
         if (newCategory && typeof newCategory === 'object') {
@@ -87,7 +87,7 @@ export function useCategories() {
             // Check if category already exists to avoid duplicates
             const exists = prev.some(cat => cat._id === newCategory._id || cat.slug === newCategory.slug);
             if (exists) {
-              console.log('[useCategories] Category already in list, skipping optimistic update');
+              // console.log('[useCategories] Category already in list, skipping optimistic update');
               return prev;
             }
             // Add new category at the beginning (newest first)
@@ -99,10 +99,10 @@ export function useCategories() {
         
         // Reload to ensure we have the latest data from server
         await loadCategories();
-        console.log('[useCategories] Categories reloaded after create');
+        // console.log('[useCategories] Categories reloaded after create');
         return true;
       } catch (err: any) {
-        console.error('[useCategories] Error creating category:', err);
+        // console.error('[useCategories] Error creating category:', err);
         const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to create category';
         showError(errorMessage);
         return false;

@@ -25,9 +25,9 @@ export default function Button({
   
   const glassStyles = {
     primary: {
-      background: 'rgba(255, 255, 255, 0.15)',
-      backdropFilter: 'blur(7px) saturate(200%)',
-      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      background: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(6px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(6px) saturate(200%)',
       border: '1px solid rgba(255, 255, 255, 0.3)',
       /* iOS 26 3D multi-layer shadows */
       boxShadow: `
@@ -41,9 +41,9 @@ export default function Button({
       `,
     },
     secondary: {
-      background: 'rgba(255, 255, 255, 0.12)',
-      backdropFilter: 'blur(7px) saturate(200%)',
-      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      background: 'rgba(255, 255, 255, 0.06)',
+      backdropFilter: 'blur(6px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(6px) saturate(200%)',
       border: '1px solid rgba(255, 255, 255, 0.25)',
       boxShadow: `
         0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -56,9 +56,9 @@ export default function Button({
       `,
     },
     outline: {
-      background: 'rgba(6, 182, 212, 0.12)',
-      backdropFilter: 'blur(7px) saturate(200%)',
-      WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+      background: 'rgba(6, 182, 212, 0.05)',
+      backdropFilter: 'blur(6px) saturate(200%)',
+      WebkitBackdropFilter: 'blur(6px) saturate(200%)',
       boxShadow: `
         0 20px 60px -12px rgba(6, 182, 212, 0.3),
         0 12px 40px -8px rgba(6, 182, 212, 0.2),

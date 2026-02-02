@@ -18,7 +18,7 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-console.log('API URL configured:', API_URL);
+// console.log('API URL configured:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -51,7 +51,8 @@ api.interceptors.response.use(
       if (token) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        // Use replace instead of href to prevent back button issues
+        window.location.replace('/login');
       }
     }
     return Promise.reject(error);
@@ -62,12 +63,12 @@ api.interceptors.response.use(
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     try {
-      console.log('API: Sending login request to:', `${api.defaults.baseURL}/auth/login`);
+      // console.log('API: Sending login request to:', `${api.defaults.baseURL}/auth/login`);
       const res = await api.post('/auth/login', data);
-      console.log('API: Login response received:', res.data);
+      // console.log('API: Login response received:', res.data);
       return res.data;
     } catch (error: any) {
-      console.error('API: Login error:', error);
+      // console.error('API: Login error:', error);
       throw error;
     }
   },
@@ -235,16 +236,16 @@ export const sellerApi = {
   },
   getProducts: async (): Promise<Product[]> => {
     try {
-      console.log('API: Fetching products from:', `${api.defaults.baseURL}/products`);
+      // console.log('API: Fetching products from:', `${api.defaults.baseURL}/products`);
       const res = await api.get('/products');
-      console.log('API: Products response:', res.data);
+      // console.log('API: Products response:', res.data);
       // Backend returns array directly, not wrapped in { products: [...] }
       const products = Array.isArray(res.data) ? res.data : (res.data.products || []);
-      console.log('API: Parsed products:', products);
+      // console.log('API: Parsed products:', products);
       return products;
     } catch (error: any) {
-      console.error('API: Error fetching products:', error);
-      console.error('API: Error response:', error.response?.data);
+      // console.error('API: Error fetching products:', error);
+      // console.error('API: Error response:', error.response?.data);
       throw error;
     }
   },

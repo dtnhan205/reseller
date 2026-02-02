@@ -24,7 +24,6 @@ export default function TopupPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [exchangeRate, setExchangeRate] = useState<number>(25000);
   const pollingIntervalRef = useRef<number | null>(null);
-  const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const { updateUser } = useAuthStore();
 
   const quickAmounts = [10, 25, 50, 100, 200, 500];
@@ -36,7 +35,7 @@ export default function TopupPage() {
         const rate = await sellerApi.getExchangeRate();
         setExchangeRate(rate.usdToVnd);
       } catch (err) {
-        console.error('Failed to load exchange rate:', err);
+        // console.error('Failed to load exchange rate:', err);
       }
     };
     loadExchangeRate();
@@ -139,7 +138,7 @@ export default function TopupPage() {
               const updatedUser = await authApi.me();
               updateUser(updatedUser);
             } catch (err) {
-              console.error('Failed to refresh user:', err);
+              // console.error('Failed to refresh user:', err);
             }
             
             // Refresh pending payments list
@@ -158,7 +157,7 @@ export default function TopupPage() {
             await loadPendingPayments();
           }
         } catch (err) {
-          console.error('Failed to check payment status:', err);
+          // console.error('Failed to check payment status:', err);
         }
       }, 5000); // Poll mỗi 5 giây
     } else {
@@ -184,7 +183,7 @@ export default function TopupPage() {
       const pending = payments.filter((p: Payment) => p.status === 'pending');
       setPendingPayments(pending);
     } catch (err) {
-      console.error('Failed to load pending payments:', err);
+      // console.error('Failed to load pending payments:', err);
     }
   };
 
@@ -202,16 +201,29 @@ export default function TopupPage() {
         }
       }, 100);
     } catch (err) {
-      console.error('Failed to load payment details:', err);
+      // console.error('Failed to load payment details:', err);
       // Fallback: use the payment from list
       setCurrentPayment(payment);
     }
   };
 
   const handleTopup = async () => {
-    const numUSD = parseFloat(amountUSD);
-    if (!numUSD || numUSD <= 0) {
+    // Validate and parse amount
+    const trimmedAmount = amountUSD.trim();
+    if (!trimmedAmount) {
+      showError('Please enter an amount');
+      return;
+    }
+    
+    const numUSD = parseFloat(trimmedAmount);
+    if (isNaN(numUSD) || numUSD <= 0 || !isFinite(numUSD)) {
       showError('Please enter a valid amount');
+      return;
+    }
+    
+    // Prevent extremely large amounts (security check)
+    if (numUSD > 1000000) {
+      showError('Amount is too large. Maximum is $1,000,000');
       return;
     }
 
@@ -288,7 +300,7 @@ export default function TopupPage() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             {t('topup.title')}
           </h1>
-          <p className="text-white/90 text-xs sm:text-sm mt-1">
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {t('topup.subtitle')}
           </p>
         </div>
@@ -297,13 +309,19 @@ export default function TopupPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Current Balance Card */}
         <div className="lg:col-span-1">
-          <Card className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border-cyan-500/30">
+          <Card 
+            className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border-cyan-500/30"
+            style={{
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+            }}
+          >
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-cyan-500/20 rounded-xl flex items-center justify-center">
                 <Wallet className="w-7 h-7 text-cyan-400" />
               </div>
               <div>
-                <p className="text-white/90 text-sm mb-1">{t('topup.currentBalance')}</p>
+                <p className="text-gray-400 text-sm mb-1">{t('topup.currentBalance')}</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                   {formatBalance(user?.wallet || 0)}
                 </p>
@@ -314,12 +332,18 @@ export default function TopupPage() {
 
         {/* Topup Form */}
         <div className="lg:col-span-2">
-          <Card title={t('topup.addFunds')}>
+          <Card 
+            title={t('topup.addFunds')}
+            style={{
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+            }}
+          >
             <div className="space-y-6">
               {/* Exchange Rate Info */}
               <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-4 mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-white text-sm">{t('topup.exchangeRate')}</span>
+                  <span className="text-gray-300 text-sm">{t('topup.exchangeRate')}</span>
                   <span className="text-blue-400 font-bold">
                     1 USD = {formatCurrency(exchangeRate)} VNĐ
                   </span>
@@ -328,11 +352,11 @@ export default function TopupPage() {
 
               {/* Amount Input (USD) */}
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   {t('topup.amountUSD')}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-lg font-semibold">
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg font-semibold">
                     $
                   </span>
                   <Input
@@ -346,7 +370,7 @@ export default function TopupPage() {
                   />
                 </div>
                 {amountUSD && parseFloat(amountUSD) > 0 && (
-                  <div className="mt-2 text-sm text-white/90">
+                  <div className="mt-2 text-sm text-gray-400">
                     {t('topup.amountVND')}: <span className="text-green-400 font-semibold">{formatCurrency(calculateVND(parseFloat(amountUSD)))} VNĐ</span>
                   </div>
                 )}
@@ -354,7 +378,7 @@ export default function TopupPage() {
 
               {/* Quick Amount Buttons */}
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-white mb-2 sm:mb-3">
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2 sm:mb-3">
                   {t('topup.quickAmount')}
                 </label>
                 <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
@@ -366,7 +390,7 @@ export default function TopupPage() {
                       className={`py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-semibold transition-all text-sm sm:text-base ${
                         amountUSD === quickAmount.toString()
                           ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg'
-                          : 'bg-gray-950 hover:bg-gray-900 border border-gray-800 text-white hover:text-white hover:border-cyan-500/50'
+                          : 'bg-gray-950 hover:bg-gray-900 border border-gray-800 text-gray-300 hover:text-white hover:border-cyan-500/50'
                       }`}
                     >
                       ${quickAmount}
@@ -380,7 +404,7 @@ export default function TopupPage() {
                 <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-white">{t('topup.amountToPay')}</span>
+                      <span className="text-gray-300">{t('topup.amountToPay')}</span>
                       <span className="text-purple-400 font-bold text-xl">
                         {formatCurrency(calculateVND(parseFloat(amountUSD)))} VNĐ
                       </span>
@@ -406,7 +430,14 @@ export default function TopupPage() {
 
       {/* Payment Information */}
       {currentPayment && (
-        <Card id="payment-information" className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 border-purple-500/30 animate-fade-in overflow-hidden">
+        <Card 
+          id="payment-information" 
+          className="bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-rose-500/10 border-purple-500/30 animate-fade-in overflow-hidden"
+          style={{
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
           {/* Header */}
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-purple-500/20">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -416,7 +447,7 @@ export default function TopupPage() {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
                 {t('topup.paymentCreated')}
               </h2>
-              <p className="text-sm text-white/90 mt-0.5">{t('topup.transferNote')}</p>
+              <p className="text-sm text-gray-400 mt-0.5">{t('topup.transferNote')}</p>
             </div>
           </div>
           
@@ -427,7 +458,7 @@ export default function TopupPage() {
                 <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-2xl p-8 border border-gray-700/50 shadow-xl">
                   <div className="flex items-center justify-center gap-2 mb-6">
                     <QrCode className="w-6 h-6 text-purple-400" />
-                    <h3 className="text-xl font-semibold text-white">{t('topup.scanQR')}</h3>
+                    <h3 className="text-xl font-semibold text-gray-200">{t('topup.scanQR')}</h3>
                   </div>
                   
                   <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6 lg:gap-8">
@@ -448,11 +479,11 @@ export default function TopupPage() {
                         
                         {/* Bank Info Below QR */}
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-gray-700 text-sm font-medium">{(currentPayment.bankAccountId as BankAccount).accountHolder}</span>
-                          <span className="text-gray-700 text-sm font-medium font-mono">{(currentPayment.bankAccountId as BankAccount).accountNumber}</span>
+                          <span className="text-gray-600 text-sm font-medium">{(currentPayment.bankAccountId as BankAccount).accountHolder}</span>
+                          <span className="text-gray-600 text-sm font-medium font-mono">{(currentPayment.bankAccountId as BankAccount).accountNumber}</span>
                         </div>
                         <div className="text-center">
-                          <span className="text-gray-700 text-sm font-medium">Số tiền: </span>
+                          <span className="text-gray-600 text-sm font-medium">Số tiền: </span>
                           <span className="text-gray-900 font-bold">{formatCurrency(currentPayment.amountVND || currentPayment.amount)} VNĐ</span>
                         </div>
                       </div>
@@ -463,7 +494,7 @@ export default function TopupPage() {
                       {/* Detailed Payment Information */}
                       <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-6 space-y-4 border border-gray-700/50 shadow-lg">
                         <div className="flex items-center justify-between">
-                          <span className="text-white/90 text-sm">{t('topup.accountHolder') || 'Chủ tài khoản'}:</span>
+                          <span className="text-gray-400 text-sm">{t('topup.accountHolder') || 'Chủ tài khoản'}:</span>
                           <div className="flex items-center gap-2">
                             <span className="text-white font-semibold">{(currentPayment.bankAccountId as BankAccount).accountHolder}</span>
                             <button
@@ -483,7 +514,7 @@ export default function TopupPage() {
                         <div className="h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
                         
                         <div className="flex items-center justify-between">
-                          <span className="text-white/90 text-sm">{t('topup.accountNumber') || 'Số tài khoản'}:</span>
+                          <span className="text-gray-400 text-sm">{t('topup.accountNumber') || 'Số tài khoản'}:</span>
                           <div className="flex items-center gap-2">
                             <span className="text-white font-semibold font-mono">{(currentPayment.bankAccountId as BankAccount).accountNumber}</span>
                             <button
@@ -595,7 +626,13 @@ export default function TopupPage() {
 
       {/* Pending Payments List */}
       {pendingPayments.length > 0 && (
-        <Card className="animate-fade-in bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-gray-700/50">
+        <Card 
+          className="animate-fade-in bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-gray-700/50"
+          style={{
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center border border-yellow-500/30">
               <Clock className="w-5 h-5 text-yellow-400" />

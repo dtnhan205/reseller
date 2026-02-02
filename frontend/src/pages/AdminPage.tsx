@@ -187,8 +187,8 @@ export default function AdminPage() {
             className="droplet-container px-3 sm:px-4 py-2 w-full sm:w-auto justify-center sm:justify-start"
             style={{
               background: 'rgba(168, 85, 247, 0.15)',
-              backdropFilter: 'blur(50px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
               border: '1px solid rgba(168, 85, 247, 0.3)',
               boxShadow: `
                 0 24px 72px -16px rgba(168, 85, 247, 0.4),
@@ -202,7 +202,7 @@ export default function AdminPage() {
             }}
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
               <span className="text-xs sm:text-sm text-white font-medium truncate">{user?.email}</span>
             </div>
           </div>

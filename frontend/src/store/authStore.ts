@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
           const updatedUser = await authApi.me();
           set({ user: updatedUser });
         } catch (err) {
-          console.error('Failed to refresh user:', err);
+          // console.error('Failed to refresh user:', err);
           // Don't throw error, just log it
         }
       },

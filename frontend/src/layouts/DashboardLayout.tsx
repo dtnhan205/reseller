@@ -44,7 +44,9 @@ export default function DashboardLayout() {
               <div 
                 className="water-droplet w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(6px) saturate(200%)',
+                  WebkitBackdropFilter: 'blur(6px) saturate(200%)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: `
                     0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -69,7 +71,9 @@ export default function DashboardLayout() {
                 <div 
                   className="water-droplet flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 flex-shrink-0"
                   style={{
-                    background: 'rgba(6, 182, 212, 0.15)',
+                    background: 'rgba(6, 182, 212, 0.08)',
+                    backdropFilter: 'blur(20px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(200%)',
                     border: '1px solid rgba(6, 182, 212, 0.3)',
                     boxShadow: `
                       0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -91,7 +95,7 @@ export default function DashboardLayout() {
               <LanguageSelector />
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-white hover:text-white transition-colors text-base sm:text-lg p-2 sm:p-0"
+                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-base sm:text-lg p-2 sm:p-0"
               >
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">{t('auth.logout')}</span>
@@ -105,12 +109,14 @@ export default function DashboardLayout() {
             <button
               onClick={() => navigate('/admin')}
               className={`water-droplet flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 font-semibold transition-all duration-300 text-sm sm:text-base relative z-10 ${
-                location.pathname === '/admin' ? 'text-white' : 'text-white'
+                location.pathname === '/admin' ? 'text-white' : 'text-white/80'
               }`}
               style={{
                 background: location.pathname === '/admin'
                   ? 'rgba(255, 255, 255, 0.22)'
                   : 'rgba(255, 255, 255, 0.15)',
+                 backdropFilter: 'blur(8px) saturate(200%)',
+                 WebkitBackdropFilter: 'blur(8px) saturate(200%)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -143,6 +149,8 @@ export default function DashboardLayout() {
                       background: isActive
                         ? 'rgba(255, 255, 255, 0.1)'
                         : 'rgba(255, 255, 255, 0.06)',
+                      backdropFilter: ' saturate(120%)',
+                      WebkitBackdropFilter: 'saturate(200%)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -164,7 +172,9 @@ export default function DashboardLayout() {
                 onClick={() => navigate('/topup')}
                 className="water-droplet flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 font-semibold text-white transition-all duration-300 text-sm sm:text-base relative z-10 w-full sm:w-auto col-span-2 sm:col-span-1"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: ' saturate(120%)',
+                  WebkitBackdropFilter: 'blur(6px) saturate(200%)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),

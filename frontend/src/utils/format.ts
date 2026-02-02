@@ -29,7 +29,7 @@ export const formatPrice = (price: number | undefined | null): string => {
       maximumFractionDigits: 2,
     }).format(price);
   } catch (err) {
-    console.error('Error formatting price:', err, price);
+    // console.error('Error formatting price:', err, price);
     return String(price);
   }
 };
@@ -49,7 +49,7 @@ export const formatBalance = (amount: number | undefined | null): string => {
       maximumFractionDigits: 2,
     }).format(amount);
   } catch (err) {
-    console.error('Error formatting balance:', err, amount);
+    // console.error('Error formatting balance:', err, amount);
     return String(amount).replace('.', ',');
   }
 };
@@ -78,7 +78,7 @@ export const formatDateShort = (date: string | Date | null | undefined): string 
       minute: '2-digit',
     }).format(d);
   } catch (err) {
-    console.error('Error formatting date:', err, date);
+    // console.error('Error formatting date:', err, date);
     return 'N/A';
   }
 };

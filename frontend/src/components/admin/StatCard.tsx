@@ -24,7 +24,13 @@ export default function StatCard({
   };
 
   return (
-    <Card className="relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+    <Card 
+      className="relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300"
+      style={{
+        backdropFilter: 'blur(2px) saturate(120%)',
+        WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+      }}
+    >
       <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
       <div className="relative">
         <div className="flex items-center justify-between mb-4">

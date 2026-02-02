@@ -1,5 +1,5 @@
 import { useTranslation } from '@/hooks/useTranslation';
-import { HelpCircle, MessageCircle, Send, Mail, Clock } from 'lucide-react';
+import { HelpCircle, MessageCircle, Send, Clock } from 'lucide-react';
 
 export default function SupportPage() {
   const { t } = useTranslation();
@@ -12,8 +12,8 @@ export default function SupportPage() {
           className="water-droplet w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center flex-shrink-0"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(7px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: `
               0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -32,7 +32,7 @@ export default function SupportPage() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             {t('support.title')}
           </h1>
-          <p className="text-white/90 text-xs sm:text-sm mt-1">
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {t('support.subtitle')}
           </p>
         </div>
@@ -45,6 +45,8 @@ export default function SupportPage() {
           className="droplet-container p-6 sm:p-8"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
+             backdropFilter: 'blur(2px) saturate(120%)',
+             WebkitBackdropFilter: 'blur(2px) saturate(120%)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: `
               0 36px 108px -18px rgba(0, 0, 0, 0.65),
@@ -76,8 +78,8 @@ export default function SupportPage() {
               className="droplet-container p-4 flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer group"
               style={{
                 background: 'rgba(59, 130, 246, 0.1)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                 border: '1px solid rgba(59, 130, 246, 0.3)',
                 boxShadow: `
                   0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -94,7 +96,7 @@ export default function SupportPage() {
                 <h3 className="text-base font-semibold text-white mb-1">
                   {t('support.zalo')}
                 </h3>
-                <p className="text-white/90 text-sm">
+                <p className="text-white/70 text-sm">
                   {t('support.zaloDesc')}
                 </p>
               </div>
@@ -107,8 +109,8 @@ export default function SupportPage() {
               className="droplet-container p-4 flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer group"
               style={{
                 background: 'rgba(6, 182, 212, 0.1)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                 backdropFilter: 'blur(2px) saturate(120%)',
+                 WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                 border: '1px solid rgba(6, 182, 212, 0.3)',
                 boxShadow: `
                   0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -125,7 +127,7 @@ export default function SupportPage() {
                 <h3 className="text-base font-semibold text-white mb-1">
                   {t('support.telegram')}
                 </h3>
-                <p className="text-white/90 text-sm">
+                <p className="text-white/70 text-sm">
                   {t('support.telegramDesc')}
                 </p>
               </div>
@@ -138,6 +140,8 @@ export default function SupportPage() {
           className="droplet-container p-6 sm:p-8"
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
+             backdropFilter: 'blur(2px) saturate(120%)',
+             WebkitBackdropFilter: 'blur(2px) saturate(120%)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             boxShadow: `
               0 36px 108px -18px rgba(0, 0, 0, 0.65),
@@ -168,8 +172,8 @@ export default function SupportPage() {
                 className="droplet-container p-4"
                 style={{
                   background: 'rgba(255, 255, 255, 0.025)',
-                  backdropFilter: 'blur(7px) saturate(200%)',
-                  WebkitBackdropFilter: 'blur(7px) saturate(200%)',
+                   backdropFilter: 'blur(2px) saturate(120%)',
+                   WebkitBackdropFilter: 'blur(2px) saturate(120%)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   boxShadow: `
                     0 4px 8px -2px rgba(0, 0, 0, 0.3),
@@ -182,10 +186,10 @@ export default function SupportPage() {
                 }}
               >
                 <h3 className="text-base font-semibold text-white mb-2">
-                  {t(`support.faq${num}Q`)}
+                  {t(`support.faq${num}Q` as any)}
                 </h3>
-                <p className="text-white/90 text-sm leading-relaxed">
-                  {t(`support.faq${num}A`)}
+                <p className="text-white/70 text-sm leading-relaxed">
+                  {t(`support.faq${num}A` as any)}
                 </p>
               </div>
             ))}
@@ -197,7 +201,9 @@ export default function SupportPage() {
       <div 
         className="droplet-container p-6 sm:p-8"
         style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+          background: 'rgba(255, 255, 255, 0.03)',
+           backdropFilter: 'blur(2px) saturate(120%)',
+           WebkitBackdropFilter: 'blur(2px) saturate(120%)',
           border: '1px solid rgba(255, 255, 255, 0.15)',
           boxShadow: `
             0 36px 108px -18px rgba(0, 0, 0, 0.65),

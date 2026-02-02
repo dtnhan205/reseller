@@ -27,7 +27,7 @@ export default function ExchangeRateTab({ onUpdateExchangeRate }: ExchangeRateTa
         setExchangeRate(rate.usdToVnd);
         setExchangeRateInput(rate.usdToVnd.toString());
       } catch (err) {
-        console.error('Failed to load exchange rate:', err);
+        // console.error('Failed to load exchange rate:', err);
       } finally {
         setIsLoadingExchangeRate(false);
       }
@@ -37,9 +37,21 @@ export default function ExchangeRateTab({ onUpdateExchangeRate }: ExchangeRateTa
 
   const handleUpdateExchangeRate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const rate = parseFloat(exchangeRateInput);
-    if (!rate || rate <= 0) {
+    const trimmedInput = exchangeRateInput.trim();
+    if (!trimmedInput) {
+      showError('Please enter an exchange rate');
+      return;
+    }
+    
+    const rate = parseFloat(trimmedInput);
+    if (isNaN(rate) || rate <= 0 || !isFinite(rate)) {
       showError('Please enter a valid exchange rate');
+      return;
+    }
+    
+    // Prevent extremely large rates (security check)
+    if (rate > 100000) {
+      showError('Exchange rate is too large. Maximum is 100,000');
       return;
     }
 
@@ -57,7 +69,13 @@ export default function ExchangeRateTab({ onUpdateExchangeRate }: ExchangeRateTa
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
-      <Card title={t('admin.exchangeRate')}>
+      <Card 
+        title={t('admin.exchangeRate')}
+        style={{
+          backdropFilter: 'blur(2px) saturate(120%)',
+          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+        }}
+      >
         <form onSubmit={handleUpdateExchangeRate} className="space-y-6">
           <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
