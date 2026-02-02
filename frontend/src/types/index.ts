@@ -14,6 +14,7 @@ export interface Category {
   name: string;
   slug: string;
   image?: string;
+  order?: number;
   createdAt: string;
 }
 

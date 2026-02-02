@@ -37,7 +37,7 @@ async function createSeller(req, res) {
 }
 
 async function createCategory(req, res) {
-  const { name, slug, image } = req.body || {};
+  const { name, slug, image, order } = req.body || {};
   if (!name) throw new HttpError(400, "Missing name");
   const finalSlug = slug ? slugify(slug) : slugify(name);
   if (!finalSlug) throw new HttpError(400, "Invalid slug");
@@ -51,19 +51,22 @@ async function createCategory(req, res) {
   if (image) {
     categoryData.image = String(image).trim();
   }
+  if (order !== undefined && order !== null) {
+    categoryData.order = Number(order) || 0;
+  }
 
   const category = await Category.create(categoryData);
   res.status(201).json({ category });
 }
 
 async function listCategories(req, res) {
-  const categories = await Category.find().sort({ createdAt: -1 }).lean();
+  const categories = await Category.find().sort({ order: 1, createdAt: -1 }).lean();
   res.json(categories);
 }
 
 async function updateCategory(req, res) {
   const { id } = req.params;
-  const { name, image } = req.body || {};
+  const { name, image, order } = req.body || {};
   
   const category = await Category.findById(id);
   if (!category) throw new HttpError(404, "Category not found");
@@ -84,6 +87,10 @@ async function updateCategory(req, res) {
   
   if (image !== undefined) {
     category.image = image ? String(image).trim() : undefined;
+  }
+  
+  if (order !== undefined && order !== null) {
+    category.order = Number(order) || 0;
   }
 
   await category.save();

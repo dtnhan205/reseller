@@ -12,6 +12,9 @@ export type TranslationKey =
   | 'common.filter'
   | 'common.noData'
   | 'common.select'
+  | 'common.actions'
+  | 'common.copied'
+  | 'common.copy'
   
   // Auth
   | 'auth.login'
@@ -323,7 +326,14 @@ export type TranslationKey =
   | 'admin.noResetRequests'
   | 'admin.pending'
   | 'admin.approved'
-  | 'admin.rejected';
+  | 'admin.rejected'
+  | 'admin.ordersHistory'
+  | 'admin.order'
+  | 'admin.orderHint'
+  | 'admin.totalOrders'
+  | 'admin.totalRevenue'
+  | 'admin.noOrders'
+  | 'admin.purchasedAt';
 
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   vi: {
@@ -340,6 +350,9 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'common.filter': 'Lọc',
     'common.noData': 'Không có dữ liệu',
     'common.select': 'Chọn',
+    'common.actions': 'Thao tác',
+    'common.copied': 'Đã copy',
+    'common.copy': 'Copy',
     
     // Auth
     'auth.login': 'Đăng nhập',
@@ -645,6 +658,13 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.pending': 'Đang chờ',
     'admin.approved': 'Đã duyệt',
     'admin.rejected': 'Đã từ chối',
+    'admin.ordersHistory': 'Lịch sử đơn hàng',
+    'admin.order': 'Số thứ tự',
+    'admin.orderHint': 'Số nhỏ hơn sẽ hiển thị trước. Mặc định: 0',
+    'admin.totalOrders': 'Tổng đơn hàng',
+    'admin.totalRevenue': 'Tổng doanh thu',
+    'admin.noOrders': 'Chưa có đơn hàng nào',
+    'admin.purchasedAt': 'Ngày mua',
   },
   en: {
     // Common
@@ -660,6 +680,9 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       'common.close': 'Close',
     'common.noData': 'No data',
     'common.select': 'Select',
+    'common.actions': 'Actions',
+    'common.copied': 'Copied',
+    'common.copy': 'Copy',
     
     // Auth
     'auth.login': 'Login',
@@ -965,6 +988,13 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.pending': 'Pending',
     'admin.approved': 'Approved',
     'admin.rejected': 'Rejected',
+    'admin.ordersHistory': 'Orders History',
+    'admin.order': 'Order',
+    'admin.orderHint': 'Smaller numbers will be displayed first. Default: 0',
+    'admin.totalOrders': 'Total Orders',
+    'admin.totalRevenue': 'Total Revenue',
+    'admin.noOrders': 'No orders yet',
+    'admin.purchasedAt': 'Purchased At',
   },
 };
 

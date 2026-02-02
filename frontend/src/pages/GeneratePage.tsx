@@ -121,25 +121,39 @@ export default function GeneratePage() {
 
   // Nhóm products theo category
   const groupedProducts = useMemo(() => {
-    const groups: Record<string, Product[]> = {};
+    const groups: Record<string, { order: number; products: Product[] }> = {};
     
     filteredProducts.forEach((product) => {
-      const categoryName = typeof product.category === 'object' 
-        ? product.category.name 
-        : 'Other';
+      const category = typeof product.category === 'object' ? product.category : null;
+      const categoryName = category?.name || 'Other';
+      const categoryOrder = category?.order ?? 999;
       
       if (!groups[categoryName]) {
-        groups[categoryName] = [];
+        groups[categoryName] = { order: categoryOrder, products: [] };
       }
-      groups[categoryName].push(product);
+      groups[categoryName].products.push(product);
     });
     
     // Sắp xếp products trong mỗi category
     Object.keys(groups).forEach((key) => {
-      groups[key].sort((a, b) => a.name.localeCompare(b.name));
+      groups[key].products.sort((a, b) => a.name.localeCompare(b.name));
     });
     
-    return groups;
+    // Sắp xếp categories theo order, sau đó theo tên
+    const sortedCategories = Object.entries(groups).sort((a, b) => {
+      if (a[1].order !== b[1].order) {
+        return a[1].order - b[1].order;
+      }
+      return a[0].localeCompare(b[0]);
+    });
+    
+    // Chuyển đổi lại thành object với thứ tự đã sắp xếp
+    const sortedGroups: Record<string, Product[]> = {};
+    sortedCategories.forEach(([key, value]) => {
+      sortedGroups[key] = value.products;
+    });
+    
+    return sortedGroups;
   }, [filteredProducts]);
 
   const handlePurchase = async () => {

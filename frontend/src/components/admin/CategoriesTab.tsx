@@ -22,7 +22,7 @@ export default function CategoriesTab({
 }: CategoriesTabProps) {
   const { t } = useTranslation();
   const { categories, isLoading: isLoadingCategories } = useCategories();
-  const [categoryForm, setCategoryForm] = useState({ name: '', image: '' });
+  const [categoryForm, setCategoryForm] = useState({ name: '', image: '', order: '' });
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
 
@@ -38,16 +38,21 @@ export default function CategoriesTab({
     e.preventDefault();
     const success = await onCreateCategory(
       categoryForm.name,
-      categoryForm.image || undefined
+      categoryForm.image || undefined,
+      categoryForm.order ? Number(categoryForm.order) : undefined
     );
     if (success) {
-      setCategoryForm({ name: '', image: '' });
+      setCategoryForm({ name: '', image: '', order: '' });
     }
   };
 
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
-    setCategoryForm({ name: category.name, image: category.image || '' });
+    setCategoryForm({ 
+      name: category.name, 
+      image: category.image || '',
+      order: category.order?.toString() || ''
+    });
   };
 
   const handleUpdateCategory = async (e: React.FormEvent) => {
@@ -56,9 +61,10 @@ export default function CategoriesTab({
     const success = await onUpdateCategory(editingCategory._id, {
       name: categoryForm.name,
       image: categoryForm.image || undefined,
+      order: categoryForm.order ? Number(categoryForm.order) : undefined,
     });
     if (success) {
-      setCategoryForm({ name: '', image: '' });
+      setCategoryForm({ name: '', image: '', order: '' });
       setEditingCategory(null);
     }
   };
@@ -71,7 +77,7 @@ export default function CategoriesTab({
 
   const handleCancelEditCategory = () => {
     setEditingCategory(null);
-    setCategoryForm({ name: '', image: '' });
+    setCategoryForm({ name: '', image: '', order: '' });
   };
 
   return (
@@ -129,6 +135,25 @@ export default function CategoriesTab({
                 />
               </div>
             )}
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">
+              {t('admin.order')} <span className="text-gray-500 text-xs ml-2">({t('admin.optional')})</span>
+            </label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={categoryForm.order}
+              onChange={(e) =>
+                setCategoryForm({ ...categoryForm, order: e.target.value })
+              }
+              className="bg-black/50 border-gray-800 focus:border-cyan-500"
+              min="0"
+              style={{ fontSize: '16px' }}
+            />
+            <p className="text-xs text-gray-500">
+              {t('admin.orderHint')}
+            </p>
           </div>
           <div className="flex gap-3">
             {editingCategory && (

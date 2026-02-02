@@ -74,11 +74,11 @@ export default function AdminPage() {
     return await createSeller(data);
   };
 
-  const handleCreateCategory = async (name: string, image?: string) => {
-    return await createCategory(name, image);
+  const handleCreateCategory = async (name: string, image?: string, order?: number) => {
+    return await createCategory(name, image, order);
   };
 
-  const handleUpdateCategory = async (id: string, data: { name?: string; image?: string }) => {
+  const handleUpdateCategory = async (id: string, data: { name?: string; image?: string; order?: number }) => {
     return await updateCategory(id, data);
   };
 

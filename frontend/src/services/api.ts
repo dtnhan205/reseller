@@ -108,12 +108,12 @@ export const adminApi = {
     const res = await api.get('/admin/categories');
     return res.data;
   },
-  createCategory: async (name: string, image?: string): Promise<Category> => {
-    const res = await api.post('/admin/categories', { name, image });
+  createCategory: async (name: string, image?: string, order?: number): Promise<Category> => {
+    const res = await api.post('/admin/categories', { name, image, order });
     // Backend returns { category }, so we need to extract it
     return res.data.category || res.data;
   },
-  updateCategory: async (id: string, data: { name?: string; image?: string }): Promise<Category> => {
+  updateCategory: async (id: string, data: { name?: string; image?: string; order?: number }): Promise<Category> => {
     const res = await api.put(`/admin/categories/${id}`, data);
     return res.data;
   },
