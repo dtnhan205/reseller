@@ -67,7 +67,11 @@ export default function OrdersHistoryTab() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <SkeletonLoader count={5} />
+        <SkeletonLoader />
+        <SkeletonLoader />
+        <SkeletonLoader />
+        <SkeletonLoader />
+        <SkeletonLoader />
       </div>
     );
   }
@@ -95,7 +99,7 @@ export default function OrdersHistoryTab() {
               <ShoppingBag className="w-6 h-6 text-cyan-400" />
             </div>
             <div>
-              <p className="text-sm text-white/70">{t('admin.totalOrders') || 'Tổng đơn hàng'}</p>
+              <p className="text-sm text-white/70">{t('admin.totalOrders' as any) || 'Tổng đơn hàng'}</p>
               <p className="text-2xl font-bold text-white">{totalOrders}</p>
             </div>
           </div>
@@ -120,7 +124,7 @@ export default function OrdersHistoryTab() {
               <DollarSign className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm text-white/70">{t('admin.totalRevenue') || 'Tổng doanh thu'}</p>
+              <p className="text-sm text-white/70">{t('admin.totalRevenue' as any) || 'Tổng doanh thu'}</p>
               <p className="text-2xl font-bold text-white">{formatPrice(totalRevenue)}</p>
             </div>
           </div>
@@ -161,7 +165,7 @@ export default function OrdersHistoryTab() {
             <div className="text-center py-12">
               <ShoppingBag className="w-16 h-16 text-white/20 mx-auto mb-4" />
               <p className="text-white/70">
-                {searchQuery ? t('common.noData') || 'Không tìm thấy' : t('admin.noOrders') || 'Chưa có đơn hàng nào'}
+                {searchQuery ? t('common.noData') || 'Không tìm thấy' : t('admin.noOrders' as any) || 'Chưa có đơn hàng nào'}
               </p>
             </div>
           ) : (
@@ -182,10 +186,10 @@ export default function OrdersHistoryTab() {
                       {t('admin.price') || 'Giá'}
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.purchasedAt') || 'Ngày mua'}
+                      {t('admin.purchasedAt' as any) || 'Ngày mua'}
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('common.actions') || 'Thao tác'}
+                      {t('common.actions' as any) || 'Thao tác'}
                     </th>
                   </tr>
                 </thead>
@@ -215,7 +219,7 @@ export default function OrdersHistoryTab() {
                         <button
                           onClick={() => handleCopyKey(order.keyValue)}
                           className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                          title={copiedKey === order.keyValue ? t('common.copied') || 'Đã copy' : t('common.copy') || 'Copy'}
+                          title={copiedKey === order.keyValue ? t('common.copied' as any) || 'Đã copy' : t('common.copy' as any) || 'Copy'}
                         >
                           {copiedKey === order.keyValue ? (
                             <Check className="w-4 h-4 text-emerald-400" />
