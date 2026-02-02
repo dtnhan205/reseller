@@ -21,9 +21,11 @@ app.use(morgan("dev"));
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+// Auth routes - không yêu cầu token (đăng ký trước requireAuth)
 app.use("/api/auth", authRouter);
 app.use("/auth", authRouter); // Keep for backward compatibility
 
+// Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);
 app.use("/api/admin", adminRouter);
 app.use("/api", sellerRouter);
