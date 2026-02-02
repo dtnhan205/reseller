@@ -11,10 +11,26 @@
     background-color: #0a0a1a;
     background-image: url('/images/background.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-attachment: fixed;
     background-repeat: no-repeat;
     position: relative;
+    min-height: 100vh;
+  }
+  
+  /* Sửa lỗi background trên mobile */
+  @media screen and (max-width: 768px) {
+    body {
+      background-attachment: scroll;
+      background-size: cover;
+      background-position: center center;
+      /* Đảm bảo background không bị kéo dài */
+      background-clip: padding-box;
+    }
+    
+    body::before {
+      position: absolute;
+    }
   }
   
   body::before {
@@ -174,6 +190,16 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+    font-size: 16px; /* Ngăn zoom trên mobile khi font-size < 16px */
+  }
+  
+  /* Đảm bảo tất cả input, textarea, select có font-size >= 16px trên mobile */
+  @media screen and (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
   
   .input-field:focus {
