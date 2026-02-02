@@ -9,15 +9,14 @@ const {
   getPayments,
   getPaymentDetail,
   deletePayment,
-  getExchangeRate,
   createResetRequest,
   getResetRequests,
 } = require("../controllers/sellerController");
 
 const router = express.Router();
 
-// Public route - Exchange rate
-router.get("/exchange-rate", getExchangeRate);
+// Note: /exchange-rate is now handled as a public route in server.js
+// All routes below require authentication (via requireAuth middleware in server.js)
 
 router.post("/wallet/topup", requireRole("seller"), topupWallet);
 router.get("/wallet/topup-history", requireRole("seller"), getTopupHistory);

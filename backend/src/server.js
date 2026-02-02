@@ -12,6 +12,7 @@ const { adminRouter } = require("./routes/adminRoutes");
 const { sellerRouter } = require("./routes/sellerRoutes");
 const { requireAuth } = require("./middleware/auth");
 const { checkAndUpdatePayments } = require("./services/bankTransactionService");
+const { getExchangeRate } = require("./controllers/sellerController");
 
 const app = express();
 app.use(cors());
@@ -24,6 +25,10 @@ app.get("/api/health", (req, res) => res.json({ ok: true }));
 // Auth routes - không yêu cầu token (đăng ký trước requireAuth)
 app.use("/api/auth", authRouter);
 app.use("/auth", authRouter); // Keep for backward compatibility
+
+// Public routes - không yêu cầu token
+app.get("/api/exchange-rate", getExchangeRate);
+app.get("/exchange-rate", getExchangeRate); // Keep for backward compatibility
 
 // Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);
