@@ -10,8 +10,8 @@ import { Plus, Search, X, Folder, Edit, Trash2, Image as ImageIcon } from 'lucid
 import type { Category } from '@/types';
 
 interface CategoriesTabProps {
-  onCreateCategory: (name: string, image?: string) => Promise<boolean>;
-  onUpdateCategory: (id: string, data: { name?: string; image?: string }) => Promise<boolean>;
+  onCreateCategory: (name: string, image?: string, order?: number) => Promise<boolean>;
+  onUpdateCategory: (id: string, data: { name?: string; image?: string; order?: number }) => Promise<boolean>;
   onDeleteCategory: (id: string) => Promise<boolean>;
 }
 
