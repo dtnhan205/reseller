@@ -29,18 +29,20 @@ export default function OrdersHistoryTab() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [currentPage]);
 
   const loadOrders = async () => {
     try {
       setIsLoading(true);
-      const data = await adminApi.getAllOrders();
+      const data = await adminApi.getAllOrders(currentPage, ITEMS_PER_PAGE);
       setOrders(data.orders);
       setTotalRevenue(data.totalRevenue);
       setTotalOrders(data.totalOrders);
+      setTotalPages(data.totalPages || 1);
     } catch (error: any) {
       // console.error('Error loading orders:', error);
     } finally {
@@ -60,10 +62,15 @@ export default function OrdersHistoryTab() {
 
   // Reset về trang 1 khi search thay đổi
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      loadOrders();
+    }
   }, [searchQuery]);
 
   const filteredOrders = orders.filter((order) => {
+    if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
       order.sellerEmail.toLowerCase().includes(query) ||
@@ -71,11 +78,6 @@ export default function OrdersHistoryTab() {
       order.keyValue.toLowerCase().includes(query)
     );
   });
-
-  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -215,7 +217,7 @@ export default function OrdersHistoryTab() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedOrders.map((order) => (
+                    {filteredOrders.map((order) => (
                       <tr
                         key={order._id}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors"
@@ -259,12 +261,12 @@ export default function OrdersHistoryTab() {
               </div>
 
               {/* Pagination */}
-              {filteredOrders.length > 0 && totalPages > 1 && (
+              {totalOrders > 0 && totalPages > 1 && (
                 <div className="mt-6 pt-4 border-t border-white/10">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="text-sm text-white/70">
-                      {t('history.showing')} {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)}{' '}
-                      {t('history.of')} {filteredOrders.length} {t('history.orders')}
+                      {t('history.showing')} {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalOrders)}{' '}
+                      {t('history.of')} {totalOrders} {t('history.orders')}
                     </div>
 
                     <div className="flex items-center gap-2">

@@ -507,10 +507,24 @@ async function rejectResetRequest(req, res) {
 }
 
 async function getAllOrders(req, res) {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  // Validate pagination params
+  if (page < 1) throw new HttpError(400, "Page must be >= 1");
+  if (limit < 1 || limit > 100) throw new HttpError(400, "Limit must be between 1 and 100");
+
+  // Get total count for pagination
+  const totalOrders = await Order.countDocuments();
+
+  // Get paginated orders
   const orders = await Order.find()
     .populate("sellerId", "email")
     .populate("productId", "name")
     .sort({ purchasedAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .lean();
 
   const formattedOrders = orders.map((order) => ({
@@ -525,13 +539,26 @@ async function getAllOrders(req, res) {
     createdAt: order.createdAt,
   }));
 
-  // Tính tổng doanh thu
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.price || 0), 0);
+  // Calculate total revenue from all orders (not just current page)
+  const revenueResult = await Order.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalRevenue: { $sum: "$price" }
+      }
+    }
+  ]);
+  const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+
+  const totalPages = Math.ceil(totalOrders / limit);
 
   res.json({
     orders: formattedOrders,
     totalRevenue,
-    totalOrders: orders.length,
+    totalOrders,
+    currentPage: page,
+    totalPages,
+    limit,
   });
 }
 

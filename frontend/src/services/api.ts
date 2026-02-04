@@ -219,7 +219,7 @@ export const adminApi = {
     return res.data;
   },
   // Orders history
-  getAllOrders: async (): Promise<{
+  getAllOrders: async (page?: number, limit?: number): Promise<{
     orders: Array<{
       _id: string;
       sellerEmail: string;
@@ -233,8 +233,14 @@ export const adminApi = {
     }>;
     totalRevenue: number;
     totalOrders: number;
+    currentPage: number;
+    totalPages: number;
+    limit: number;
   }> => {
-    const res = await api.get('/admin/orders');
+    const params: any = {};
+    if (page !== undefined) params.page = page;
+    if (limit !== undefined) params.limit = limit;
+    const res = await api.get('/admin/orders', { params });
     return res.data;
   },
 };
