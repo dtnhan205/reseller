@@ -187,34 +187,34 @@ export default function TransactionsPage() {
           <>
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-800">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-800">
                     <th className="text-left py-4 px-4 text-gray-300 font-semibold text-sm">#</th>
                     <th className="text-right py-4 px-4 text-gray-300 font-semibold text-sm">AMOUNT</th>
                     <th className="text-right py-4 px-4 text-gray-300 font-semibold text-sm">DATE</th>
-                  </tr>
-                </thead>
-                <tbody>
+                </tr>
+              </thead>
+              <tbody>
                   {paginatedTransactions.map((transaction, idx) => (
                     <tr
                       key={transaction._id}
                       className="border-b border-gray-800/50 hover:bg-gray-900/50 transition-colors"
                     >
                       <td className="py-4 px-4 text-gray-200">#{startIndex + idx + 1}</td>
-                      <td className="py-4 px-4 text-right">
-                        <span className="text-green-400 font-bold text-lg">
+                    <td className="py-4 px-4 text-right">
+                      <span className="text-green-400 font-bold text-lg">
                           +{formatCurrency(transaction.amountUSD || transaction.amount / 25000, true)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-right text-gray-400 text-sm">
-                        {formatDateShort(transaction.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right text-gray-400 text-sm">
+                      {formatDateShort(transaction.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-3">
@@ -317,12 +317,12 @@ export default function TransactionsPage() {
 
             {/* Total count (no pagination or single page) */}
             {totalPages === 1 && (
-              <div className="mt-6 pt-4 border-t border-gray-800 text-center text-sm text-gray-400">
+          <div className="mt-6 pt-4 border-t border-gray-800 text-center text-sm text-gray-400">
                 {t('transactions.total')} {filteredTransactions.length}{' '}
                 {filteredTransactions.length !== 1
                   ? t('transactions.transactions')
                   : t('transactions.transaction')}
-              </div>
+          </div>
             )}
           </>
         )}

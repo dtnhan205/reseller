@@ -138,83 +138,83 @@ export default function ResetRequestsTab() {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">#</th>
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.category')}</th>
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.product')}</th>
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.key')}</th>
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.requestedBy')}</th>
-                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.requestedAt')}</th>
-                  <th className="text-center py-4 px-4 text-gray-300 font-semibold">{t('admin.status')}</th>
-                  <th className="text-center py-4 px-4 text-gray-300 font-semibold">ACTION</th>
-                </tr>
-              </thead>
-              <tbody>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800">
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">#</th>
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.category')}</th>
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.product')}</th>
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.key')}</th>
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.requestedBy')}</th>
+                <th className="text-left py-4 px-4 text-gray-300 font-semibold">{t('admin.requestedAt')}</th>
+                <th className="text-center py-4 px-4 text-gray-300 font-semibold">{t('admin.status')}</th>
+                <th className="text-center py-4 px-4 text-gray-300 font-semibold">ACTION</th>
+              </tr>
+            </thead>
+            <tbody>
                 {paginatedRequests.map((request, idx) => (
                   <tr
                     key={request._id}
                     className="border-b border-gray-800/50 hover:bg-gray-900/50 transition-colors"
                   >
                     <td className="py-4 px-4 text-gray-200">#{startIndex + idx + 1}</td>
-                    <td className="py-4 px-4 text-gray-200">{request.categoryName}</td>
-                    <td className="py-4 px-4 text-gray-200">{request.productName}</td>
-                    <td className="py-4 px-4">
+                  <td className="py-4 px-4 text-gray-200">{request.categoryName}</td>
+                  <td className="py-4 px-4 text-gray-200">{request.productName}</td>
+                  <td className="py-4 px-4">
                       <span className="font-mono text-sm text-cyan-400">
                         {truncateKey(request.key, 30)}
                       </span>
-                    </td>
-                    <td className="py-4 px-4 text-gray-200">{request.requestedBy}</td>
+                  </td>
+                  <td className="py-4 px-4 text-gray-200">{request.requestedBy}</td>
                     <td className="py-4 px-4 text-gray-400 text-sm">
                       {formatDateShort(request.createdAt)}
                     </td>
-                    <td className="py-4 px-4 text-center">{getStatusBadge(request.status)}</td>
-                    <td className="py-4 px-4 text-center">
-                      {request.status === 'pending' ? (
-                        <div className="flex items-center gap-2 justify-center">
-                          <Button
-                            onClick={() => handleApprove(request._id)}
-                            disabled={processingId === request._id}
-                            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-sm"
-                            isLoading={processingId === request._id}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            {t('admin.approve')}
-                          </Button>
-                          <Button
-                            onClick={() => handleReject(request._id)}
-                            disabled={processingId === request._id}
-                            className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white text-sm"
-                            isLoading={processingId === request._id}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            {t('admin.reject')}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="text-sm text-gray-400">
-                          {request.processedAt && (
-                            <div>
+                  <td className="py-4 px-4 text-center">{getStatusBadge(request.status)}</td>
+                  <td className="py-4 px-4 text-center">
+                    {request.status === 'pending' ? (
+                      <div className="flex items-center gap-2 justify-center">
+                        <Button
+                          onClick={() => handleApprove(request._id)}
+                          disabled={processingId === request._id}
+                          className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-sm"
+                          isLoading={processingId === request._id}
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          {t('admin.approve')}
+                        </Button>
+                        <Button
+                          onClick={() => handleReject(request._id)}
+                          disabled={processingId === request._id}
+                          className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white text-sm"
+                          isLoading={processingId === request._id}
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          {t('admin.reject')}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-400">
+                        {request.processedAt && (
+                          <div>
                               <div>
                                 {t('admin.processedAt')}: {formatDateShort(request.processedAt)}
                               </div>
-                              {request.processedBy && typeof request.processedBy === 'object' && (
+                            {request.processedBy && typeof request.processedBy === 'object' && (
                                 <div className="mt-1">
                                   {t('admin.processedBy')}: {request.processedBy.email}
                                 </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
           {/* Pagination */}
           {requests.length > 0 && totalPages > 1 && (

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/auth/LoginPage';
@@ -34,6 +35,33 @@ function SellerRoute({ children }: { children: React.ReactNode }) {
 function App() {
   const { user } = useAuthStore();
   const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
+
+  // Anti F12 / DevTools & disable right-click
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key?.toLowerCase();
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+        (e.ctrlKey && key === 'u')
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
 
   return (
     <>
