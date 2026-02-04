@@ -7,7 +7,7 @@ import type { User, Category, Product } from '@/types';
 export function useSellers() {
   const [sellers, setSellers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { error: showError } = useToastStore();
+  const { error: showError, success: showSuccess } = useToastStore();
 
   const loadSellers = useCallback(async () => {
     setIsLoading(true);
@@ -25,6 +25,7 @@ export function useSellers() {
     async (data: { email: string; password: string }) => {
       try {
         await adminApi.createSeller(data);
+        showSuccess('Seller created successfully!');
         await loadSellers();
         return true;
       } catch (err: any) {
@@ -33,7 +34,7 @@ export function useSellers() {
         return false;
       }
     },
-    [loadSellers, showError]
+    [loadSellers, showError, showSuccess]
   );
 
   useEffect(() => {

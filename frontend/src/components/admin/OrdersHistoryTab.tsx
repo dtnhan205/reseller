@@ -3,7 +3,7 @@ import { adminApi } from '@/services/api';
 import { useTranslation } from '@/hooks/useTranslation';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { ShoppingBag, Copy, Check, Search, DollarSign } from 'lucide-react';
+import { ShoppingBag, Copy, Check, Search, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice, formatDateShort } from '@/utils/format';
 
 interface Order {
@@ -18,6 +18,8 @@ interface Order {
   createdAt: string;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function OrdersHistoryTab() {
   const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -26,6 +28,7 @@ export default function OrdersHistoryTab() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadOrders();
@@ -55,6 +58,11 @@ export default function OrdersHistoryTab() {
     }
   };
 
+  // Reset về trang 1 khi search thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const filteredOrders = orders.filter((order) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -63,6 +71,18 @@ export default function OrdersHistoryTab() {
       order.keyValue.toLowerCase().includes(query)
     );
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -169,70 +189,144 @@ export default function OrdersHistoryTab() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.seller') || 'Seller'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.product') || 'Sản phẩm'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.key') || 'Key'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.price') || 'Giá'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('admin.purchasedAt')}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
-                      {t('common.actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr key={order._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="py-3 px-4">
-                        <p className="text-white text-sm">{order.sellerEmail}</p>
-                      </td>
-                      <td className="py-3 px-4">
-                        <p className="text-white text-sm">{order.productName}</p>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs text-cyan-400 bg-white/5 px-2 py-1 rounded font-mono max-w-[200px] truncate">
-                            {order.keyValue}
-                          </code>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <p className="text-white text-sm font-semibold">{formatPrice(order.price)}</p>
-                      </td>
-                      <td className="py-3 px-4">
-                        <p className="text-white/70 text-sm">{formatDateShort(order.purchasedAt)}</p>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleCopyKey(order.keyValue)}
-                          className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                          title={copiedKey === order.keyValue ? t('common.copied') : t('common.copy')}
-                        >
-                          {copiedKey === order.keyValue ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-4 h-4 text-white/60 hover:text-white" />
-                          )}
-                        </button>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('admin.seller') || 'Seller'}
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('admin.product') || 'Sản phẩm'}
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('admin.key') || 'Key'}
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('admin.price') || 'Giá'}
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('admin.purchasedAt')}
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">
+                        {t('common.actions')}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedOrders.map((order) => (
+                      <tr
+                        key={order._id}
+                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        <td className="py-3 px-4">
+                          <p className="text-white text-sm">{order.sellerEmail}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <p className="text-white text-sm">{order.productName}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs text-cyan-400 bg-white/5 px-2 py-1 rounded font-mono max-w-[200px] truncate">
+                              {order.keyValue}
+                            </code>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <p className="text-white text-sm font-semibold">{formatPrice(order.price)}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <p className="text-white/70 text-sm">{formatDateShort(order.purchasedAt)}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleCopyKey(order.keyValue)}
+                            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            title={copiedKey === order.keyValue ? t('common.copied') : t('common.copy')}
+                          >
+                            {copiedKey === order.keyValue ? (
+                              <Check className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-4 h-4 text-white/60 hover:text-white" />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {filteredOrders.length > 0 && totalPages > 1 && (
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-white/70">
+                      {t('history.showing')} {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)}{' '}
+                      {t('history.of')} {filteredOrders.length} {t('history.orders')}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/20 bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-white" />
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                          const showPage =
+                            page === 1 ||
+                            page === totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1);
+
+                          if (!showPage && page === currentPage - 2 && currentPage > 3) {
+                            return (
+                              <span key="ellipsis-start" className="px-2 text-white/50">
+                                ...
+                              </span>
+                            );
+                          }
+                          if (!showPage && page === currentPage + 2 && currentPage < totalPages - 2) {
+                            return (
+                              <span key="ellipsis-end" className="px-2 text-white/50">
+                                ...
+                              </span>
+                            );
+                          }
+                          if (!showPage) return null;
+
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`min-w-[2.25rem] h-9 px-2 rounded-lg text-sm font-semibold border ${
+                                currentPage === page
+                                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                                  : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/20 bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </Card>

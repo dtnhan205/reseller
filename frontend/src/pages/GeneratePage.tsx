@@ -599,7 +599,7 @@ export default function GeneratePage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[500px] lg:max-h-[600px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 relative z-0">
+              <div className="space-y-2 sm:space-y-3 max-h-[320px] sm:max-h-[500px] lg:max-h-[600px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 relative z-0">
                 {Object.entries(groupedProducts).map(([categoryName, categoryProducts]) => (
                   <div key={categoryName} className="space-y-2 relative z-0">
                     {/* Category Header */}
