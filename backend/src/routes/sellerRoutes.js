@@ -11,6 +11,8 @@ const {
   deletePayment,
   createResetRequest,
   getResetRequests,
+  listHacks,
+  getHackDetail,
 } = require("../controllers/sellerController");
 
 const router = express.Router();
@@ -32,6 +34,10 @@ router.delete("/payments/:id", requireRole("seller"), deletePayment);
 // Reset requests
 router.post("/reset-request", requireRole("seller"), createResetRequest);
 router.get("/reset-requests", requireRole("seller"), getResetRequests);
+
+// Hacks (status hack)
+router.get("/hacks", requireRole("seller"), listHacks);
+router.get("/hacks/:id", requireRole("seller"), getHackDetail);
 
 module.exports = { sellerRouter: router };
 

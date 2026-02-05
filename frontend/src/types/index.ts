@@ -113,6 +113,28 @@ export interface ExchangeRate {
   usdToVnd: number;
 }
 
+export interface SellerProductPrice {
+  _id: string;
+  seller: User | string;
+  product: Product | string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type HackStatusType = 'updating' | 'safe';
+
+export interface Hack {
+  _id: string;
+  name: string;
+  image?: string;
+  status: HackStatusType;
+  downloadUrl?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ResetRequest {
   _id: string;
   orderId: string | Order;

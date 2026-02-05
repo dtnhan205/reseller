@@ -14,9 +14,11 @@ import type {
   BankAccount,
   Payment,
   ExchangeRate,
+  SellerProductPrice,
+  Hack,
 } from '@/types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // console.log('API URL configured:', API_URL);
 
@@ -166,6 +168,25 @@ export const adminApi = {
     const res = await api.get(`/admin/products/${productId}/keys`);
     return res.data;
   },
+  // Seller specific product prices
+  getSellerProductPrices: async (sellerId: string): Promise<SellerProductPrice[]> => {
+    const res = await api.get('/admin/seller-product-prices', {
+      params: { sellerId },
+    });
+    return res.data;
+  },
+  setSellerProductPrice: async (
+    sellerId: string,
+    productId: string,
+    price: number
+  ): Promise<SellerProductPrice> => {
+    const res = await api.post('/admin/seller-product-prices', {
+      sellerId,
+      productId,
+      price,
+    });
+    return res.data;
+  },
   // Bank accounts management
   getBankAccounts: async (): Promise<BankAccount[]> => {
     const res = await api.get('/admin/bank-accounts');
@@ -243,6 +264,37 @@ export const adminApi = {
     const res = await api.get('/admin/orders', { params });
     return res.data;
   },
+  // Hacks (status hack)
+  getHacks: async (): Promise<Hack[]> => {
+    const res = await api.get('/admin/hacks');
+    return res.data;
+  },
+  createHack: async (data: {
+    name: string;
+    image?: string;
+    status: 'updating' | 'safe';
+    downloadUrl?: string;
+    description?: string;
+  }): Promise<Hack> => {
+    const res = await api.post('/admin/hacks', data);
+    return res.data;
+  },
+  updateHack: async (
+    id: string,
+    data: {
+      name?: string;
+      image?: string;
+      status?: 'updating' | 'safe';
+      downloadUrl?: string;
+      description?: string;
+    }
+  ): Promise<Hack> => {
+    const res = await api.put(`/admin/hacks/${id}`, data);
+    return res.data;
+  },
+  deleteHack: async (id: string): Promise<void> => {
+    await api.delete(`/admin/hacks/${id}`);
+  },
 };
 
 // Seller APIs
@@ -302,6 +354,15 @@ export const sellerApi = {
       },
       getResetRequests: async (): Promise<any[]> => {
         const res = await api.get('/reset-requests');
+        return res.data;
+      },
+      // Hacks
+      getHacks: async (): Promise<Hack[]> => {
+        const res = await api.get('/hacks');
+        return res.data;
+      },
+      getHackDetail: async (id: string): Promise<Hack> => {
+        const res = await api.get(`/hacks/${id}`);
         return res.data;
       },
     };

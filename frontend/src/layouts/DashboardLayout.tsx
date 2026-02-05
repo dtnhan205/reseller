@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import Footer from '@/components/ui/Footer';
-import { Sparkles, BarChart3, Clock, DollarSign, Plus, LogOut, Shield, Wallet } from 'lucide-react';
+import { Sparkles, BarChart3, Clock, DollarSign, Plus, LogOut, Shield, Wallet, Activity } from 'lucide-react';
 import { formatBalance } from '@/utils/format';
 
 const sellerNavItems = [
@@ -12,6 +12,7 @@ const sellerNavItems = [
   { path: '/stats', labelKey: 'nav.stats' as const, icon: BarChart3 },
   { path: '/history', labelKey: 'nav.history' as const, icon: Clock },
   { path: '/transactions', labelKey: 'nav.transactions' as const, icon: DollarSign },
+  { path: '/hacks', labelKey: 'nav.hacks' as const, icon: Activity },
 ];
 
 export default function DashboardLayout() {

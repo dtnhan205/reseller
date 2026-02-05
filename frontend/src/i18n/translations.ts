@@ -42,6 +42,7 @@ export type TranslationKey =
   | 'nav.history'
   | 'nav.transactions'
   | 'nav.topup'
+  | 'nav.hacks'
   
   // Dashboard
   | 'dashboard.title'
@@ -333,7 +334,8 @@ export type TranslationKey =
   | 'admin.totalOrders'
   | 'admin.totalRevenue'
   | 'admin.noOrders'
-  | 'admin.purchasedAt';
+  | 'admin.purchasedAt'
+  | 'admin.hacks';
 
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   vi: {
@@ -380,6 +382,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'nav.history': 'LỊCH SỬ',
     'nav.transactions': 'GIAO DỊCH',
     'nav.topup': 'NẠP TIỀN',
+    'nav.hacks': 'STATUS HACK',
     
     // Generate Page
     'generate.title': 'Tạo key',
@@ -665,6 +668,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.totalRevenue': 'Tổng doanh thu',
     'admin.noOrders': 'Chưa có đơn hàng nào',
     'admin.purchasedAt': 'Ngày mua',
+    'admin.hacks': 'Status Hack',
   },
   en: {
     // Common
@@ -710,6 +714,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'nav.history': 'HISTORY',
     'nav.transactions': 'TRANSACTIONS',
     'nav.topup': 'TOPUP',
+    'nav.hacks': 'HACK STATUS',
     
     // Generate Page
     'generate.title': 'Key Generator',
@@ -995,6 +1000,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.totalRevenue': 'Total Revenue',
     'admin.noOrders': 'No orders yet',
     'admin.purchasedAt': 'Purchased At',
+    'admin.hacks': 'Hack Status',
   },
 };
 

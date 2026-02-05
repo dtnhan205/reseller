@@ -1,14 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useSellers } from '@/hooks/useAdminData';
+import { useSellers, useProducts } from '@/hooks/useAdminData';
 import { adminApi } from '@/services/api';
 import { useToastStore } from '@/store/toastStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { UserPlus, Mail, Lock, Search, X, Calendar, Plus, History, DollarSign } from 'lucide-react';
-import type { User, Payment } from '@/types';
+import { UserPlus, Mail, Lock, Search, X, Calendar, Plus, History, DollarSign, Tag } from 'lucide-react';
+import type { User, Payment, Product, SellerProductPrice } from '@/types';
 import { formatCurrency } from '@/utils/format';
 
 interface SellersTabProps {
@@ -18,6 +18,7 @@ interface SellersTabProps {
 export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   const { t } = useTranslation();
   const { sellers, isLoading: isLoadingSellers, loadSellers } = useSellers();
+  const { products } = useProducts();
   const { success: showSuccess, error: showError } = useToastStore();
   const [sellerForm, setSellerForm] = useState({ email: '', password: '' });
   const [sellerSearch, setSellerSearch] = useState('');
@@ -28,6 +29,13 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   const [topupHistory, setTopupHistory] = useState<Payment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isTopupLoading, setIsTopupLoading] = useState(false);
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [sellerPrices, setSellerPrices] = useState<SellerProductPrice[]>([]);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
+  const [priceForm, setPriceForm] = useState<{ productId: string; price: string }>({
+    productId: '',
+    price: '',
+  });
 
   const filteredSellers = useMemo(() => {
     if (!sellerSearch) return sellers;
@@ -112,6 +120,65 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
     setIsHistoryModalOpen(false);
     setSelectedSeller(null);
     setTopupHistory([]);
+  };
+
+  const handleOpenPriceModal = async (seller: User) => {
+    setSelectedSeller(seller);
+    setPriceForm({ productId: '', price: '' });
+    setIsPriceModalOpen(true);
+    setIsLoadingPrices(true);
+    try {
+      const data = await adminApi.getSellerProductPrices(seller._id);
+      setSellerPrices(data);
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to load special prices');
+    } finally {
+      setIsLoadingPrices(false);
+    }
+  };
+
+  const handleClosePriceModal = () => {
+    setIsPriceModalOpen(false);
+    setSelectedSeller(null);
+    setSellerPrices([]);
+    setPriceForm({ productId: '', price: '' });
+  };
+
+  const handleSavePrice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSeller) return;
+
+    if (!priceForm.productId) {
+      showError('Please select a product');
+      return;
+    }
+
+    const trimmedPrice = priceForm.price.trim();
+    if (!trimmedPrice) {
+      showError('Please enter a price');
+      return;
+    }
+
+    const price = parseFloat(trimmedPrice);
+    if (isNaN(price) || price <= 0 || !isFinite(price)) {
+      showError('Please enter a valid price');
+      return;
+    }
+
+    if (price > 1000000) {
+      showError('Price is too large. Maximum is $1,000,000');
+      return;
+    }
+
+    try {
+      await adminApi.setSellerProductPrice(selectedSeller._id, priceForm.productId, price);
+      showSuccess('Special price saved!');
+      const data = await adminApi.getSellerProductPrices(selectedSeller._id);
+      setSellerPrices(data);
+      setPriceForm({ productId: '', price: '' });
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to save special price');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -286,6 +353,13 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                       <History className="w-4 h-4" />
                       {t('admin.history')}
                     </button>
+                    <button
+                      onClick={() => handleOpenPriceModal(seller)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-700/80 hover:bg-purple-600 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Tag className="w-4 h-4" />
+                      Set price
+                    </button>
                   </div>
                   <div className="flex items-center gap-1 text-gray-400 text-xs mt-2">
                     <Calendar className="w-3 h-3" />
@@ -445,6 +519,129 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Seller Product Prices Modal */}
+      {isPriceModalOpen && selectedSeller && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card
+            className="w-full max-w-2xl max-h-[80vh] animate-fade-in"
+            style={{
+              backdropFilter: 'blur(2px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">
+                Special prices - {selectedSeller.email}
+              </h2>
+              <button
+                onClick={handleClosePriceModal}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePrice} className="space-y-4 mb-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Product
+                </label>
+                <select
+                  value={priceForm.productId}
+                  onChange={(e) =>
+                    setPriceForm({ ...priceForm, productId: e.target.value })
+                  }
+                  className="w-full bg-black/50 border border-gray-800 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                  required
+                >
+                  <option value="">Select product</option>
+                  {products.map((p: Product) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-300">
+                  Special price (USD)
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={priceForm.price}
+                  onChange={(e) =>
+                    setPriceForm({ ...priceForm, price: e.target.value })
+                  }
+                  className="bg-black/50 border-gray-800 focus:border-cyan-500"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={handleClosePriceModal}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700"
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600"
+                >
+                  <Tag className="w-4 h-4 inline mr-2" />
+                  Save price
+                </Button>
+              </div>
+            </form>
+
+            <div className="overflow-y-auto max-h-[40vh]">
+              {isLoadingPrices ? (
+                <SkeletonLoader />
+              ) : sellerPrices.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  No special prices for this seller yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sellerPrices.map((sp) => {
+                    const product =
+                      typeof sp.product === 'object' && sp.product
+                        ? (sp.product as Product)
+                        : products.find((p) => p._id === sp.product);
+                    return (
+                      <div
+                        key={sp._id}
+                        className="bg-gray-900/50 border border-gray-800 rounded-lg p-3 flex items-center justify-between"
+                      >
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            {product ? product.name : 'Unknown product'}
+                          </p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            Created:{' '}
+                            {new Date(sp.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-cyan-400 font-bold">
+                            ${formatCurrency(sp.price, true)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

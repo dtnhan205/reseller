@@ -26,8 +26,18 @@ import BankAccountsTab from '@/components/admin/BankAccountsTab';
 import ExchangeRateTab from '@/components/admin/ExchangeRateTab';
 import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 import OrdersHistoryTab from '@/components/admin/OrdersHistoryTab';
+import HacksTab from '@/components/admin/HacksTab';
 
-type TabType = 'sellers' | 'categories' | 'products' | 'inventory' | 'bank-accounts' | 'exchange-rate' | 'reset-requests' | 'orders-history';
+type TabType =
+  | 'sellers'
+  | 'categories'
+  | 'products'
+  | 'inventory'
+  | 'bank-accounts'
+  | 'exchange-rate'
+  | 'reset-requests'
+  | 'orders-history'
+  | 'hacks';
 
 export default function AdminPage() {
   const { user } = useAuthStore();
@@ -165,6 +175,7 @@ export default function AdminPage() {
     { id: 'exchange-rate' as TabType, labelKey: 'admin.exchangeRate', icon: DollarSign },
     { id: 'reset-requests' as TabType, labelKey: 'admin.resetRequests', icon: RotateCcw },
     { id: 'orders-history' as TabType, labelKey: 'admin.ordersHistory', icon: ShoppingBag },
+    { id: 'hacks' as TabType, labelKey: 'admin.hacks', icon: Shield },
   ];
 
   return (
@@ -314,6 +325,8 @@ export default function AdminPage() {
         {activeTab === 'orders-history' && (
           <OrdersHistoryTab />
         )}
+
+        {activeTab === 'hacks' && <HacksTab />}
       </div>
     </div>
   );

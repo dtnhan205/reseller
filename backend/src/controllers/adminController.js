@@ -8,6 +8,8 @@ const { Product } = require("../models/Product");
 const { BankAccount } = require("../models/BankAccount");
 const { ExchangeRate } = require("../models/ExchangeRate");
 const { Payment } = require("../models/Payment");
+const { SellerProductPrice } = require("../models/SellerProductPrice");
+const { HackStatus } = require("../models/HackStatus");
 const { ResetRequest } = require("../models/ResetRequest");
 const { Order } = require("../models/Order");
 
@@ -305,6 +307,135 @@ async function listSellers(req, res) {
   res.json(sellersWithStats);
 }
 
+// GET /api/admin/seller-product-prices?sellerId=...&productId=...
+// Admin: Xem danh sách giá riêng theo seller / product
+async function listSellerProductPrices(req, res) {
+  const { sellerId, productId } = req.query || {};
+
+  const filter = {};
+  if (sellerId) {
+    filter.sellerId = new mongoose.Types.ObjectId(String(sellerId));
+  }
+  if (productId) {
+    filter.productId = new mongoose.Types.ObjectId(String(productId));
+  }
+
+  const overrides = await SellerProductPrice.find(filter)
+    .populate("sellerId", "email")
+    .populate("productId", "name price")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const transformed = overrides.map((o) => ({
+    _id: o._id,
+    seller: o.sellerId,
+    product: o.productId,
+    price: o.price,
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
+  }));
+
+  res.json(transformed);
+}
+
+// POST /api/admin/seller-product-prices
+// Admin: Set / update giá riêng cho 1 seller - 1 product
+async function setSellerProductPrice(req, res) {
+  const { sellerId, productId, price } = req.body || {};
+
+  if (!sellerId || !productId || price == null) {
+    throw new HttpError(400, "Missing sellerId, productId or price");
+  }
+
+  const numPrice = Number(price);
+  if (!Number.isFinite(numPrice) || numPrice <= 0) {
+    throw new HttpError(400, "Invalid price");
+  }
+
+  const seller = await User.findById(sellerId).lean();
+  if (!seller) throw new HttpError(404, "Seller not found");
+  if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
+
+  const product = await Product.findById(productId).lean();
+  if (!product) throw new HttpError(404, "Product not found");
+
+  const override = await SellerProductPrice.findOneAndUpdate(
+    { sellerId: seller._id, productId: product._id },
+    { $set: { price: numPrice } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  )
+    .populate("sellerId", "email")
+    .populate("productId", "name price");
+
+  res.status(201).json({
+    _id: override._id,
+    seller: override.sellerId,
+    product: override.productId,
+    price: override.price,
+    createdAt: override.createdAt,
+    updatedAt: override.updatedAt,
+  });
+}
+
+// ---- Hack Status (Admin) ----
+
+// GET /api/admin/hacks
+async function listHacks(req, res) {
+  const hacks = await HackStatus.find().sort({ createdAt: -1 }).lean();
+  res.json(hacks);
+}
+
+// POST /api/admin/hacks
+async function createHack(req, res) {
+  const { name, image, status, downloadUrl, description } = req.body || {};
+
+  if (!name) throw new HttpError(400, "Missing name");
+
+  const hack = await HackStatus.create({
+    name: String(name).trim(),
+    image: image ? String(image).trim() : "",
+    status: status === "updating" ? "updating" : "safe",
+    downloadUrl: downloadUrl ? String(downloadUrl).trim() : "",
+    description: description ? String(description).trim() : "",
+  });
+
+  res.status(201).json(hack);
+}
+
+// PUT /api/admin/hacks/:id
+async function updateHack(req, res) {
+  const { id } = req.params;
+  const { name, image, status, downloadUrl, description } = req.body || {};
+
+  const hack = await HackStatus.findById(id);
+  if (!hack) throw new HttpError(404, "Hack not found");
+
+  if (name) hack.name = String(name).trim();
+  if (image !== undefined) hack.image = image ? String(image).trim() : "";
+  if (status) {
+    hack.status = status === "updating" ? "updating" : "safe";
+  }
+  if (downloadUrl !== undefined) {
+    hack.downloadUrl = downloadUrl ? String(downloadUrl).trim() : "";
+  }
+  if (description !== undefined) {
+    hack.description = description ? String(description).trim() : "";
+  }
+
+  await hack.save();
+  res.json(hack);
+}
+
+// DELETE /api/admin/hacks/:id
+async function deleteHack(req, res) {
+  const { id } = req.params;
+
+  const hack = await HackStatus.findByIdAndDelete(id);
+  if (!hack) throw new HttpError(404, "Hack not found");
+
+  res.json({ message: "Hack deleted successfully" });
+}
+
 // GET /api/admin/sellers/:id/topup-history - Admin: Xem lịch sử nạp tiền của seller
 async function getSellerTopupHistory(req, res) {
   const { id } = req.params;
@@ -575,6 +706,8 @@ module.exports = {
   addInventory,
   getProductKeys,
   listSellers,
+  listSellerProductPrices,
+  setSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
   getBankAccounts,
@@ -588,6 +721,10 @@ module.exports = {
   approveResetRequest,
   rejectResetRequest,
   getAllOrders,
+  listHacks,
+  createHack,
+  updateHack,
+  deleteHack,
 };
 
 

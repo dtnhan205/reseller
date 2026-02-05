@@ -3,6 +3,8 @@ const { requireRole } = require("../middleware/auth");
 const {
   createSeller,
   listSellers,
+  listSellerProductPrices,
+  setSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
   createCategory,
@@ -25,6 +27,10 @@ const {
   approveResetRequest,
   rejectResetRequest,
   getAllOrders,
+  listHacks,
+  createHack,
+  updateHack,
+  deleteHack,
 } = require("../controllers/adminController");
 
 const router = express.Router();
@@ -35,6 +41,16 @@ router.post("/sellers", createSeller);
 router.get("/sellers", listSellers);
 router.get("/sellers/:id/topup-history", getSellerTopupHistory);
 router.post("/sellers/:id/topup", manualTopupSeller);
+
+// Seller specific product prices
+router.get("/seller-product-prices", listSellerProductPrices);
+router.post("/seller-product-prices", setSellerProductPrice);
+
+// Hack status management
+router.get("/hacks", listHacks);
+router.post("/hacks", createHack);
+router.put("/hacks/:id", updateHack);
+router.delete("/hacks/:id", deleteHack);
 
 router.post("/categories", createCategory);
 router.get("/categories", listCategories);

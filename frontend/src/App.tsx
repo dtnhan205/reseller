@@ -9,6 +9,8 @@ import HistoryPage from './pages/HistoryPage';
 import TransactionsPage from './pages/TransactionsPage';
 import TopupPage from './pages/TopupPage';
 import AdminPage from './pages/AdminPage';
+import HacksPage from './pages/HacksPage';
+import HackDetailPage from './pages/HackDetailPage';
 import AboutPage from './pages/AboutPage';
 import SupportPage from './pages/SupportPage';
 import PrivacyPage from './pages/PrivacyPage';
@@ -124,6 +126,22 @@ function App() {
           element={
             <SellerRoute>
               <TopupPage />
+            </SellerRoute>
+          }
+        />
+        <Route
+          path="hacks"
+          element={
+            <SellerRoute>
+              <HacksPage />
+            </SellerRoute>
+          }
+        />
+        <Route
+          path="hacks/:id"
+          element={
+            <SellerRoute>
+              <HackDetailPage />
             </SellerRoute>
           }
         />

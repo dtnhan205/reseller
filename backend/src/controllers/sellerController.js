@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const { HttpError } = require("../utils/httpError");
 const { User } = require("../models/User");
 const { Product } = require("../models/Product");
+const { SellerProductPrice } = require("../models/SellerProductPrice");
+const { HackStatus } = require("../models/HackStatus");
 const { Order } = require("../models/Order");
 const { TopupTransaction } = require("../models/TopupTransaction");
 const { Payment } = require("../models/Payment");
@@ -97,7 +99,13 @@ async function purchase(req, res) {
       const product = await Product.findById(productId).session(session);
       if (!product) throw new HttpError(404, "Product not found");
 
-      const price = product.price;
+      // Nếu có giá riêng cho seller này thì dùng, không thì dùng giá chung
+      const override = await SellerProductPrice.findOne({
+        sellerId: seller._id,
+        productId: product._id,
+      }).session(session);
+
+      const price = override ? override.price : product.price;
       if (seller.walletBalance < price) throw new HttpError(400, "Insufficient wallet balance");
 
       const idx = product.inventory.findIndex((it) => it.qtyAvailable > 0);
@@ -183,13 +191,26 @@ async function getProducts(req, res) {
       .lean();
     
     console.log('Seller getProducts: Found', products.length, 'products in database');
+
+    // Lấy danh sách giá riêng cho seller hiện tại (nếu có)
+    const productIds = products.map((p) => p._id);
+    const overrides = await SellerProductPrice.find({
+      sellerId: req.user._id,
+      productId: { $in: productIds },
+    })
+      .lean();
+
+    const overrideMap = new Map(
+      overrides.map((o) => [String(o.productId), o.price])
+    );
     
     // Transform để match frontend format - đảm bảo không có inventory
     const transformed = products.map((p) => ({
       _id: p._id,
       name: p.name,
       slug: p.slug,
-      price: p.price,
+      // Nếu có giá override cho seller thì dùng, không thì dùng giá chung
+      price: overrideMap.get(String(p._id)) ?? p.price,
       category: p.categoryId || null, // Map categoryId to category for frontend, handle null
       remainingQuantity: p.totalQtyAvailable || 0,
       soldQuantity: p.totalQtySold || 0,
@@ -308,6 +329,22 @@ async function getExchangeRate(req, res) {
   res.json({ usdToVnd: rate.usdToVnd });
 }
 
+// ---- Hack Status (Seller) ----
+
+// GET /api/hacks - seller: list all hacks
+async function listHacks(req, res) {
+  const hacks = await HackStatus.find().sort({ createdAt: -1 }).lean();
+  res.json(hacks);
+}
+
+// GET /api/hacks/:id - seller: hack detail
+async function getHackDetail(req, res) {
+  const { id } = req.params;
+  const hack = await HackStatus.findById(id).lean();
+  if (!hack) throw new HttpError(404, "Hack not found");
+  res.json(hack);
+}
+
 // POST /api/reset-request - Seller: Tạo yêu cầu reset key
 async function createResetRequest(req, res) {
   const { orderId } = req.body || {};
@@ -377,6 +414,8 @@ module.exports = {
   getPaymentDetail,
   deletePayment,
   getExchangeRate,
+  listHacks,
+  getHackDetail,
   createResetRequest,
   getResetRequests,
 };
