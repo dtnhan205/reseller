@@ -12,7 +12,7 @@ const { adminRouter } = require("./routes/adminRoutes");
 const { sellerRouter } = require("./routes/sellerRoutes");
 const { requireAuth } = require("./middleware/auth");
 const { checkAndUpdatePayments } = require("./services/bankTransactionService");
-const { getExchangeRate } = require("./controllers/sellerController");
+const { getExchangeRate, listHacks, getHackDetail } = require("./controllers/sellerController");
 
 const app = express();
 
@@ -81,6 +81,13 @@ app.use("/auth", authRouter); // Keep for backward compatibility
 // Public routes - không yêu cầu token
 app.get("/api/exchange-rate", getExchangeRate);
 app.get("/exchange-rate", getExchangeRate); // Keep for backward compatibility
+
+// Public routes: Status Hack (không cần đăng nhập)
+app.get("/api/hacks", listHacks);
+app.get("/api/hacks/:id", getHackDetail);
+// Keep for backward compatibility (non /api)
+app.get("/hacks", listHacks);
+app.get("/hacks/:id", getHackDetail);
 
 // Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);

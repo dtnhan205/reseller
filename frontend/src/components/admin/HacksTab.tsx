@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from '@/hooks/useTranslation';
 import { adminApi } from '@/services/api';
 import { useToastStore } from '@/store/toastStore';
 import type { Hack, HackStatusType } from '@/types';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { Activity, Image, Link as LinkIcon, FileText, Plus, Edit, Trash2, Shield, AlertTriangle } from 'lucide-react';
+import { Activity, Image, Link as LinkIcon, Plus, Edit, Trash2, Shield, AlertTriangle } from 'lucide-react';
 
 export default function HacksTab() {
-  const { t } = useTranslation();
   const { success: showSuccess, error: showError } = useToastStore();
   const [hacks, setHacks] = useState<Hack[]>([]);
   const [isLoading, setIsLoading] = useState(false);

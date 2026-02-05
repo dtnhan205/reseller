@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardLayout from './layouts/DashboardLayout';
+import PublicLayout from './layouts/PublicLayout';
 import GeneratePage from './pages/GeneratePage';
 import StatsPage from './pages/StatsPage';
 import HistoryPage from './pages/HistoryPage';
@@ -72,6 +73,13 @@ function App() {
       <ToastContainer />
       <Routes>
       <Route path="/login" element={<LoginPage />} />
+
+      {/* Public Hacks صفحات: không cần đăng nhập */}
+      <Route path="/hacks" element={<PublicLayout />}>
+        <Route index element={<HacksPage />} />
+        <Route path=":id" element={<HackDetailPage />} />
+      </Route>
+
       <Route
         path="/"
         element={
@@ -126,22 +134,6 @@ function App() {
           element={
             <SellerRoute>
               <TopupPage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="hacks"
-          element={
-            <SellerRoute>
-              <HacksPage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="hacks/:id"
-          element={
-            <SellerRoute>
-              <HackDetailPage />
             </SellerRoute>
           }
         />
