@@ -277,6 +277,36 @@ async function addInventory(req, res) {
   res.status(201).json({ product });
 }
 
+async function deleteInventoryKey(req, res) {
+  const { productId, keyId } = req.params;
+  
+  const product = await Product.findById(productId);
+  if (!product) throw new HttpError(404, "Product not found");
+
+  const keyIndex = product.inventory.findIndex(
+    (item) => item._id.toString() === keyId
+  );
+  
+  if (keyIndex === -1) throw new HttpError(404, "Key not found");
+
+  const keyItem = product.inventory[keyIndex];
+  
+  // Chỉ cho phép xóa key chưa bán (qtySold === 0 và qtyAvailable > 0)
+  if (keyItem.qtySold > 0) {
+    throw new HttpError(400, "Cannot delete key that has been sold");
+  }
+
+  // Giảm totalQtyAvailable
+  const qtyToRemove = keyItem.qtyAvailable;
+  product.totalQtyAvailable = Math.max(0, (product.totalQtyAvailable || 0) - qtyToRemove);
+
+  // Xóa key khỏi inventory
+  product.inventory.splice(keyIndex, 1);
+
+  await product.save();
+  res.json({ message: "Key deleted successfully", product });
+}
+
 async function listSellers(req, res) {
   const sellers = await User.find({ role: "seller" })
     .select("-passwordHash")
@@ -641,22 +671,100 @@ async function getAllOrders(req, res) {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
+  const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+  const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+  const searchQuery = req.query.search ? String(req.query.search).trim() : null;
 
   // Validate pagination params
   if (page < 1) throw new HttpError(400, "Page must be >= 1");
   if (limit < 1 || limit > 100) throw new HttpError(400, "Limit must be between 1 and 100");
 
-  // Get total count for pagination
-  const totalOrders = await Order.countDocuments();
+  // Build date filter
+  const dateFilter = {};
+  if (startDate || endDate) {
+    const orConditions = [];
+    
+    const start = startDate ? new Date(startDate) : null;
+    if (start) start.setHours(0, 0, 0, 0);
+    
+    const end = endDate ? new Date(endDate) : null;
+    if (end) end.setHours(23, 59, 59, 999);
+    
+    const purchasedAtCondition = {};
+    const createdAtCondition = {};
+    
+    if (start) {
+      purchasedAtCondition.$gte = start;
+      createdAtCondition.$gte = start;
+    }
+    if (end) {
+      purchasedAtCondition.$lte = end;
+      createdAtCondition.$lte = end;
+    }
+    
+    if (Object.keys(purchasedAtCondition).length > 0) {
+      orConditions.push({ purchasedAt: purchasedAtCondition });
+    }
+    if (Object.keys(createdAtCondition).length > 0) {
+      orConditions.push({ createdAt: createdAtCondition });
+    }
+    
+    if (orConditions.length > 0) {
+      dateFilter.$or = orConditions;
+    }
+  }
 
-  // Get paginated orders
-  const orders = await Order.find()
+  // Build search filter
+  let searchFilter = {};
+  if (searchQuery && searchQuery.length > 0) {
+    const searchRegex = new RegExp(searchQuery, 'i'); // Case-insensitive search
+    searchFilter = {
+      $or: [
+        { keyValue: searchRegex },
+        { productName: searchRegex }
+      ]
+    };
+  }
+
+  // Combine filters
+  const combinedFilter = { ...dateFilter };
+  if (Object.keys(searchFilter).length > 0) {
+    if (combinedFilter.$or) {
+      // If date filter already has $or, we need to combine with $and
+      combinedFilter.$and = [
+        { $or: combinedFilter.$or },
+        searchFilter
+      ];
+      delete combinedFilter.$or;
+    } else {
+      Object.assign(combinedFilter, searchFilter);
+    }
+  }
+
+  // Get total count for pagination (with all filters)
+  const totalOrders = await Order.countDocuments(combinedFilter);
+
+  // Get paginated orders (with all filters)
+  let orders = await Order.find(combinedFilter)
     .populate("sellerId", "email")
     .populate("productId", "name")
     .sort({ purchasedAt: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
+
+  // Filter by seller email if search query exists (after populate)
+  if (searchQuery && searchQuery.length > 0) {
+    const searchLower = searchQuery.toLowerCase();
+    orders = orders.filter(order => {
+      const sellerEmail = order.sellerId?.email || '';
+      return (
+        order.keyValue?.toLowerCase().includes(searchLower) ||
+        order.productName?.toLowerCase().includes(searchLower) ||
+        sellerEmail.toLowerCase().includes(searchLower)
+      );
+    });
+  }
 
   const formattedOrders = orders.map((order) => ({
     _id: order._id,
@@ -670,8 +778,9 @@ async function getAllOrders(req, res) {
     createdAt: order.createdAt,
   }));
 
-  // Calculate total revenue from all orders (not just current page)
+  // Calculate total revenue from filtered orders (not just current page)
   const revenueResult = await Order.aggregate([
+    ...(Object.keys(combinedFilter).length > 0 ? [{ $match: combinedFilter }] : []),
     {
       $group: {
         _id: null,
@@ -705,6 +814,7 @@ module.exports = {
   deleteProduct,
   addInventory,
   getProductKeys,
+  deleteInventoryKey,
   listSellers,
   listSellerProductPrices,
   setSellerProductPrice,

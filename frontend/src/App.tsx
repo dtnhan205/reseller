@@ -35,6 +35,19 @@ function SellerRoute({ children }: { children: React.ReactNode }) {
   return user?.role === 'seller' ? <>{children}</> : <Navigate to="/admin" replace />;
 }
 
+// HacksRouteWrapper: Nếu đã login thì dùng DashboardLayout, chưa login thì dùng PublicLayout
+function HacksRouteWrapper() {
+  const { token, user } = useAuthStore();
+  
+  // Nếu đã login và là seller → dùng DashboardLayout (có navigation bar)
+  if (token && user?.role === 'seller') {
+    return <DashboardLayout />;
+  }
+  
+  // Nếu chưa login → dùng PublicLayout (không có navigation bar)
+  return <PublicLayout />;
+}
+
 function App() {
   const { user } = useAuthStore();
   const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
@@ -73,12 +86,6 @@ function App() {
       <ToastContainer />
       <Routes>
       <Route path="/login" element={<LoginPage />} />
-
-      {/* Public Hacks صفحات: không cần đăng nhập */}
-      <Route path="/hacks" element={<PublicLayout />}>
-        <Route index element={<HacksPage />} />
-        <Route path=":id" element={<HackDetailPage />} />
-      </Route>
 
       <Route
         path="/"
@@ -142,6 +149,12 @@ function App() {
         <Route path="support" element={<SupportPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="terms" element={<TermsPage />} />
+      </Route>
+
+      {/* Hacks pages: Nếu đã login (seller) thì có navigation bar, chưa login thì không */}
+      <Route path="/hacks" element={<HacksRouteWrapper />}>
+        <Route index element={<HacksPage />} />
+        <Route path=":id" element={<HackDetailPage />} />
       </Route>
     </Routes>
     </>

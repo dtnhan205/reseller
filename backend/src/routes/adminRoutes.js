@@ -17,6 +17,7 @@ const {
   deleteProduct,
   addInventory,
   getProductKeys,
+  deleteInventoryKey,
   getBankAccounts,
   createBankAccount,
   updateBankAccount,
@@ -63,6 +64,7 @@ router.put("/products/:id", updateProduct);
 router.delete("/products/:id", deleteProduct);
 router.post("/products/:productId/inventory", addInventory);
 router.get("/products/:id/keys", getProductKeys);
+router.delete("/products/:productId/inventory/:keyId", deleteInventoryKey);
 
 // Bank accounts management
 router.get("/bank-accounts", getBankAccounts);

@@ -3,7 +3,7 @@ import { adminApi } from '@/services/api';
 import { useTranslation } from '@/hooks/useTranslation';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { ShoppingBag, Copy, Check, Search, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Copy, Check, Search, DollarSign, ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 import { formatPrice, formatDateShort } from '@/utils/format';
 
 interface Order {
@@ -30,15 +30,23 @@ export default function OrdersHistoryTab() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   useEffect(() => {
     loadOrders();
-  }, [currentPage]);
+  }, [currentPage, startDate, endDate]);
 
   const loadOrders = async () => {
     try {
       setIsLoading(true);
-      const data = await adminApi.getAllOrders(currentPage, ITEMS_PER_PAGE);
+      const data = await adminApi.getAllOrders(
+        currentPage, 
+        ITEMS_PER_PAGE,
+        startDate || undefined,
+        endDate || undefined,
+        searchQuery || undefined
+      );
       setOrders(data.orders);
       setTotalRevenue(data.totalRevenue);
       setTotalOrders(data.totalOrders);
@@ -48,6 +56,12 @@ export default function OrdersHistoryTab() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    setCurrentPage(1);
   };
 
   const handleCopyKey = async (key: string) => {
@@ -68,16 +82,6 @@ export default function OrdersHistoryTab() {
       loadOrders();
     }
   }, [searchQuery]);
-
-  const filteredOrders = orders.filter((order) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      order.sellerEmail.toLowerCase().includes(query) ||
-      order.productName.toLowerCase().includes(query) ||
-      order.keyValue.toLowerCase().includes(query)
-    );
-  });
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -153,26 +157,82 @@ export default function OrdersHistoryTab() {
         </Card>
       </div>
 
-      {/* Search */}
-      <Card
-        style={{
-          background: 'rgba(255, 255, 255, 0.03)',
-          backdropFilter: 'blur(2px) saturate(120%)',
-          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
-        }}
-      >
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
-          <input
-            type="text"
-            placeholder={t('common.search') || 'Tìm kiếm...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field w-full pl-12"
-            style={{ fontSize: '16px' }}
-          />
-        </div>
-      </Card>
+      {/* Search and Date Filter */}
+      <div className="space-y-4">
+        <Card
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+            <input
+              type="text"
+              placeholder={t('common.search') || 'Tìm kiếm...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-field w-full pl-12"
+              style={{ fontSize: '16px' }}
+            />
+          </div>
+        </Card>
+
+        {/* Date Filter */}
+        <Card
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(2px) saturate(120%)',
+            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+          }}
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-2 text-white/70">
+              <Calendar className="w-5 h-5" />
+              <span className="text-sm font-medium">Lọc theo ngày:</span>
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-1">
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                <label className="text-sm text-white/70 whitespace-nowrap">Từ ngày:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="input-field flex-1 sm:w-auto min-w-[150px]"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                <label className="text-sm text-white/70 whitespace-nowrap">Đến ngày:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  min={startDate || undefined}
+                  className="input-field flex-1 sm:w-auto min-w-[150px]"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+              {(startDate || endDate) && (
+                <button
+                  onClick={handleClearDateFilter}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors text-sm"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Xóa lọc</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* Orders List */}
       <Card
@@ -183,7 +243,7 @@ export default function OrdersHistoryTab() {
         }}
       >
         <div className="space-y-4">
-          {filteredOrders.length === 0 ? (
+          {orders.length === 0 ? (
             <div className="text-center py-12">
               <ShoppingBag className="w-16 h-16 text-white/20 mx-auto mb-4" />
               <p className="text-white/70">
@@ -217,7 +277,7 @@ export default function OrdersHistoryTab() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredOrders.map((order) => (
+                    {orders.map((order) => (
                       <tr
                         key={order._id}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors"

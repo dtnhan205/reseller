@@ -280,6 +280,8 @@ export type TranslationKey =
   | 'admin.totalProducts'
   | 'admin.totalSold'
   | 'admin.stock'
+  | 'admin.inStock'
+  | 'admin.outOfStock'
   | 'admin.sold'
   | 'admin.selectProductAndKeys'
   | 'admin.confirmDeleteCategory'
@@ -392,6 +394,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'generate.noProducts': 'Không có sản phẩm',
     'generate.noProductsAvailable': 'Không có sản phẩm nào',
     'generate.outOfStock': 'Hết hàng',
+    'generate.inStock': 'Còn hàng',
     'generate.purchaseDetails': 'Chi tiết Mua hàng',
     'generate.selectProductToPurchase': 'Chọn sản phẩm để mua',
     'generate.quantity': 'Số lượng',
@@ -535,6 +538,8 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.totalProducts': 'Products',
     'admin.totalSold': 'Tổng đã bán',
     'admin.stock': 'Tồn kho',
+    'admin.inStock': 'Còn hàng',
+    'admin.outOfStock': 'Hết hàng',
     'admin.sold': 'Đã bán',
     'admin.selectProductAndKeys': 'Vui lòng chọn sản phẩm và nhập keys',
     'admin.confirmDeleteCategory': 'Bạn có chắc chắn muốn xóa category này? Nếu category đang được sử dụng bởi sản phẩm, bạn sẽ không thể xóa.',
@@ -724,6 +729,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'generate.noProducts': 'No products',
     'generate.noProductsAvailable': 'No products available',
     'generate.outOfStock': 'Out of Stock',
+    'generate.inStock': 'In Stock',
     'generate.purchaseDetails': 'Purchase Details',
     'generate.selectProductToPurchase': 'Select a product to purchase',
     'generate.quantity': 'Quantity',
@@ -867,6 +873,8 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.totalProducts': 'Products',
     'admin.totalSold': 'Total Sold',
     'admin.stock': 'Stock',
+    'admin.inStock': 'In Stock',
+    'admin.outOfStock': 'Out of Stock',
     'admin.sold': 'Sold',
     'admin.selectProductAndKeys': 'Please select a product and enter keys',
     'admin.confirmDeleteCategory': 'Are you sure you want to delete this category? If the category is being used by products, you will not be able to delete it.',

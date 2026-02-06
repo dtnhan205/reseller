@@ -63,20 +63,6 @@ export default function HacksPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
-          <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            Status Hack
-          </h1>
-          <p className="text-gray-400 text-xs sm:text-sm mt-1">
-            Xem danh sách hack, trạng thái và lấy link tải
-          </p>
-        </div>
-      </div>
-
       <Card
         className="bg-black/30 border border-gray-800"
         style={{

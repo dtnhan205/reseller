@@ -689,8 +689,8 @@ export default function GeneratePage() {
                                     }`}>
                                       ${formatPrice(product.price)}
                                     </span>
-                                    <span className={`flex-shrink-0 text-sm ${isOutOfStock ? 'text-red-800' : 'text-white/90'}`}>
-                                      {isOutOfStock ? t('generate.outOfStock') : `${t('generate.stock')}: ${product.remainingQuantity}`}
+                                    <span className={`flex-shrink-0 text-sm ${isOutOfStock ? 'text-red-400' : 'text-green-400'}`}>
+                                      {isOutOfStock ? t('generate.outOfStock') : t('generate.inStock')}
                                     </span>
                                   </div>
                                 </div>

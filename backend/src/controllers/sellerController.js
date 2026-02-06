@@ -112,9 +112,16 @@ async function purchase(req, res) {
       if (idx === -1) throw new HttpError(400, "Out of stock");
 
       const inv = product.inventory[idx];
+      const keyValue = inv.value; // Lưu key value trước khi xóa
+      
       inv.qtyAvailable -= 1;
       inv.qtySold += 1;
       inv.soldToSellerIds.push(seller._id);
+
+      // Nếu key đã hết (qtyAvailable = 0) thì xóa khỏi inventory
+      if (inv.qtyAvailable === 0) {
+        product.inventory.splice(idx, 1);
+      }
 
       product.totalQtyAvailable = Math.max(0, (product.totalQtyAvailable || 0) - 1);
       product.totalQtySold = (product.totalQtySold || 0) + 1;
@@ -127,7 +134,7 @@ async function purchase(req, res) {
             sellerId: seller._id,
             productId: product._id,
             productName: product.name,
-            keyValue: inv.value,
+            keyValue: keyValue,
             price,
             purchasedAt: new Date()
           }

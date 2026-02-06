@@ -168,6 +168,9 @@ export const adminApi = {
     const res = await api.get(`/admin/products/${productId}/keys`);
     return res.data;
   },
+  deleteInventoryKey: async (productId: string, keyId: string): Promise<void> => {
+    await api.delete(`/admin/products/${productId}/inventory/${keyId}`);
+  },
   // Seller specific product prices
   getSellerProductPrices: async (sellerId: string): Promise<SellerProductPrice[]> => {
     const res = await api.get('/admin/seller-product-prices', {
@@ -240,7 +243,7 @@ export const adminApi = {
     return res.data;
   },
   // Orders history
-  getAllOrders: async (page?: number, limit?: number): Promise<{
+  getAllOrders: async (page?: number, limit?: number, startDate?: string, endDate?: string, search?: string): Promise<{
     orders: Array<{
       _id: string;
       sellerEmail: string;
@@ -261,6 +264,9 @@ export const adminApi = {
     const params: any = {};
     if (page !== undefined) params.page = page;
     if (limit !== undefined) params.limit = limit;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    if (search) params.search = search;
     const res = await api.get('/admin/orders', { params });
     return res.data;
   },

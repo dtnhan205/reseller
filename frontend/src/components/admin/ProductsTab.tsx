@@ -163,6 +163,22 @@ export default function ProductsTab({
     }
   };
 
+  const handleDeleteKey = async (productId: string, keyId: string) => {
+    if (!confirm('Are you sure you want to delete this key? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await adminApi.deleteInventoryKey(productId, keyId);
+      showSuccess('Key deleted successfully');
+      // Reload keys after deletion
+      const data = await adminApi.getProductKeys(productId);
+      setProductKeys(data.keys);
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to delete key');
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
       <Card title={t('admin.createProduct')} className="h-fit">
@@ -318,9 +334,19 @@ export default function ProductsTab({
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap">
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-500/10 rounded-lg border border-green-500/20">
-                      <span className="text-green-400 font-medium whitespace-nowrap">
-                        {t('admin.stock')}: {product.remainingQuantity}
+                    <div className={`flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border whitespace-nowrap ${
+                      (product.remainingQuantity || 0) > 0 
+                        ? 'bg-green-500/10 border-green-500/20' 
+                        : 'bg-red-500/10 border-red-500/20'
+                    }`}>
+                      <span className={`font-medium ${
+                        (product.remainingQuantity || 0) > 0 
+                          ? 'text-green-400' 
+                          : 'text-red-400'
+                      }`}>
+                        {(product.remainingQuantity || 0) > 0 
+                          ? `${t('admin.inStock')}: ${product.remainingQuantity} key` 
+                          : t('admin.outOfStock')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
@@ -482,37 +508,61 @@ export default function ProductsTab({
                           Quantity: {keyItem.qtyAvailable} • Added: {new Date(keyItem.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <button
-                        onClick={() => handleCopyKey(keyItem.value, keyItem._id)}
-                        className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm relative z-10"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.18)',
-                          backdropFilter: 'blur(2px) saturate(120%)',
-                          WebkitBackdropFilter: 'blur(2px) saturate(120%)',
-                          border: '1px solid rgba(255, 255, 255, 0.3)',
-                          boxShadow: `
-                            0 20px 60px -12px rgba(0, 0, 0, 0.5),
-                            0 12px 40px -8px rgba(0, 0, 0, 0.4),
-                            0 4px 16px -4px rgba(0, 0, 0, 0.3),
-                            inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-                            inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
-                            inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
-                            0 0 0 1px rgba(255, 255, 255, 0.1)
-                          `,
-                        }}
-                      >
-                        {copiedKeyId === keyItem._id ? (
-                          <>
-                            <Check className="w-4 h-4 text-white" />
-                            <span className="text-white">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4 text-white" />
-                            <span className="text-white">Copy</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button
+                          onClick={() => handleCopyKey(keyItem.value, keyItem._id)}
+                          className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm relative z-10"
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.18)',
+                            backdropFilter: 'blur(2px) saturate(120%)',
+                            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            boxShadow: `
+                              0 20px 60px -12px rgba(0, 0, 0, 0.5),
+                              0 12px 40px -8px rgba(0, 0, 0, 0.4),
+                              0 4px 16px -4px rgba(0, 0, 0, 0.3),
+                              inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                              inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
+                              inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                              0 0 0 1px rgba(255, 255, 255, 0.1)
+                            `,
+                          }}
+                        >
+                          {copiedKeyId === keyItem._id ? (
+                            <>
+                              <Check className="w-4 h-4 text-white" />
+                              <span className="text-white">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4 text-white" />
+                              <span className="text-white">Copy</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => viewingKeysProductId && handleDeleteKey(viewingKeysProductId, keyItem._id)}
+                          className="water-droplet w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center gap-2 min-w-[100px] justify-center text-sm relative z-10"
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.18)',
+                            backdropFilter: 'blur(2px) saturate(120%)',
+                            WebkitBackdropFilter: 'blur(2px) saturate(120%)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            boxShadow: `
+                              0 20px 60px -12px rgba(239, 68, 68, 0.3),
+                              0 12px 40px -8px rgba(239, 68, 68, 0.2),
+                              0 4px 16px -4px rgba(239, 68, 68, 0.1),
+                              inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                              inset -2px -2px 4px 0 rgba(255, 255, 255, 0.1),
+                              inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
+                              0 0 0 1px rgba(239, 68, 68, 0.2)
+                            `,
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                          <span className="text-red-400">Delete</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
