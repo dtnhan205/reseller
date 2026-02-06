@@ -57,6 +57,7 @@ export type TranslationKey =
   | 'generate.noProducts'
   | 'generate.noProductsAvailable'
   | 'generate.outOfStock'
+  | 'generate.inStock'
   | 'generate.purchaseDetails'
   | 'generate.selectProductToPurchase'
   | 'generate.quantity'
