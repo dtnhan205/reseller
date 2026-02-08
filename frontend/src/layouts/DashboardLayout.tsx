@@ -14,6 +14,7 @@ const sellerNavItems = [
   { path: '/history', labelKey: 'nav.history' as const, icon: Clock },
   { path: '/transactions', labelKey: 'nav.transactions' as const, icon: DollarSign },
   { path: '/hacks', labelKey: 'nav.hacks' as const, icon: Activity },
+  { path: '/topup', labelKey: 'nav.topup' as const, icon: Plus },
 ];
 
 export default function DashboardLayout() {
@@ -154,8 +155,8 @@ export default function DashboardLayout() {
                       background: isActive
                         ? 'rgba(255, 255, 255, 0.1)'
                         : 'rgba(255, 255, 255, 0.06)',
-                      backdropFilter: ' saturate(120%)',
-                      WebkitBackdropFilter: 'saturate(200%)',
+                      backdropFilter: 'blur(6px) saturate(120%)',
+                      WebkitBackdropFilter: 'blur(6px) saturate(200%)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       boxShadow: `
                   0 20px 60px -12px rgba(0, 0, 0, 0.5),
@@ -173,28 +174,6 @@ export default function DashboardLayout() {
                   </button>
                 );
               })}
-              <button
-                onClick={() => navigate('/topup')}
-                className="water-droplet flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 font-semibold text-white transition-all duration-300 text-sm sm:text-base relative z-10 w-full sm:w-auto col-span-2 sm:col-span-1"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  backdropFilter: ' saturate(120%)',
-                  WebkitBackdropFilter: 'blur(6px) saturate(200%)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: `
-                  0 20px 60px -12px rgba(0, 0, 0, 0.5),
-                  0 12px 40px -8px rgba(0, 0, 0, 0.4),
-                  0 4px 16px -4px rgba(0, 0, 0, 0.3),
-                  inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-                  inset -2px -2px 4px 0 rgba(255, 255, 255, 0.2),
-                  inset 2px 2px 4px 0 rgba(0, 0, 0, 0.1),
-                  0 0 0 1px rgba(255, 255, 255, 0.1)
-                `,
-                }}
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
-                <span className="relative z-10">{t('nav.topup')}</span>
-              </button>
             </>
           )}
         </div>
