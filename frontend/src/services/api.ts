@@ -317,11 +317,8 @@ export const adminApi = {
     const formData = new FormData();
     formData.append('image', file);
     
-    const res = await api.post('/admin/upload-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // Không set Content-Type header, để axios tự động set với boundary cho multipart/form-data
+    const res = await api.post('/admin/upload-image', formData);
     return res.data;
   },
 };
