@@ -4,8 +4,9 @@ import { useToastStore } from '@/store/toastStore';
 import type { Hack, HackStatusType } from '@/types';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
+import ImageInput from '@/components/ui/ImageInput';
 import Button from '@/components/ui/Button';
-import { Activity, Image, Link as LinkIcon, Plus, Edit, Trash2, Shield, AlertTriangle } from 'lucide-react';
+import { Activity, Link as LinkIcon, Plus, Edit, Trash2, Shield, AlertTriangle } from 'lucide-react';
 
 export default function HacksTab() {
   const { success: showSuccess, error: showError } = useToastStore();
@@ -153,22 +154,13 @@ export default function HacksTab() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
-              Hình ảnh (URL)
-            </label>
-            <div className="relative">
-              <Image className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="https://..."
-                value={form.image}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, image: e.target.value }))
-                }
-                className="bg-black/50 border-gray-800 focus:border-cyan-500 pl-9"
-              />
-            </div>
-          </div>
+          <ImageInput
+            label="Hình ảnh"
+            placeholder="https://example.com/image.jpg"
+            value={form.image}
+            onChange={(value) => setForm((f) => ({ ...f, image: value }))}
+            optional={true}
+          />
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">

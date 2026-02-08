@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isTokenExpired } from '@/utils/token';
 import type {
   AuthResponse,
   LoginRequest,
@@ -38,6 +39,17 @@ api.interceptors.request.use(
     if (!isAuthEndpoint) {
       const token = localStorage.getItem('token');
       if (token) {
+        // Kiểm tra token expiration
+        if (isTokenExpired(token)) {
+          // Token đã hết hạn, xóa và redirect về login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('auth-storage');
+          if (!window.location.pathname.includes('/login')) {
+            window.location.replace('/login');
+          }
+          return Promise.reject(new Error('Token expired'));
+        }
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
@@ -300,6 +312,17 @@ export const adminApi = {
   },
   deleteHack: async (id: string): Promise<void> => {
     await api.delete(`/admin/hacks/${id}`);
+  },
+  uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const res = await api.post('/admin/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
   },
 };
 

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useTokenExpiration } from '@/hooks/useTokenExpiration';
 import { useSellers, useCategories, useProducts } from '@/hooks/useAdminData';
 import {
   UserPlus,
@@ -44,6 +45,9 @@ export default function AdminPage() {
   const { error: showError, success: showSuccess } = useToastStore();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('sellers');
+
+  // Kiểm tra token expiration và tự động logout
+  useTokenExpiration();
 
   // Use custom hooks
   const { sellers, createSeller } = useSellers();

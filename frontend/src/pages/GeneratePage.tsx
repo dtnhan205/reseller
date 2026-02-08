@@ -7,6 +7,7 @@ import type { Product, Order } from '@/types';
 import Button from '@/components/ui/Button';
 import { Minus, Plus, Zap, Package, Search, X, Copy, Check, Wallet, TrendingUp, ShoppingCart } from 'lucide-react';
 import { formatPrice, formatBalance } from '@/utils/format';
+import { getDisplayProductName } from '@/utils/translateProductName';
 
 // Product Image Component
 function ProductImage({ product }: { product: Product }) {
@@ -39,7 +40,7 @@ function ProductImage({ product }: { product: Product }) {
 export default function GeneratePage() {
   const { user, updateUser } = useAuthStore();
   const { success: showSuccess, error: showError } = useToastStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
@@ -681,7 +682,7 @@ export default function GeneratePage() {
                                   <p className={`font-semibold text-sm sm:text-base truncate ${
                                     isSelected ? 'text-cyan-300' : isOutOfStock ? 'text-gray-1000' : 'text-white'
                                   }`}>
-                                    {product.name}
+                                    {getDisplayProductName(product.name, language)}
                                   </p>
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-1.5 text-xs mt-0.5 sm:mt-1">
                                     <span className={`font-bold flex-shrink-0 text-sm ${
@@ -779,7 +780,7 @@ export default function GeneratePage() {
                         </span>
                       </div>
                       <p className="text-white font-medium truncate text-sm sm:text-base">
-                        {selectedProductData.name}
+                        {getDisplayProductName(selectedProductData.name, language)}
                       </p>
                       <p className="text-white/90 text-sm">
                         ${formatPrice(selectedProductData.price)} each
@@ -1069,7 +1070,7 @@ export default function GeneratePage() {
                 >
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                       <div className="flex-1 min-w-0 w-full sm:w-auto">
-                        <p className="text-white/60 text-xs sm:text-sm mb-1 truncate">{order.productName || 'N/A'}</p>
+                        <p className="text-white/60 text-xs sm:text-sm mb-1 truncate">{order.productName ? getDisplayProductName(order.productName, language) : 'N/A'}</p>
                         <p className="font-mono text-sm sm:text-base md:text-lg font-bold text-cyan-400 break-all">{order.key}</p>
                     </div>
                     <button

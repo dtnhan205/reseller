@@ -8,11 +8,12 @@ import Card from '@/components/ui/Card';
 import { Key, Download, History, Loader2, Search, X, Copy, Check, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice, formatDateShort, truncateKey } from '@/utils/format';
 import Input from '@/components/ui/Input';
+import { getDisplayProductName } from '@/utils/translateProductName';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function HistoryPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const location = useLocation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -335,7 +336,7 @@ export default function HistoryPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-gray-200 font-medium">{order.productName || 'N/A'}</td>
+                    <td className="py-4 px-4 text-gray-200 font-medium">{order.productName ? getDisplayProductName(order.productName, language) : 'N/A'}</td>
                     <td className="py-4 px-4 text-right text-teal-400 font-semibold">
                       ${formatPrice(order.price || 0)}
                     </td>
@@ -427,7 +428,7 @@ export default function HistoryPage() {
                           <span className="text-gray-500">•</span>
                           <span className="text-gray-400 text-xs">{order.createdAt ? formatDateShort(order.createdAt) : 'N/A'}</span>
                         </div>
-                        <p className="text-white font-medium text-sm mb-1">{order.productName || 'N/A'}</p>
+                        <p className="text-white font-medium text-sm mb-1">{order.productName ? getDisplayProductName(order.productName, language) : 'N/A'}</p>
                         <div className="flex items-center gap-2 mb-2">
                           <Key className="w-3 h-3 text-cyan-400 flex-shrink-0" />
                           <span className="text-gray-200 font-mono text-xs break-all">{order.key || 'N/A'}</span>

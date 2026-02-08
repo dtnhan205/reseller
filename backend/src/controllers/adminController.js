@@ -802,6 +802,22 @@ async function getAllOrders(req, res) {
   });
 }
 
+async function uploadImage(req, res) {
+  if (!req.file) {
+    throw new HttpError(400, "Không có file được upload");
+  }
+
+  // Trả về URL của file đã upload
+  // URL sẽ là: /uploads/filename
+  const fileUrl = `/uploads/${req.file.filename}`;
+  
+  res.status(200).json({
+    success: true,
+    url: fileUrl,
+    filename: req.file.filename
+  });
+}
+
 module.exports = {
   createSeller,
   createCategory,
@@ -835,6 +851,7 @@ module.exports = {
   createHack,
   updateHack,
   deleteHack,
+  uploadImage,
 };
 
 

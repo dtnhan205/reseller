@@ -30,6 +30,10 @@ app.options('*', cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 
+// Serve static files from uploads directory
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 

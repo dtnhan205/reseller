@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useTokenExpiration } from '@/hooks/useTokenExpiration';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import Footer from '@/components/ui/Footer';
 import { Sparkles, BarChart3, Clock, DollarSign, Plus, LogOut, Shield, Wallet, Activity } from 'lucide-react';
@@ -21,6 +22,9 @@ export default function DashboardLayout() {
   const { user, logout, refreshUser } = useAuthStore();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
+
+  // Kiểm tra token expiration và tự động logout
+  useTokenExpiration();
 
   // Refresh user data when component mounts
   useEffect(() => {

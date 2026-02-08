@@ -1,5 +1,6 @@
 const express = require("express");
 const { requireRole } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const {
   createSeller,
   listSellers,
@@ -32,11 +33,15 @@ const {
   createHack,
   updateHack,
   deleteHack,
+  uploadImage,
 } = require("../controllers/adminController");
 
 const router = express.Router();
 
 router.use(requireRole("admin"));
+
+// Upload image route
+router.post("/upload-image", upload.single('image'), uploadImage);
 
 router.post("/sellers", createSeller);
 router.get("/sellers", listSellers);

@@ -3,10 +3,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { useCategories } from '@/hooks/useAdminData';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import ImageInput from '@/components/ui/ImageInput';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import CategoryImage from './CategoryImage';
-import { Plus, Search, X, Folder, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Search, X, Folder, Edit, Trash2 } from 'lucide-react';
 import type { Category } from '@/types';
 
 interface CategoriesTabProps {
@@ -105,37 +106,15 @@ export default function CategoriesTab({
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
-              {t('admin.imageUrl')}
-              <span className="text-gray-500 text-xs ml-2">{t('admin.optional')}</span>
-            </label>
-            <div className="relative group">
-              <ImageIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10 group-focus-within:text-cyan-400 transition-colors" />
-              <Input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={categoryForm.image}
-                onChange={(e) =>
-                  setCategoryForm({ ...categoryForm, image: e.target.value })
-                }
-                className="pl-12 bg-black/50 border-gray-800 focus:border-cyan-500"
-              />
-            </div>
-            {categoryForm.image && (
-              <div className="mt-2">
-                <p className="text-xs text-gray-400 mb-2">{t('admin.preview')}</p>
-                <img
-                  src={categoryForm.image}
-                  alt="Preview"
-                  className="w-20 h-20 rounded-lg object-cover border border-gray-800"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <ImageInput
+            label={t('admin.imageUrl')}
+            placeholder="https://example.com/image.jpg"
+            value={categoryForm.image}
+            onChange={(value) =>
+              setCategoryForm({ ...categoryForm, image: value })
+            }
+            optional={true}
+          />
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
               {t('admin.order')} <span className="text-gray-500 text-xs ml-2">({t('admin.optional')})</span>

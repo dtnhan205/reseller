@@ -6,9 +6,10 @@ import type { Order, Product } from '@/types';
 import Card from '@/components/ui/Card';
 import { BarChart3, TrendingUp, Package, DollarSign, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
+import { getDisplayProductName } from '@/utils/translateProductName';
 
 export default function StatsPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +49,7 @@ export default function StatsPage() {
       return o.product === product._id || o.productName === product.name;
     });
     return {
-      name: product.name,
+      name: getDisplayProductName(product.name, language),
       purchased: productOrders.length,
       revenue: productOrders.reduce((sum, o) => sum + o.price, 0),
     };

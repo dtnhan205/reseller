@@ -8,9 +8,10 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
-import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check } from 'lucide-react';
+import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Languages } from 'lucide-react';
 import type { Product } from '@/types';
 import { formatPrice } from '@/utils/format';
+import { translateProductName, hasVietnameseWords } from '@/utils/translateProductName';
 
 interface ProductsTabProps {
   onCreateProduct: (data: { name: string; categoryId: string; price: number }) => Promise<boolean>;
@@ -76,8 +77,14 @@ export default function ProductsTab({
       return;
     }
     
+    // Tự động dịch tên product sang tiếng Anh nếu có từ tiếng Việt
+    let productName = productForm.name.trim();
+    if (hasVietnameseWords(productName)) {
+      productName = translateProductName(productName);
+    }
+    
     const success = await onCreateProduct({
-      name: productForm.name,
+      name: productName,
       categoryId: productForm.categoryId,
       price: price,
     });
@@ -117,8 +124,14 @@ export default function ProductsTab({
       return;
     }
     
+    // Tự động dịch tên product sang tiếng Anh nếu có từ tiếng Việt
+    let productName = productForm.name.trim();
+    if (hasVietnameseWords(productName)) {
+      productName = translateProductName(productName);
+    }
+    
     const success = await onUpdateProduct(editingProduct._id, {
-      name: productForm.name,
+      name: productName,
       categoryId: productForm.categoryId,
       price: price,
     });
@@ -187,15 +200,67 @@ export default function ProductsTab({
             <label className="block text-sm font-medium text-gray-300">
               {t('admin.productName')}
             </label>
-            <Input
-              placeholder={t('admin.placeholderProductName')}
-              value={productForm.name}
-              onChange={(e) =>
-                setProductForm({ ...productForm, name: e.target.value })
-              }
-              className="bg-black/50 border-gray-800 focus:border-cyan-500"
-              required
-            />
+            <div className="relative">
+              <Input
+                placeholder={t('admin.placeholderProductName')}
+                value={productForm.name}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setProductForm({ ...productForm, name: value });
+                }}
+                onBlur={(e) => {
+                  // Tự động dịch khi blur nếu có từ tiếng Việt
+                  const value = e.target.value.trim();
+                  if (value && hasVietnameseWords(value)) {
+                    const translated = translateProductName(value);
+                    if (translated !== value) {
+                      setProductForm({ ...productForm, name: translated });
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  // Tự động dịch khi nhấn Enter hoặc Tab
+                  if (e.key === 'Enter' || e.key === 'Tab') {
+                    const value = productForm.name.trim();
+                    if (value && hasVietnameseWords(value)) {
+                      const translated = translateProductName(value);
+                      if (translated !== value) {
+                        e.preventDefault();
+                        setProductForm({ ...productForm, name: translated });
+                        // Nếu là Enter, focus vào field tiếp theo
+                        if (e.key === 'Enter') {
+                          setTimeout(() => {
+                            const nextInput = (e.target as HTMLElement).closest('form')?.querySelector('input[type="number"], select') as HTMLElement;
+                            nextInput?.focus();
+                          }, 0);
+                        }
+                      }
+                    }
+                  }
+                }}
+                className="bg-black/50 border-gray-800 focus:border-cyan-500 pr-10"
+                required
+              />
+              {hasVietnameseWords(productForm.name) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const translated = translateProductName(productForm.name);
+                    setProductForm({ ...productForm, name: translated });
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                  title="Dịch sang tiếng Anh"
+                >
+                  <Languages className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {hasVietnameseWords(productForm.name) && (
+              <p className="text-xs text-cyan-400 flex items-center gap-1">
+                <Languages className="w-3 h-3" />
+                Nhấn vào biểu tượng hoặc rời khỏi ô để tự động dịch: <span className="font-medium">{translateProductName(productForm.name)}</span>
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
