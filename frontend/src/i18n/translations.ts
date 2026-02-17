@@ -44,11 +44,6 @@ export type TranslationKey =
   | 'nav.topup'
   | 'nav.hacks'
   
-  // Dashboard
-  | 'dashboard.title'
-  | 'dashboard.balance'
-  | 'dashboard.welcome'
-  
   // Generate Page
   | 'generate.title'
   | 'generate.subtitle'
@@ -74,6 +69,7 @@ export type TranslationKey =
   | 'generate.purchased'
   | 'generate.copyAllKeys'
   | 'generate.seller'
+  | 'generate.statistics'
   | 'generate.totalProducts'
   | 'generate.available'
   | 'generate.totalValue'
@@ -345,6 +341,8 @@ export type TranslationKey =
   | 'admin.purchasedAt'
   | 'admin.hacks';
 
+export type Language = 'vi' | 'en';
+
 export const translations: Record<Language, Record<TranslationKey, string>> = {
   vi: {
     // Common
@@ -417,6 +415,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'generate.purchased': 'đã mua',
     'generate.copyAllKeys': 'Sao Chép Tất Cả Keys',
     'generate.seller': 'Seller',
+    'generate.statistics': 'Thống kê',
     'generate.totalProducts': 'Tổng Sản phẩm',
     'generate.available': 'Có sẵn',
     'generate.totalValue': 'Tổng Giá trị',
@@ -758,6 +757,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       'generate.purchased': 'purchased',
       'generate.copyAllKeys': 'Copy All Keys',
       'generate.seller': 'Seller',
+      'generate.statistics': 'Statistics',
       'generate.totalProducts': 'Total Products',
       'generate.available': 'Available',
       'generate.totalValue': 'Total Value',
@@ -1029,5 +1029,3 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.hacks': 'Hack Status',
   },
 };
-
-export type Language = 'vi' | 'en';

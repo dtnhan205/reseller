@@ -144,7 +144,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section - Banner Style */}
-      <section className="relative z-10 px-6 pt-10 pb-32 mt-8">
+      <section className="relative z-10 px-6 pt-10 pb-32 mt-6">
         <div className="relative w-[90vw] max-w-none mx-auto min-h-[520px] sm:min-h-[600px] lg:min-h-[660px] flex items-center justify-center">
           {/* Background Layer (Spiderman) */}
           <div className="absolute inset-0 z-0 hidden lg:flex justify-end items-start overflow-visible">

@@ -63,13 +63,8 @@ function App() {
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      smoothTouch: false,
       touchMultiplier: 2,
       infinite: false,
-      prevent: (node) => {
-        const el = node as HTMLElement | null;
-        return !!el?.closest('[data-lenis-prevent]');
-      },
     });
 
     function raf(time: number) {

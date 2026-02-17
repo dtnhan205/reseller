@@ -5,7 +5,6 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { DollarSign } from 'lucide-react';
-import { formatCurrency } from '@/utils/format';
 import { useToastStore } from '@/store/toastStore';
 
 interface ExchangeRateTabProps {

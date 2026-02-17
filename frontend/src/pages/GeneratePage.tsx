@@ -101,7 +101,7 @@ export default function GeneratePage() {
 
   const groupedProducts = useMemo(() => {
     const groups: Record<string, { id: string; name: string; order: number; products: Product[] }> = {};
-
+    
     filteredProducts.forEach((product) => {
       const category = typeof product.category === 'object' ? product.category : null;
       const categoryId = category?._id || 'other';
@@ -112,19 +112,19 @@ export default function GeneratePage() {
       const categoryOrder = (rawOrder !== undefined && rawOrder !== null && rawOrder !== '') 
         ? Number(rawOrder) 
         : 999999;
-
+      
       if (!groups[categoryId]) {
         groups[categoryId] = { id: categoryId, name: categoryName, order: categoryOrder, products: [] };
       }
 
       groups[categoryId].products.push(product);
     });
-
+    
     const result = Object.values(groups);
     result.forEach((g) => {
       g.products.sort((a, b) => a.name.localeCompare(b.name));
     });
-
+    
     return result.sort((a, b) => {
       // Numerical sort: smallest to largest
       if (a.order !== b.order) return a.order - b.order;
@@ -190,7 +190,7 @@ export default function GeneratePage() {
     }
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(key);
+      await navigator.clipboard.writeText(key);
       } else {
         const textArea = document.createElement('textarea');
         textArea.value = key;
@@ -200,7 +200,7 @@ export default function GeneratePage() {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        document.execCommand('copy');
+          document.execCommand('copy');
         document.body.removeChild(textArea);
       }
       setCopiedKeyIndex(index);
@@ -222,7 +222,7 @@ export default function GeneratePage() {
         return;
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(allKeys);
+      await navigator.clipboard.writeText(allKeys);
       } else {
         const textArea = document.createElement('textarea');
         textArea.value = allKeys;
@@ -232,7 +232,7 @@ export default function GeneratePage() {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        document.execCommand('copy');
+          document.execCommand('copy');
         document.body.removeChild(textArea);
       }
       showSuccess('All keys copied!');
@@ -297,14 +297,14 @@ export default function GeneratePage() {
                 <h1 className="text-xl font-bold text-white tracking-tight">{t('generate.title')}</h1>
                 <p className="text-cyan-400/70 text-xs font-medium uppercase tracking-wider">{t('generate.subtitle')}</p>
               </div>
-            </div>
+        </div>
             
             <div className="space-y-3 pt-4 border-t border-white/5">
               <div className="bg-slate-900/40 rounded-2xl p-3 border border-white/5">
                 <p className="text-slate-400 text-xs font-medium mb-1">{t('generate.seller')}</p>
                 <p className="text-white text-sm font-semibold truncate">{user?.email}</p>
-              </div>
-              
+      </div>
+
               <div className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-2xl p-4 border border-cyan-500/20">
                 <div className="flex items-center gap-2 mb-1">
                   <Wallet className="w-4 h-4 text-cyan-400" />
@@ -340,8 +340,8 @@ export default function GeneratePage() {
                 <p className="text-white font-bold text-right">{formatPrice(totalValue, language, usdToVnd)}</p>
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
         {/* Content */}
         <div className="col-span-1 lg:col-span-9 space-y-4 sm:space-y-6">
@@ -352,39 +352,39 @@ export default function GeneratePage() {
                 <h3 className="text-lg font-bold text-white">{t('generate.selectProduct')}</h3>
                 <div className="relative group">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-cyan-400 transition-colors" />
-                  <input
-                    type="text"
-                    placeholder={t('generate.searchProducts')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                <input
+                  type="text"
+                  placeholder={t('generate.searchProducts')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 pr-4 py-2 bg-slate-900/60 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all w-40 sm:w-64"
-                  />
-                </div>
+                />
               </div>
+            </div>
 
-              {isLoadingProducts ? (
+            {isLoadingProducts ? (
                 <div className="py-20 text-center">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mx-auto"></div>
-                </div>
-              ) : (
+              </div>
+            ) : (
                 <div data-lenis-prevent className="space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
                   {groupedProducts.map((group) => (
                     <div key={group.id} className="space-y-3">
                       <h4 className="text-xs font-black text-cyan-500/70 uppercase tracking-[0.2em] pl-1">{group.name}</h4>
                       <div className="space-y-2">
                         {group.products.map((product) => {
-                          const isSelected = selectedProduct === product._id;
-                          const isOutOfStock = (product.remainingQuantity || 0) === 0;
-                          return (
-                            <div
-                              key={product._id}
-                              onClick={() => !isOutOfStock && setSelectedProduct(product._id)}
+                        const isSelected = selectedProduct === product._id;
+                        const isOutOfStock = (product.remainingQuantity || 0) === 0;
+                        return (
+                          <div
+                            key={product._id}
+                            onClick={() => !isOutOfStock && setSelectedProduct(product._id)}
                               className={`group p-3 rounded-2xl border transition-all duration-300 ${
                                 isOutOfStock ? 'opacity-50 grayscale cursor-not-allowed border-transparent bg-white/5' :
                                 isSelected ? 'border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.1)]' :
                                 'border-white/5 bg-white/5 hover:border-white/20 hover:bg-white/10 cursor-pointer'
                               }`}
-                            >
+                          >
                               <div className="flex items-center gap-3">
                                 <ProductImage product={product} />
                                 <div className="flex-1 min-w-0">
@@ -399,27 +399,27 @@ export default function GeneratePage() {
                                   </div>
                                 </div>
                                 {isSelected && !isOutOfStock && <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />}
-                              </div>
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
+              </div>
 
             {/* Purchase Details */}
             <div className="space-y-4 sm:space-y-6">
               <div className="rounded-3xl p-6" style={cardStyle}>
                 <h3 className="text-lg font-bold text-white mb-6">{t('generate.purchaseDetails')}</h3>
                 
-                {selectedProductData ? (
+            {selectedProductData ? (
                   <div className="space-y-6">
                     <div className="p-4 bg-slate-900/40 rounded-2xl border border-white/5 flex items-center gap-4">
-                      <ProductImage product={selectedProductData} />
-                      <div className="flex-1 min-w-0">
+                    <ProductImage product={selectedProductData} />
+                    <div className="flex-1 min-w-0">
                         <p className="text-cyan-400 text-xs font-bold uppercase mb-1">
                           {typeof selectedProductData.category === 'object' ? selectedProductData.category.name : 'N/A'}
                         </p>
@@ -431,39 +431,39 @@ export default function GeneratePage() {
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-400 font-medium">{t('generate.quantity')}</span>
                         <span className="text-slate-500 text-xs italic">{t('generate.maxAvailable')}: {selectedProductData.remainingQuantity}</span>
-                      </div>
+                  </div>
                       <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
                           className="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors border border-white/5"
-                        >
+                    >
                           <Minus className="w-5 h-5" />
-                        </button>
-                        <input
-                          type="number"
-                          value={quantity}
+                    </button>
+                    <input
+                      type="number"
+                      value={quantity}
                           onChange={(e) => setQuantity(Math.max(1, Math.min(selectedProductData.remainingQuantity, parseInt(e.target.value) || 1)))}
                           className="flex-1 h-12 bg-slate-900/60 border border-white/10 rounded-xl text-center text-white font-black text-xl focus:outline-none focus:border-cyan-500/50"
-                        />
-                        <button
-                          onClick={() => setQuantity(Math.min(selectedProductData.remainingQuantity, quantity + 1))}
+                    />
+                    <button
+                      onClick={() => setQuantity(Math.min(selectedProductData.remainingQuantity, quantity + 1))}
                           className="w-12 h-12 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 flex items-center justify-center transition-colors border border-cyan-500/30"
-                        >
+                    >
                           <Plus className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
+                    </button>
+                  </div>
+                </div>
 
                     <div className="p-5 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 rounded-2xl border border-cyan-500/20 space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-300 text-sm">{t('generate.pricePerKey')}</span>
                         <span className="text-white font-bold">{formatPrice(selectedProductData.price, language, usdToVnd)}</span>
-                      </div>
+                  </div>
                       <div className="flex justify-between items-center pt-3 border-t border-white/5">
                         <span className="text-white font-bold">{t('generate.total')}</span>
                         <span className="text-2xl font-black text-cyan-400">{formatPrice(totalPrice, language, usdToVnd)}</span>
-                      </div>
-                    </div>
+                  </div>
+                </div>
 
                     <Button
                       onClick={handlePurchase}
@@ -475,20 +475,20 @@ export default function GeneratePage() {
                       {isLoading ? t('generate.processing') : t('generate.generateKeys')}
                     </Button>
 
-                    {totalPrice > (user?.wallet || 0) && (
+                  {totalPrice > (user?.wallet || 0) && (
                       <p className="text-red-400 text-center text-xs font-bold uppercase tracking-wider bg-red-500/10 py-2 rounded-lg border border-red-500/20">
-                        {t('generate.insufficientBalance')}
-                      </p>
-                    )}
-                  </div>
+                      {t('generate.insufficientBalance')}
+                    </p>
+                  )}
+                </div>
                 ) : (
                   <div className="py-20 text-center space-y-4">
                     <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto border border-white/5">
                       <Package className="w-8 h-8 text-slate-500" />
-                    </div>
+              </div>
                     <p className="text-slate-400 text-sm">{t('generate.selectProductToPurchase')}</p>
-                  </div>
-                )}
+              </div>
+            )}
               </div>
             </div>
           </div>

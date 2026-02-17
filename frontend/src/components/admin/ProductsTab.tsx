@@ -10,7 +10,7 @@ import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
 import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check } from 'lucide-react';
 import type { Product } from '@/types';
-import { formatPrice, formatCurrency } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 interface ProductsTabProps {
