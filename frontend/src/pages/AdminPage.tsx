@@ -11,11 +11,11 @@ import {
   Folder,
   Key,
   Building2,
-  DollarSign,
   Users,
   ShoppingBag,
   Layers,
   RotateCcw,
+  DollarSign,
 } from 'lucide-react';
 import { adminApi } from '@/services/api';
 import StatCard from '@/components/admin/StatCard';
@@ -24,10 +24,10 @@ import CategoriesTab from '@/components/admin/CategoriesTab';
 import ProductsTab from '@/components/admin/ProductsTab';
 import InventoryTab from '@/components/admin/InventoryTab';
 import BankAccountsTab from '@/components/admin/BankAccountsTab';
-import ExchangeRateTab from '@/components/admin/ExchangeRateTab';
 import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 import OrdersHistoryTab from '@/components/admin/OrdersHistoryTab';
 import HacksTab from '@/components/admin/HacksTab';
+import ExchangeRateTab from '@/components/admin/ExchangeRateTab';
 
 type TabType =
   | 'sellers'
@@ -35,7 +35,6 @@ type TabType =
   | 'products'
   | 'inventory'
   | 'bank-accounts'
-  | 'exchange-rate'
   | 'reset-requests'
   | 'orders-history'
   | 'hacks';

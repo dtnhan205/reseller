@@ -11,12 +11,15 @@ import { UserPlus, Mail, Lock, Search, X, Calendar, Plus, History, DollarSign, T
 import type { User, Payment, Product, SellerProductPrice } from '@/types';
 import { formatCurrency } from '@/utils/format';
 
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+
 interface SellersTabProps {
   onCreateSeller: (data: { email: string; password: string }) => Promise<boolean>;
 }
 
 export default function SellersTab({ onCreateSeller }: SellersTabProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { usdToVnd } = useExchangeRate();
   const { sellers, isLoading: isLoadingSellers, loadSellers } = useSellers();
   const { products } = useProducts();
   const { success: showSuccess, error: showError } = useToastStore();
@@ -92,7 +95,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
         amountUSD: amount,
         note: topupForm.note || undefined,
       });
-      showSuccess(`Successfully topped up ${formatCurrency(amount, true)} to ${selectedSeller.email}`);
+      showSuccess(`Successfully topped up ${formatCurrency(amount, language, usdToVnd)} to ${selectedSeller.email}`);
       handleCloseTopupModal();
       await loadSellers();
     } catch (err: any) {
@@ -308,7 +311,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
               </p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            <div data-lenis-prevent className="space-y-3 max-h-[600px] overflow-y-auto overscroll-contain">
               {filteredSellers.map((seller: User, index: number) => (
                 <div
                   key={seller._id}
@@ -331,11 +334,11 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div className="bg-blue-500/10 rounded-lg p-2 border border-blue-500/20">
                       <p className="text-xs text-gray-400 mb-1">{t('admin.balance')}</p>
-                      <p className="text-blue-400 font-bold">{formatCurrency(seller.wallet || 0, true)}</p>
+                      <p className="text-blue-400 font-bold">{formatCurrency(seller.wallet || 0, language, usdToVnd)}</p>
                     </div>
                     <div className="bg-green-500/10 rounded-lg p-2 border border-green-500/20">
                       <p className="text-xs text-gray-400 mb-1">{t('admin.totalTopup')}</p>
-                      <p className="text-green-400 font-bold">{formatCurrency(seller.totalTopup || 0, true)}</p>
+                      <p className="text-green-400 font-bold">{formatCurrency(seller.totalTopup || 0, language, usdToVnd)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -399,7 +402,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                   {t('admin.seller')}: <span className="text-white font-medium">{selectedSeller.email}</span>
                 </p>
                 <p className="text-sm text-gray-400">
-                  {t('admin.currentBalance')}: <span className="text-cyan-400 font-bold">{formatCurrency(selectedSeller.wallet || 0, true)}</span>
+                  {t('admin.currentBalance')}: <span className="text-cyan-400 font-bold">{formatCurrency(selectedSeller.wallet || 0, language, usdToVnd)}</span>
                 </p>
               </div>
               <div className="space-y-2">
@@ -436,7 +439,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
                   <p className="text-sm text-gray-300">
                     {t('admin.newBalance')}: <span className="text-green-400 font-bold">
-                      {formatCurrency((selectedSeller.wallet || 0) + parseFloat(topupForm.amountUSD), true)}
+                      {formatCurrency((selectedSeller.wallet || 0) + parseFloat(topupForm.amountUSD), language, usdToVnd)}
                     </span>
                   </p>
                 </div>
@@ -505,7 +508,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                           )}
                         </div>
                         <span className="text-green-400 font-bold">
-                          +{formatCurrency(payment.amountUSD || 0, true)}
+                          +{formatCurrency(payment.amountUSD || 0, language, usdToVnd)}
                         </span>
                       </div>
                       <div className="text-xs text-gray-400 space-y-1">
@@ -636,7 +639,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                         </div>
                         <div className="text-right">
                           <p className="text-cyan-400 font-bold">
-                            ${formatCurrency(sp.price, true)}
+                            ${formatCurrency(sp.price, language, usdToVnd)}
                           </p>
                         </div>
                       </div>

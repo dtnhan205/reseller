@@ -205,7 +205,7 @@ export default function CategoriesTab({
             </p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div data-lenis-prevent className="space-y-3 max-h-[600px] overflow-y-auto">
             {filteredCategories.map((category, index) => (
               <div
                 key={category._id}

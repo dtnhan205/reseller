@@ -10,7 +10,8 @@ import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
 import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check } from 'lucide-react';
 import type { Product } from '@/types';
-import { formatPrice } from '@/utils/format';
+import { formatPrice, formatCurrency } from '@/utils/format';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 interface ProductsTabProps {
   onCreateProduct: (data: { name: string; categoryId: string; price: number }) => Promise<boolean>;
@@ -23,7 +24,8 @@ export default function ProductsTab({
   onUpdateProduct,
   onDeleteProduct,
 }: ProductsTabProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { usdToVnd } = useExchangeRate();
   const { success: showSuccess, error: showError } = useToastStore();
   const { categories } = useCategories();
   const { products, isLoading: isLoadingProducts } = useProducts();
@@ -301,7 +303,10 @@ export default function ProductsTab({
             </p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div 
+            data-lenis-prevent
+            className="space-y-3 max-h-[600px] overflow-y-auto"
+          >
             {filteredProducts.map((product, index) => (
               <div
                 key={product._id}
@@ -328,7 +333,7 @@ export default function ProductsTab({
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-cyan-400 font-bold text-base sm:text-lg">
-                      ${formatPrice(product.price)}
+                      {formatCurrency(product.price, language, usdToVnd)}
                     </p>
                   </div>
                 </div>

@@ -81,7 +81,7 @@ export default function ExchangeRateTab({ onUpdateExchangeRate }: ExchangeRateTa
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-300 text-sm">{t('admin.currentRate')}</span>
               <span className="text-blue-400 font-bold text-2xl">
-                1 USD = {formatCurrency(exchangeRate)} VNĐ
+                1 USD = {exchangeRate.toLocaleString('vi-VN')} ₫
               </span>
             </div>
           </div>

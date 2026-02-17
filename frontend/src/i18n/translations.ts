@@ -106,6 +106,12 @@ export type TranslationKey =
   | 'history.resetPending'
   | 'history.resetApproved'
   | 'history.resetRejected'
+  | 'history.table.orderId'
+  | 'history.table.key'
+  | 'history.table.product'
+  | 'history.table.price'
+  | 'history.table.date'
+  | 'history.table.action'
   
   // Topup Page
   | 'topup.title'
@@ -123,7 +129,6 @@ export type TranslationKey =
   | 'topup.accountNumber'
   | 'topup.accountHolder'
   | 'topup.transferContent'
-  | 'topup.copyContent'
   | 'topup.copyContent'
   | 'topup.copied'
   | 'topup.pendingPayment'
@@ -444,6 +449,12 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'history.resetPending': 'Đang chờ',
     'history.resetApproved': 'Đã reset',
     'history.resetRejected': 'Không thể reset',
+    'history.table.orderId': 'Mã đơn',
+    'history.table.key': 'Key',
+    'history.table.product': 'Sản phẩm',
+    'history.table.price': 'Giá',
+    'history.table.date': 'Ngày',
+    'history.table.action': 'Thao tác',
     
     // Topup Page
     'topup.title': 'Nạp tiền',
@@ -590,7 +601,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'about.visionText': 'Trở thành nền tảng hàng đầu trong lĩnh vực quản lý và phân phối key sản phẩm, được tin dùng bởi hàng nghìn người dùng trên toàn quốc.',
     'about.values': 'Giá trị cốt lõi',
     'about.valueSecurity': 'Bảo mật',
-    'about.valueSecurityText': 'Bảo vệ thông tin và dữ liệu người dùng với công nghệ mã hóa tiên tiến nhất.',
+    'about.valueSecurityText': 'Bảo vệ thông tin và dữ liệu người dùng với công nghệ mã hóa tiến tiến nhất.',
     'about.valueReliability': 'Đáng tin cậy',
     'about.valueReliabilityText': 'Hệ thống ổn định, hoạt động 24/7 với độ tin cậy cao.',
     'about.valueInnovation': 'Đổi mới',
@@ -623,7 +634,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'privacy.usageTitle': 'Sử dụng thông tin',
     'privacy.usageText': 'Thông tin của bạn được sử dụng để cung cấp dịch vụ, xử lý giao dịch, và cải thiện trải nghiệm người dùng. Chúng tôi không chia sẻ thông tin với bên thứ ba mà không có sự đồng ý của bạn.',
     'privacy.protectionTitle': 'Bảo vệ thông tin',
-    'privacy.protectionText': 'Chúng tôi sử dụng công nghệ mã hóa SSL/TLS để bảo vệ dữ liệu trong quá trình truyền tải. Tất cả dữ liệu được lưu trữ trên máy chủ an toàn với các biện pháp bảo mật tiên tiến.',
+    'privacy.protectionText': 'Chúng tôi sử dụng công nghệ mã hóa SSL/TLS để bảo vệ dữ liệu trong quá trình truyền tải. Tất cả dữ liệu được lưu trữ trên máy chủ an toàn với các biện pháp bảo mật tiến tiến.',
     'privacy.rightsTitle': 'Quyền của bạn',
     'privacy.rightsText': 'Bạn có quyền truy cập, chỉnh sửa, hoặc xóa thông tin cá nhân của mình bất cứ lúc nào. Vui lòng liên hệ với chúng tôi nếu bạn muốn thực hiện các quyền này.',
     'privacy.contact': 'Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ với chúng tôi qua Zalo hoặc Telegram.',
@@ -779,6 +790,12 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
       'history.resetPending': 'Pending',
       'history.resetApproved': 'Reset',
       'history.resetRejected': 'Cannot reset',
+      'history.table.orderId': 'Order ID',
+      'history.table.key': 'Key',
+      'history.table.product': 'Product',
+      'history.table.price': 'Price',
+      'history.table.date': 'Date',
+      'history.table.action': 'Action',
     
     // Topup Page
     'topup.title': 'Topup Wallet',
@@ -1014,4 +1031,3 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
 };
 
 export type Language = 'vi' | 'en';
-

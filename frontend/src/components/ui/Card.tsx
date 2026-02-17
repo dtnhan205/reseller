@@ -12,13 +12,13 @@ export default function Card({ children, className = '', title, id, style }: Car
   return (
     <div 
       id={id} 
-      className={`card droplet-container ${className}`}
+      className={`card ${className}`}
       style={{
-        background: 'rgba(255, 255, 255, 0.04)',
-        backdropFilter: 'blur(8px) saturate(200%)',
-        WebkitBackdropFilter: 'blur(8px) saturate(200%)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.15)',
+        background: 'rgba(15, 23, 42, 0.35)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        border: '1px solid rgba(31, 41, 55, 0.5)',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45)',
         ...style,
       }}
     >

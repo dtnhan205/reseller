@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import Lenis from '@studio-freight/lenis';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import PublicLayout from './layouts/PublicLayout';
@@ -52,6 +54,36 @@ function App() {
   const { user } = useAuthStore();
   const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
 
+  // Initialize Lenis for smooth scrolling
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+      prevent: (node) => {
+        const el = node as HTMLElement | null;
+        return !!el?.closest('[data-lenis-prevent]');
+      },
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   // Anti F12 / DevTools & disable right-click
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,10 +117,19 @@ function App() {
       <ScrollToTop />
       <ToastContainer />
       <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
 
+      {/* Public Pages outside of /app */}
+      <Route element={<PublicLayout />}>
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+      </Route>
+
       <Route
-        path="/"
+        path="/app"
         element={
           <PrivateRoute>
             <DashboardLayout />
@@ -144,11 +185,6 @@ function App() {
             </SellerRoute>
           }
         />
-        {/* Public Pages */}
-        <Route path="about" element={<AboutPage />} />
-        <Route path="support" element={<SupportPage />} />
-        <Route path="privacy" element={<PrivacyPage />} />
-        <Route path="terms" element={<TermsPage />} />
       </Route>
 
       {/* Hacks pages: Nếu đã login (seller) thì có navigation bar, chưa login thì không */}
@@ -162,4 +198,3 @@ function App() {
 }
 
 export default App;
-
