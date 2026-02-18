@@ -365,9 +365,18 @@ export default function GeneratePage() {
             {isLoadingProducts ? (
                 <div className="py-20 text-center">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mx-auto"></div>
-              </div>
+                </div>
             ) : (
-                <div className="space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar pr-2" onWheelCapture={(e) => {
+                  // Prevent the wheel from bubbling to the page when this list can scroll
+                  const el = e.currentTarget;
+                  const atTop = el.scrollTop <= 0;
+                  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                  const deltaY = e.deltaY;
+                  if ((!atTop && deltaY < 0) || (!atBottom && deltaY > 0)) {
+                    e.stopPropagation();
+                  }
+                }}>
                   {groupedProducts.map((group) => (
                     <div key={group.id} className="space-y-3">
                       <h4 className="text-xs font-black text-cyan-500/70 uppercase tracking-[0.2em] pl-1">{group.name}</h4>

@@ -30,6 +30,7 @@ export type TranslationKey =
   | 'auth.enterBoth'
   | 'auth.loginFailed'
   | 'auth.loginSuccess'
+  | 'auth.noAccount'
   
   // Dashboard
   | 'dashboard.title'
@@ -376,6 +377,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'auth.enterBoth': 'Vui lòng nhập cả email và mật khẩu',
     'auth.loginFailed': 'Đăng nhập thất bại',
     'auth.loginSuccess': 'Đăng nhập thành công!',
+    'auth.noAccount': 'Bạn chưa có tài khoản?',
     
     // Dashboard
     'dashboard.title': 'Reseller Dashboard',
@@ -718,6 +720,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'auth.enterBoth': 'Please enter both email and password',
     'auth.loginFailed': 'Login failed',
     'auth.loginSuccess': 'Login successful!',
+    'auth.noAccount': "Don't have an account?",
     
     // Dashboard
     'dashboard.title': 'Reseller Dashboard',

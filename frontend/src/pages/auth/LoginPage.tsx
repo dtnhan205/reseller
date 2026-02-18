@@ -155,6 +155,18 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-800/30 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                showSuccess('Vui lòng liên hệ với Zalo 0342031354 để đăng ký tài khoản seller', 8000);
+              }}
+              className="text-xs font-semibold text-gray-500 hover:text-indigo-300 transition-colors"
+            >
+              {t('auth.noAccount') || 'Bạn chưa có tài khoản?'}
+            </button>
+          </div>
         </Card>
 
         <div className="mt-8 text-center">
