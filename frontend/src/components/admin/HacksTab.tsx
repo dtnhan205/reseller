@@ -262,7 +262,7 @@ export default function HacksTab() {
             Chưa có hack nào.
           </div>
         ) : (
-          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+          <div data-lenis-prevent className="space-y-3 max-h-[600px] overflow-y-auto overscroll-contain custom-scrollbar pr-2">
             {hacks.map((hack) => (
               <div
                 key={hack._id}

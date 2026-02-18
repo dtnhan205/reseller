@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -37,24 +37,9 @@ function SellerRoute({ children }: { children: React.ReactNode }) {
   return user?.role === 'seller' ? <>{children}</> : <Navigate to="/admin" replace />;
 }
 
-// HacksRouteWrapper: Nếu đã login thì dùng DashboardLayout, chưa login thì dùng PublicLayout
-function HacksRouteWrapper() {
-  const { token, user } = useAuthStore();
-  
-  // Nếu đã login và là seller → dùng DashboardLayout (có navigation bar)
-  if (token && user?.role === 'seller') {
-    return <DashboardLayout />;
-  }
-  
-  // Nếu chưa login → dùng PublicLayout (không có navigation bar)
-  return <PublicLayout />;
-}
+function LenisController() {
+  const location = useLocation();
 
-function App() {
-  const { user } = useAuthStore();
-  const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
-
-  // Initialize Lenis for smooth scrolling
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -65,6 +50,11 @@ function App() {
       wheelMultiplier: 1,
       touchMultiplier: 2,
       infinite: false,
+      prevent: (node) => {
+        // Allow native scrolling inside nested containers
+        // Any element (or its ancestors) marked with data-lenis-prevent will not be hijacked by Lenis
+        return !!node.closest('[data-lenis-prevent]');
+      },
     });
 
     function raf(time: number) {
@@ -77,7 +67,27 @@ function App() {
     return () => {
       lenis.destroy();
     };
-  }, []);
+  }, [location.pathname]);
+
+  return null;
+}
+
+// HacksRouteWrapper: Nếu đã login thì dùng DashboardLayout, chưa login thì dùng PublicLayout
+function HacksRouteWrapper() {
+  const { token, user } = useAuthStore();
+
+  // Nếu đã login và là seller → dùng DashboardLayout (có navigation bar)
+  if (token && user?.role === 'seller') {
+    return <DashboardLayout />;
+  }
+
+  // Nếu chưa login → dùng PublicLayout (không có navigation bar)
+  return <PublicLayout />;
+}
+
+function App() {
+  const { user } = useAuthStore();
+  const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
 
   // Anti F12 / DevTools & disable right-click
   useEffect(() => {
@@ -108,86 +118,87 @@ function App() {
 
   return (
     <>
+      <LenisController />
       <RainEffect />
       <ScrollToTop />
       <ToastContainer />
       <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Public Pages outside of /app */}
-      <Route element={<PublicLayout />}>
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-      </Route>
+        {/* Public Pages outside of /app */}
+        <Route element={<PublicLayout />}>
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+        </Route>
 
-      <Route
-        path="/app"
-        element={
-          <PrivateRoute>
-            <DashboardLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<Navigate to={defaultRoute} replace />} />
         <Route
-          path="admin"
+          path="/app"
           element={
-            <AdminRoute>
-              <AdminPage />
-            </AdminRoute>
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
           }
-        />
-        <Route
-          path="generate"
-          element={
-            <SellerRoute>
-              <GeneratePage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="stats"
-          element={
-            <SellerRoute>
-              <StatsPage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="history"
-          element={
-            <SellerRoute>
-              <HistoryPage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="transactions"
-          element={
-            <SellerRoute>
-              <TransactionsPage />
-            </SellerRoute>
-          }
-        />
-        <Route
-          path="topup"
-          element={
-            <SellerRoute>
-              <TopupPage />
-            </SellerRoute>
-          }
-        />
-      </Route>
+        >
+          <Route index element={<Navigate to={defaultRoute} replace />} />
+          <Route
+            path="admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="generate"
+            element={
+              <SellerRoute>
+                <GeneratePage />
+              </SellerRoute>
+            }
+          />
+          <Route
+            path="stats"
+            element={
+              <SellerRoute>
+                <StatsPage />
+              </SellerRoute>
+            }
+          />
+          <Route
+            path="history"
+            element={
+              <SellerRoute>
+                <HistoryPage />
+              </SellerRoute>
+            }
+          />
+          <Route
+            path="transactions"
+            element={
+              <SellerRoute>
+                <TransactionsPage />
+              </SellerRoute>
+            }
+          />
+          <Route
+            path="topup"
+            element={
+              <SellerRoute>
+                <TopupPage />
+              </SellerRoute>
+            }
+          />
+        </Route>
 
-      {/* Hacks pages: Nếu đã login (seller) thì có navigation bar, chưa login thì không */}
-      <Route path="/hacks" element={<HacksRouteWrapper />}>
-        <Route index element={<HacksPage />} />
-        <Route path=":id" element={<HackDetailPage />} />
-      </Route>
-    </Routes>
+        {/* Hacks pages: Nếu đã login (seller) thì có navigation bar, chưa login thì không */}
+        <Route path="/hacks" element={<HacksRouteWrapper />}>
+          <Route index element={<HacksPage />} />
+          <Route path=":id" element={<HackDetailPage />} />
+        </Route>
+      </Routes>
     </>
   );
 }

@@ -224,10 +224,31 @@
     box-shadow: 
       0 20px 50px -12px rgba(0, 0, 0, 0.5);
   }
+
+  /* Restored input-field (used by <Input /> and admin forms) */
+  .input-field {
+    @apply w-full rounded-lg border border-gray-800 bg-black/50 px-4 py-3 text-gray-100 placeholder:text-gray-500 outline-none transition-all;
+    @apply focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30;
+  }
+
+  /* Chrome/Edge autofill can force white background + black text */
+  input.input-field:-webkit-autofill,
+  input.input-field:-webkit-autofill:hover,
+  input.input-field:-webkit-autofill:focus,
+  textarea.input-field:-webkit-autofill,
+  textarea.input-field:-webkit-autofill:hover,
+  textarea.input-field:-webkit-autofill:focus,
+  select.input-field:-webkit-autofill,
+  select.input-field:-webkit-autofill:hover,
+  select.input-field:-webkit-autofill:focus {
+    -webkit-text-fill-color: rgb(243 244 246) !important;
+    caret-color: rgb(243 244 246) !important;
+    transition: background-color 9999s ease-in-out 0s;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
+    box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
+    border-color: rgba(31, 41, 55, 1) !important;
+  }
   
-  /* Removed iOS 26 Teardrop/Water Droplet Shapes */
-  
-  /* Updated Container Style - Modern Glass */
   /* Droplet style removed - keep as no-op for legacy class names */
   .droplet-container, .water-droplet {
     border-radius: 24px;

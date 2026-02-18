@@ -239,7 +239,7 @@ export default function HistoryPage() {
           </div>
         ) : (
           <>
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto custom-scrollbar pb-2">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-800">

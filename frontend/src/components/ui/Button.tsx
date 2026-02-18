@@ -16,7 +16,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseClasses =
-    'rounded-2xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center relative';
+    'rounded-2xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center relative px-4 py-3 min-h-[48px]';
 
   const variantClasses = {
     primary:
