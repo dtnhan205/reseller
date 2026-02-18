@@ -50,11 +50,6 @@ function LenisController() {
       wheelMultiplier: 1,
       touchMultiplier: 2,
       infinite: false,
-      prevent: (node) => {
-        // Allow native scrolling inside nested containers
-        // Any element (or its ancestors) marked with data-lenis-prevent will not be hijacked by Lenis
-        return !!node.closest('[data-lenis-prevent]');
-      },
     });
 
     function raf(time: number) {
