@@ -338,7 +338,12 @@ export const adminApi = {
 // Seller APIs
 export const sellerApi = {
   getTopupLeaderboard: async (): Promise<Array<{ email: string; totalTopup: number }>> => {
-    const res = await api.get('/leaderboard/topup');
+    // Use a separate axios instance WITHOUT auth interceptors for public endpoint
+    const publicApi = axios.create({
+      baseURL: API_URL,
+      timeout: 10000,
+    });
+    const res = await publicApi.get('/leaderboard/topup');
     return res.data;
   },
   topup: async (data: TopupRequest): Promise<Payment> => {
@@ -408,4 +413,3 @@ export const sellerApi = {
         return res.data;
       },
     };
-

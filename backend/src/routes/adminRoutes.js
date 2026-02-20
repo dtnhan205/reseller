@@ -90,16 +90,16 @@ router.post("/bank-accounts", createBankAccount);
 router.put("/bank-accounts/:id", updateBankAccount);
 router.delete("/bank-accounts/:id", deleteBankAccount);
 
-// Exchange rate management
-router.get("/exchange-rate", getExchangeRate);
-router.put("/exchange-rate", updateExchangeRate);
+    // Exchange rate management
+    router.get("/exchange-rate", getExchangeRate);
+    router.put("/exchange-rate", updateExchangeRate);
 
-// Reset requests management
-router.get("/reset-requests", getResetRequests);
-router.put("/reset-requests/:id/approve", approveResetRequest);
-router.put("/reset-requests/:id/reject", rejectResetRequest);
+    // Reset requests management
+    router.get("/reset-requests", getResetRequests);
+    router.put("/reset-requests/:id/approve", approveResetRequest);
+    router.put("/reset-requests/:id/reject", rejectResetRequest);
 
-// Orders history management
-router.get("/orders", getAllOrders);
+    // Orders history management
+    router.get("/orders", getAllOrders);
 
-module.exports = { adminRouter: router };
+    module.exports = { adminRouter: router };

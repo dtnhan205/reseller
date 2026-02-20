@@ -157,7 +157,7 @@ export default function DashboardLayout() {
               )}
 
               <div className="hidden sm:block">
-                <LanguageSelector />
+              <LanguageSelector />
               </div>
 
               <button
@@ -196,12 +196,12 @@ export default function DashboardLayout() {
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
                     <span className="text-lg font-bold text-indigo-400 uppercase tracking-wider">Menu</span>
-                    <button
+              <button
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900/40 border border-gray-800/40 text-gray-400"
-                    >
+              >
                       <X className="w-6 h-6" />
-                    </button>
+              </button>
                   </div>
 
                   <div className="space-y-3 flex-1 overflow-y-auto">
@@ -222,7 +222,7 @@ export default function DashboardLayout() {
                   </div>
                 </div>
               </div>
-            </div>
+          </div>
           )}
 
           <div className="flex justify-center">
