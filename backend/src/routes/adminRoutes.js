@@ -4,6 +4,10 @@ const { upload } = require("../middleware/upload");
 const {
   createSeller,
   listSellers,
+  lockSeller,
+  unlockSeller,
+  deleteSeller,
+  getTopupLeaderboard,
   listSellerProductPrices,
   setSellerProductPrice,
   getSellerTopupHistory,
@@ -43,10 +47,17 @@ router.use(requireRole("admin"));
 // Upload image route
 router.post("/upload-image", upload.single('image'), uploadImage);
 
+// Sellers
 router.post("/sellers", createSeller);
 router.get("/sellers", listSellers);
+router.put("/sellers/:id/lock", lockSeller);
+router.put("/sellers/:id/unlock", unlockSeller);
+router.delete("/sellers/:id", deleteSeller);
 router.get("/sellers/:id/topup-history", getSellerTopupHistory);
 router.post("/sellers/:id/topup", manualTopupSeller);
+
+// Leaderboard
+router.get("/leaderboard/topup", getTopupLeaderboard);
 
 // Seller specific product prices
 router.get("/seller-product-prices", listSellerProductPrices);
@@ -58,11 +69,13 @@ router.post("/hacks", createHack);
 router.put("/hacks/:id", updateHack);
 router.delete("/hacks/:id", deleteHack);
 
+// Categories
 router.post("/categories", createCategory);
 router.get("/categories", listCategories);
 router.put("/categories/:id", updateCategory);
 router.delete("/categories/:id", deleteCategory);
 
+// Products
 router.post("/products", createProduct);
 router.get("/products", listProducts);
 router.put("/products/:id", updateProduct);
@@ -77,18 +90,16 @@ router.post("/bank-accounts", createBankAccount);
 router.put("/bank-accounts/:id", updateBankAccount);
 router.delete("/bank-accounts/:id", deleteBankAccount);
 
-    // Exchange rate management
-    router.get("/exchange-rate", getExchangeRate);
-    router.put("/exchange-rate", updateExchangeRate);
+// Exchange rate management
+router.get("/exchange-rate", getExchangeRate);
+router.put("/exchange-rate", updateExchangeRate);
 
-    // Reset requests management
-    router.get("/reset-requests", getResetRequests);
-    router.put("/reset-requests/:id/approve", approveResetRequest);
-    router.put("/reset-requests/:id/reject", rejectResetRequest);
+// Reset requests management
+router.get("/reset-requests", getResetRequests);
+router.put("/reset-requests/:id/approve", approveResetRequest);
+router.put("/reset-requests/:id/reject", rejectResetRequest);
 
-    // Orders history management
-    router.get("/orders", getAllOrders);
+// Orders history management
+router.get("/orders", getAllOrders);
 
-    module.exports = { adminRouter: router };
-
-
+module.exports = { adminRouter: router };

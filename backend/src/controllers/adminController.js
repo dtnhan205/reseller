@@ -329,6 +329,7 @@ async function listSellers(req, res) {
         role: seller.role,
         wallet: seller.walletBalance || 0,
         totalTopup: totalTopupAmount,
+        isLocked: Boolean(seller.isLocked),
         createdAt: seller.createdAt
       };
     })
@@ -818,8 +819,92 @@ async function uploadImage(req, res) {
   });
 }
 
+async function lockSeller(req, res) {
+  const { id } = req.params;
+  const seller = await User.findById(id);
+  if (!seller) throw new HttpError(404, "Seller not found");
+  if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
+
+  seller.isLocked = true;
+  await seller.save();
+
+  res.json({ message: "Seller locked successfully", seller: { _id: seller._id, email: seller.email, isLocked: seller.isLocked } });
+}
+
+async function unlockSeller(req, res) {
+  const { id } = req.params;
+  const seller = await User.findById(id);
+  if (!seller) throw new HttpError(404, "Seller not found");
+  if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
+
+  seller.isLocked = false;
+  await seller.save();
+
+  res.json({ message: "Seller unlocked successfully", seller: { _id: seller._id, email: seller.email, isLocked: seller.isLocked } });
+}
+
+async function deleteSeller(req, res) {
+  const { id } = req.params;
+  const seller = await User.findById(id);
+  if (!seller) throw new HttpError(404, "Seller not found");
+  if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
+
+  // Check if seller has orders - if so, maybe we shouldn't delete or should handle cleanup
+  const orderCount = await Order.countDocuments({ sellerId: id });
+  if (orderCount > 0) {
+    // Optionally: instead of deleting, just disable or mark as deleted
+    // For now, let's allow deletion but acknowledge it's a hard delete
+  }
+
+  await User.findByIdAndDelete(id);
+  // Cleanup other related data if necessary (prices, etc.)
+  await SellerProductPrice.deleteMany({ sellerId: id });
+
+  res.json({ message: "Seller and associated data deleted successfully" });
+}
+
+async function getTopupLeaderboard(req, res) {
+  const sellers = await User.find({ role: "seller" })
+    .select("email walletBalance")
+    .lean();
+  
+  const leaderboard = await Promise.all(
+    sellers.map(async (seller) => {
+      const totalTopup = await Payment.aggregate([
+        { $match: { sellerId: seller._id, status: "completed" } },
+        { $group: { _id: null, total: { $sum: "$amountUSD" } } }
+      ]);
+      
+      const totalTopupAmount = totalTopup.length > 0 ? totalTopup[0].total : 0;
+      
+      // Mask email: abc***@gmail.com
+      const emailParts = seller.email.split('@');
+      const name = emailParts[0];
+      const domain = emailParts[1];
+      const maskedName = name.length > 3 
+        ? name.substring(0, 3) + '***' 
+        : name.substring(0, 1) + '***';
+      
+      return {
+        email: `${maskedName}@${domain}`,
+        totalTopup: totalTopupAmount
+      };
+    })
+  );
+  
+  // Sort by totalTopup descending and take top 5
+  leaderboard.sort((a, b) => b.totalTopup - a.totalTopup);
+  const top5 = leaderboard.slice(0, 5);
+  
+  res.json(top5);
+}
+
 module.exports = {
   createSeller,
+  getTopupLeaderboard,
+  lockSeller,
+  unlockSeller,
+  deleteSeller,
   createCategory,
   listCategories,
   updateCategory,

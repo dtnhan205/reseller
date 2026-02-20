@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { UserPlus, Mail, Lock, Search, X, Calendar, Plus, History, DollarSign, Tag } from 'lucide-react';
+import { UserPlus, Mail, Search, X, Calendar, Plus, History, DollarSign, Tag, Trash2, Lock, Unlock } from 'lucide-react';
 import type { User, Payment, Product, SellerProductPrice } from '@/types';
 import { formatCurrency } from '@/utils/format';
 
@@ -39,6 +39,43 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
     productId: '',
     price: '',
   });
+
+  const [sellerToDelete, setSellerToDelete] = useState<User | null>(null);
+  const [isDeletingSeller, setIsDeletingSeller] = useState(false);
+  const [isLockingSeller, setIsLockingSeller] = useState<string | null>(null);
+
+  const handleLockUnlockSeller = async (seller: User) => {
+    setIsLockingSeller(seller._id);
+    try {
+      if (seller.isLocked) {
+        await adminApi.unlockSeller(seller._id);
+        showSuccess(`Unlocked seller ${seller.email}`);
+      } else {
+        await adminApi.lockSeller(seller._id);
+        showSuccess(`Locked seller ${seller.email}`);
+      }
+      await loadSellers();
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to update seller status');
+    } finally {
+      setIsLockingSeller(null);
+    }
+  };
+
+  const handleDeleteSeller = async () => {
+    if (!sellerToDelete) return;
+    setIsDeletingSeller(true);
+    try {
+      await adminApi.deleteSeller(sellerToDelete._id);
+      showSuccess(`Successfully deleted seller ${sellerToDelete.email}`);
+      setSellerToDelete(null);
+      await loadSellers();
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to delete seller');
+    } finally {
+      setIsDeletingSeller(false);
+    }
+  };
 
   const filteredSellers = useMemo(() => {
     if (!sellerSearch) return sellers;
@@ -326,11 +363,50 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                         <UserPlus className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">{seller.email}</p>
+                        <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleLockUnlockSeller(seller)}
+                      disabled={isLockingSeller === seller._id}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                        seller.isLocked
+                          ? 'bg-emerald-600/20 hover:bg-emerald-600/30 border-emerald-500/30 text-emerald-300'
+                          : 'bg-amber-600/20 hover:bg-amber-600/30 border-amber-500/30 text-amber-300'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      title={seller.isLocked ? 'Unlock seller' : 'Lock seller'}
+                    >
+                      {seller.isLocked ? (
+                        <>
+                          <Unlock className="w-4 h-4 inline mr-2" />
+                          Unlock
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 inline mr-2" />
+                          Lock
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => setSellerToDelete(seller)}
+                      className="px-3 py-2 rounded-lg text-sm font-medium transition-colors border bg-red-600/20 hover:bg-red-600/30 border-red-500/30 text-red-300"
+                      title="Delete seller"
+                    >
+                      <Trash2 className="w-4 h-4 inline mr-2" />
+                      Delete
+                    </button>
+                          <p className="text-white font-medium">{seller.email}</p>
+                          {seller.isLocked && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
+                              Locked
+                            </span>
+                          )}
+                        </div>
                         <p className="text-gray-400 text-xs mt-1">{seller.role}</p>
                       </div>
                     </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div className="bg-blue-500/10 rounded-lg p-2 border border-blue-500/20">
                       <p className="text-xs text-gray-400 mb-1">{t('admin.balance')}</p>
@@ -649,6 +725,44 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
               )}
             </div>
           </Card>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {sellerToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="w-full max-w-md bg-gray-900 border border-red-500/30 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+          >
+            <div className="p-6">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-center text-white mb-2">Confirm Delete</h3>
+              <p className="text-gray-400 text-center mb-6">
+                Are you sure you want to delete seller <span className="text-white font-semibold">{sellerToDelete.email}</span>? 
+                This action cannot be undone and all associated data will be lost.
+              </p>
+              
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setSellerToDelete(null)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
+                  disabled={isDeletingSeller}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDeleteSeller}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-900/20"
+                  isLoading={isDeletingSeller}
+                >
+                  Delete Seller
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>

@@ -6,10 +6,15 @@ import {
   Zap, 
   Smartphone, 
   ArrowRight, 
-  MessageCircle 
+  MessageCircle,
+  Trophy,
+  Medal
 } from 'lucide-react';
 import Footer from '@/components/ui/Footer';
 import ParticleNetwork from '@/components/ParticleNetwork';
+import { sellerApi } from '@/services/api';
+import { formatCurrency } from '@/utils/format';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 function CountUp({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -69,7 +74,27 @@ function CountUp({ end, duration = 2000, suffix = "" }: { end: number; duration?
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { usdToVnd } = useExchangeRate();
+
+  const [leaderboard, setLeaderboard] = useState<Array<{ email: string; totalTopup: number }>>([]);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      setIsLoadingLeaderboard(true);
+      try {
+        const data = await sellerApi.getTopupLeaderboard();
+        setLeaderboard(Array.isArray(data) ? data.slice(0, 5) : []);
+      } catch {
+        setLeaderboard([]);
+      } finally {
+        setIsLoadingLeaderboard(false);
+      }
+    };
+
+    loadLeaderboard();
+  }, []);
 
   const features = [
     {
@@ -164,8 +189,8 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6 animate-slide-up">
-                Nâng Tầm Trải Nghiệm <br className="hidden lg:block" />
-                <span className="bg-gradient-to-r from-indigo-300 via-sky-400 to-violet-400 bg-clip-text text-transparent">
+                Nâng Tầm Trải Nghiệm{' '}
+                <span className="bg-gradient-to-r from-indigo-300 via-sky-400 to-violet-400 bg-clip-text text-transparent sm:whitespace-nowrap">
                   Game Thủ Chuyên Nghiệp
                 </span>
               </h1>
@@ -266,6 +291,70 @@ export default function LandingPage() {
               <p className="text-gray-400 font-medium tracking-widest uppercase text-sm">{s.label}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Topup Leaderboard Section */}
+      <section className="relative z-10 px-6 py-20 mx-auto max-w-4xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Trophy className="w-8 h-8 text-amber-400" />
+            Bảng Xếp Hạng Nạp Tiền
+          </h2>
+          <p className="text-gray-400">Vinh danh những Seller dẫn đầu hệ thống</p>
+        </div>
+
+        <div className="rounded-[32px] border border-white/10 bg-white/[0.02] backdrop-blur-xl overflow-hidden shadow-2xl">
+          {isLoadingLeaderboard ? (
+            <div className="py-20 text-center">
+              <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-400">Đang tải bảng xếp hạng...</p>
+            </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="py-20 text-center text-gray-500 italic">
+              Chưa có dữ liệu xếp hạng
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {leaderboard.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors group"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="relative">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg transform group-hover:scale-110 transition-transform ${
+                        index === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-600 text-amber-950' :
+                        index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-slate-900' :
+                        index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-700 text-orange-950' :
+                        'bg-white/5 text-gray-400 border border-white/10'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      {index < 3 && (
+                        <Medal className={`absolute -top-2 -right-2 w-6 h-6 ${
+                          index === 0 ? 'text-amber-400' :
+                          index === 1 ? 'text-slate-300' :
+                          'text-orange-500'
+                        }`} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">
+                        {item.email}
+                      </p>
+                      <p className="text-sm text-gray-500 uppercase tracking-widest font-medium">Top {index + 1} Nạp tiền</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                      {formatCurrency(item.totalTopup, language, usdToVnd)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

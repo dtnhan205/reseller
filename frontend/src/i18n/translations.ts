@@ -490,6 +490,10 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'topup.amountVND': 'Số tiền cần thanh toán',
     'topup.enterAmountUSD': 'Nhập số tiền USD...',
     'topup.amountToPay': 'Số tiền cần thanh toán',
+    'topup.leaderboard': 'Bảng xếp hạng nạp tiền',
+    'topup.rank': 'Hạng',
+    'topup.user': 'Người dùng',
+    'topup.totalTopup': 'Tổng nạp',
     
     // Transactions Page
     'transactions.title': 'Lịch sử Nạp tiền',

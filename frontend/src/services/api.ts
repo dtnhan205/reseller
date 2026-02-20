@@ -110,6 +110,18 @@ export const adminApi = {
     const res = await api.get('/admin/sellers');
     return res.data;
   },
+  lockSeller: async (sellerId: string): Promise<{ message: string; seller: User }> => {
+    const res = await api.put(`/admin/sellers/${sellerId}/lock`);
+    return res.data;
+  },
+  unlockSeller: async (sellerId: string): Promise<{ message: string; seller: User }> => {
+    const res = await api.put(`/admin/sellers/${sellerId}/unlock`);
+    return res.data;
+  },
+  deleteSeller: async (sellerId: string): Promise<{ message: string }> => {
+    const res = await api.delete(`/admin/sellers/${sellerId}`);
+    return res.data;
+  },
   getSellerTopupHistory: async (sellerId: string): Promise<Payment[]> => {
     const res = await api.get(`/admin/sellers/${sellerId}/topup-history`);
     return res.data;
@@ -325,6 +337,10 @@ export const adminApi = {
 
 // Seller APIs
 export const sellerApi = {
+  getTopupLeaderboard: async (): Promise<Array<{ email: string; totalTopup: number }>> => {
+    const res = await api.get('/leaderboard/topup');
+    return res.data;
+  },
   topup: async (data: TopupRequest): Promise<Payment> => {
     const res = await api.post('/wallet/topup', data);
     return res.data;

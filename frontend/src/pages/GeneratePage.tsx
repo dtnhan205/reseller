@@ -367,7 +367,7 @@ export default function GeneratePage() {
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mx-auto"></div>
                 </div>
             ) : (
-                <div className="space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar pr-2" onWheelCapture={(e) => {
+                <div className="space-y-6 max-h-[470px] sm:max-h-[600px] overflow-y-auto custom-scrollbar pr-2" onWheelCapture={(e) => {
                   // Prevent the wheel from bubbling to the page when this list can scroll
                   const el = e.currentTarget;
                   const atTop = el.scrollTop <= 0;
@@ -476,7 +476,7 @@ export default function GeneratePage() {
 
                     <Button
                       onClick={handlePurchase}
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 shadow-lg shadow-cyan-500/20 font-black uppercase tracking-widest"
+                      className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] border-none shadow-none"
                       isLoading={isLoading}
                       disabled={totalPrice > (user?.wallet || 0)}
                     >
@@ -506,8 +506,8 @@ export default function GeneratePage() {
 
       {/* Modal */}
       {showKeyModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="rounded-[2.5rem] p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-cyan-500/30" style={cardStyle}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-white/10 bg-slate-900/70" style={{ backdropFilter: 'blur(16px) saturate(160%)', WebkitBackdropFilter: 'blur(16px) saturate(160%)' }}>
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">

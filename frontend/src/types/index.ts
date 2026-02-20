@@ -6,6 +6,7 @@ export interface User {
   role: UserRole;
   wallet?: number;
   totalTopup?: number; // Tổng nạp tiền (USD)
+  isLocked?: boolean;
   createdAt: string;
 }
 

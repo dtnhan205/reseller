@@ -86,6 +86,10 @@ app.use("/auth", authRouter); // Keep for backward compatibility
 app.get("/api/exchange-rate", getExchangeRate);
 app.get("/exchange-rate", getExchangeRate); // Keep for backward compatibility
 
+// Public leaderboard
+const { getTopupLeaderboard } = require("./controllers/adminController");
+app.get("/api/leaderboard/topup", getTopupLeaderboard);
+
 // Public routes: Status Hack (không cần đăng nhập)
 app.get("/api/hacks", listHacks);
 app.get("/api/hacks/:id", getHackDetail);
