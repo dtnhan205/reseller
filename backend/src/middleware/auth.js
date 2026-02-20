@@ -3,11 +3,6 @@ const { HttpError } = require("../utils/httpError");
 const { User } = require("../models/User");
 
 async function requireAuth(req, res, next) {
-  // Bỏ qua kiểm tra token cho endpoint public leaderboard
-  if (req.path === '/leaderboard/topup' || req.path === '/api/leaderboard/topup') {
-    return next();
-  }
-
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice("Bearer ".length) : null;
   if (!token) throw new HttpError(401, "Missing token");

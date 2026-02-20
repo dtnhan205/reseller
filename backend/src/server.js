@@ -37,6 +37,11 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+// Leaderboard Public (Đưa lên đầu để tránh bị middleware requireAuth chặn)
+const { getTopupLeaderboard } = require("./controllers/adminController");
+app.get("/api/leaderboard/topup", getTopupLeaderboard);
+app.get("/leaderboard/topup", getTopupLeaderboard);
+
 // Test routes - để kiểm tra API
 app.get("/api/test", (req, res) => {
   res.json({
@@ -86,10 +91,6 @@ app.use("/auth", authRouter); // Keep for backward compatibility
 app.get("/api/exchange-rate", getExchangeRate);
 app.get("/exchange-rate", getExchangeRate); // Keep for backward compatibility
 
-// Public leaderboard
-const { getTopupLeaderboard } = require("./controllers/adminController");
-app.get("/api/leaderboard/topup", getTopupLeaderboard);
-
 // Public routes: Status Hack (không cần đăng nhập)
 app.get("/api/hacks", listHacks);
 app.get("/api/hacks/:id", getHackDetail);
@@ -137,7 +138,7 @@ connectDb()
       } catch (error) {
         console.error("[Cron] ✗ Lỗi khi check thanh toán:", error.message);
       }
-    }, 15000); // 15 giây
+    }, 150000); // 15 giây
 
     // Chạy ngay lần đầu sau 5 giây khi server start
     setTimeout(async () => {
@@ -155,5 +156,3 @@ connectDb()
     console.error("Failed to start server:", err);
     process.exit(1);
   });
-
-
