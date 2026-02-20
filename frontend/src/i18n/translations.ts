@@ -143,6 +143,10 @@ export type TranslationKey =
   | 'topup.amountVND'
   | 'topup.enterAmountUSD'
   | 'topup.amountToPay'
+  | 'topup.leaderboard'
+  | 'topup.rank'
+  | 'topup.user'
+  | 'topup.totalTopup'
   
   // Transactions Page
   | 'transactions.title'
@@ -693,6 +697,12 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.hacks': 'Status Hack',
   },
   en: {
+    // Topup Leaderboard
+    'topup.leaderboard': 'Topup Leaderboard',
+    'topup.rank': 'Rank',
+    'topup.user': 'User',
+    'topup.totalTopup': 'Total Topup',
+
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
