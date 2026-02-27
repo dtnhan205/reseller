@@ -16,15 +16,15 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseClasses =
-    'rounded-2xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center relative px-4 py-3 min-h-[48px]';
+    'rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base flex items-center justify-center relative px-4 py-2.5 min-h-[44px] border';
 
   const variantClasses = {
     primary:
-      'text-white bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-500 hover:to-indigo-700 shadow-[0_0_5px_rgba(99,102,241,0.25)]',
+      'text-white border-cyan-500/20 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 shadow-lg shadow-cyan-900/20',
     secondary:
-      'text-gray-200 bg-slate-900/40 hover:bg-slate-900/60 border border-gray-800/40 shadow-[0_0_5px_rgba(99,102,241,0.15)]',
+      'text-gray-200 border-white/10 bg-white/5 hover:bg-white/10',
     outline:
-      'text-indigo-300 bg-transparent border border-indigo-500/30 hover:border-indigo-500/50 shadow-[0_0_5px_rgba(99,102,241,0.15)]',
+      'text-cyan-300 bg-transparent border-cyan-500/40 hover:bg-cyan-500/10',
   };
 
   return (
@@ -35,7 +35,7 @@ export default function Button({
     >
       {isLoading ? (
         <>
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           Loading...
         </>
       ) : (

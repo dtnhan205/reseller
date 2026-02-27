@@ -76,7 +76,7 @@ export default function ExchangeRateTab({ onUpdateExchangeRate }: ExchangeRateTa
         }}
       >
         <form onSubmit={handleUpdateExchangeRate} className="space-y-6">
-          <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-xl p-6">
+          <div className="bg-gray-900/40 border border-gray-700/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-300 text-sm">{t('admin.currentRate')}</span>
               <span className="text-blue-400 font-bold text-2xl">

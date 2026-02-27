@@ -123,6 +123,14 @@ export interface SellerProductPrice {
   updatedAt: string;
 }
 
+export interface AdminDashboardStats {
+  today: { totalOrders: number; totalRevenue: number };
+  thisMonth: { totalOrders: number; totalRevenue: number };
+  thisYear: { totalOrders: number; totalRevenue: number };
+  allTime: { totalOrders: number; totalRevenue: number };
+  chart: Array<{ date: string; totalOrders: number; totalRevenue: number }>;
+}
+
 export type HackStatusType = 'updating' | 'safe';
 
 export interface Hack {

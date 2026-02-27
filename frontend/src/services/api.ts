@@ -17,6 +17,7 @@ import type {
   ExchangeRate,
   SellerProductPrice,
   Hack,
+  AdminDashboardStats,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -202,6 +203,12 @@ export const adminApi = {
     });
     return res.data;
   },
+  getSellerProductPricesByProduct: async (productId: string): Promise<SellerProductPrice[]> => {
+    const res = await api.get('/admin/seller-product-prices', {
+      params: { productId },
+    });
+    return res.data;
+  },
   setSellerProductPrice: async (
     sellerId: string,
     productId: string,
@@ -213,6 +220,9 @@ export const adminApi = {
       price,
     });
     return res.data;
+  },
+  deleteSellerProductPrice: async (id: string): Promise<void> => {
+    await api.delete(`/admin/seller-product-prices/${id}`);
   },
   // Bank accounts management
   getBankAccounts: async (): Promise<BankAccount[]> => {
@@ -264,6 +274,10 @@ export const adminApi = {
   },
   rejectResetRequest: async (id: string): Promise<any> => {
     const res = await api.put(`/admin/reset-requests/${id}/reject`);
+    return res.data;
+  },
+  getDashboardStats: async (): Promise<AdminDashboardStats> => {
+    const res = await api.get('/admin/dashboard-stats');
     return res.data;
   },
   // Orders history

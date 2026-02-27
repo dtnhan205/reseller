@@ -408,6 +408,17 @@ async function setSellerProductPrice(req, res) {
   });
 }
 
+// DELETE /api/admin/seller-product-prices/:id
+// Admin: Xóa giá riêng seller-product
+async function deleteSellerProductPrice(req, res) {
+  const { id } = req.params;
+
+  const deleted = await SellerProductPrice.findByIdAndDelete(id).lean();
+  if (!deleted) throw new HttpError(404, "Seller product price not found");
+
+  res.json({ success: true });
+}
+
 // ---- Hack Status (Admin) ----
 
 // GET /api/admin/hacks
@@ -668,6 +679,66 @@ async function rejectResetRequest(req, res) {
   res.json(request);
 }
 
+async function getDashboardStats(req, res) {
+  const now = new Date();
+
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+  const [dayStats, monthStats, yearStats, totalStats, recentDaily] = await Promise.all([
+    Order.aggregate([
+      { $match: { createdAt: { $gte: startOfDay } } },
+      { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: startOfMonth } } },
+      { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: startOfYear } } },
+      { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
+    ]),
+    Order.aggregate([
+      { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) } } },
+      {
+        $group: {
+          _id: {
+            y: { $year: "$createdAt" },
+            m: { $month: "$createdAt" },
+            d: { $dayOfMonth: "$createdAt" },
+          },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      { $sort: { "_id.y": 1, "_id.m": 1, "_id.d": 1 } },
+    ]),
+  ]);
+
+  const toStats = (arr) => ({
+    totalOrders: arr?.[0]?.totalOrders || 0,
+    totalRevenue: arr?.[0]?.totalRevenue || 0,
+  });
+
+  res.json({
+    today: toStats(dayStats),
+    thisMonth: toStats(monthStats),
+    thisYear: toStats(yearStats),
+    allTime: toStats(totalStats),
+    chart: recentDaily.map((item) => ({
+      date: `${item._id.y}-${String(item._id.m).padStart(2, "0")}-${String(item._id.d).padStart(2, "0")}`,
+      totalOrders: item.totalOrders,
+      totalRevenue: item.totalRevenue,
+    })),
+  });
+}
+
 async function getAllOrders(req, res) {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -919,6 +990,7 @@ module.exports = {
   listSellers,
   listSellerProductPrices,
   setSellerProductPrice,
+  deleteSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
   getBankAccounts,
@@ -931,6 +1003,7 @@ module.exports = {
   getResetRequests,
   approveResetRequest,
   rejectResetRequest,
+  getDashboardStats,
   getAllOrders,
   listHacks,
   createHack,

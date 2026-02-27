@@ -266,7 +266,7 @@ export default function HacksTab() {
             {hacks.map((hack) => (
               <div
                 key={hack._id}
-                className="p-3 sm:p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-cyan-500/60 hover:bg-gray-900/60 transition-all duration-300 flex gap-3 sm:gap-4"
+                className="p-3 sm:p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 hover:bg-gray-900/60 transition-all duration-300 flex gap-3 sm:gap-4"
               >
                 {hack.image ? (
                   <img

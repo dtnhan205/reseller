@@ -69,14 +69,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative bg-black overflow-hidden p-4 sm:p-6 text-white">
+    <div className="theme-mono min-h-screen flex items-center justify-center relative bg-black overflow-hidden p-4 sm:p-6 text-white">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-slate-950/70 to-black/90" />
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)',
+              'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.14) 1px, transparent 0)',
             backgroundSize: '4px 4px',
           }}
         />
@@ -85,63 +85,59 @@ export default function LoginPage() {
       <div className="w-full max-w-md z-10 relative animate-fade-in">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 flex items-center justify-center rounded-xl border border-gray-800/40 bg-slate-900/20 shadow-xl">
-              <Sparkles className="w-6 h-6 text-indigo-400/80" />
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 shadow-lg shadow-cyan-900/20">
+              <Sparkles className="w-6 h-6 text-cyan-300" />
             </div>
             <h1 className="text-3xl font-black tracking-tight">
-              <span className="bg-gradient-to-r from-white via-indigo-200 to-slate-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-cyan-200 to-teal-300 bg-clip-text text-transparent">
                 RESELLER VN
               </span>
             </h1>
           </div>
-          <p className="text-gray-500 text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="text-gray-400 text-xs font-bold tracking-[0.2em] uppercase">
             Secure Authentication Portal
           </p>
         </div>
 
-        <Card className="p-8 sm:p-10 border-gray-800/30 bg-slate-900/10">
+        <Card className="p-8 sm:p-10 border-white/10 bg-slate-900/30">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider px-1">
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">
                   {t('auth.username')}
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-indigo-400/60 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-cyan-300 transition-colors" />
                   <input
                     type="email"
                     placeholder={t('auth.enterUsername')}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-black/20 border border-gray-800/40 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/30 transition-all"
+                    className="w-full pl-12 pr-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider px-1">
+                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider px-1">
                   {t('auth.password')}
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-indigo-400/60 transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-cyan-300 transition-colors" />
                   <input
                     type="password"
                     placeholder={t('auth.enterPassword')}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-black/20 border border-gray-800/40 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/30 transition-all"
+                    className="w-full pl-12 pr-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all"
                     required
                   />
                 </div>
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-500 hover:to-indigo-700 border-none"
-            >
+            <Button type="submit" disabled={isLoading} className="w-full py-4 border-none">
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -156,13 +152,13 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-800/30 text-center">
+          <div className="mt-6 pt-6 border-t border-white/10 text-center">
             <button
               type="button"
               onClick={() => {
                 showSuccess('Vui lòng liên hệ với Zalo 0342031354 để đăng ký tài khoản seller', 8000);
               }}
-              className="text-xs font-semibold text-gray-500 hover:text-indigo-300 transition-colors"
+              className="text-xs font-semibold text-gray-400 hover:text-cyan-300 transition-colors"
             >
               {t('auth.noAccount') || 'Bạn chưa có tài khoản?'}
             </button>
@@ -170,7 +166,7 @@ export default function LoginPage() {
         </Card>
 
         <div className="mt-8 text-center">
-          <p className="text-gray-700 text-xs">© {new Date().getFullYear()} Reseller Platform.</p>
+          <p className="text-gray-500 text-xs">© {new Date().getFullYear()} Reseller Platform.</p>
         </div>
       </div>
     </div>

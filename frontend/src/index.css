@@ -7,7 +7,7 @@
     height: 100%;
     overflow-x: hidden;
   }
-  
+
   body {
     @apply text-gray-100 antialiased;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -18,8 +18,7 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-  
-  /* Background cố định - hoạt động tốt trên Safari mobile */
+
   body::before {
     content: '';
     position: fixed;
@@ -35,13 +34,11 @@
     background-repeat: no-repeat;
     background-attachment: scroll;
     z-index: -2;
-    /* Đảm bảo background không bị kéo dài */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: transform;
   }
-  
-  /* Overlay tối */
+
   body::after {
     content: '';
     position: fixed;
@@ -56,8 +53,7 @@
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
-  
-  /* Đảm bảo #root có position relative */
+
   #root {
     position: relative;
     z-index: 1;
@@ -208,30 +204,114 @@
   .custom-scrollbar::-webkit-scrollbar-corner {
     background: transparent;
   }
+
+  .seller-mono .text-cyan-300,
+  .seller-mono .text-cyan-400,
+  .seller-mono .text-cyan-500,
+  .seller-mono .text-teal-300,
+  .seller-mono .text-teal-400,
+  .seller-mono .text-teal-500,
+  .seller-mono .text-blue-400,
+  .seller-mono .text-purple-400,
+  .seller-mono .text-amber-300,
+  .seller-mono .text-amber-400,
+  .seller-mono .text-red-300,
+  .seller-mono .text-red-400,
+  .seller-mono .text-indigo-300,
+  .seller-mono .text-indigo-400,
+  .seller-mono .text-indigo-500,
+  .seller-mono .text-pink-400 {
+    color: rgb(229 231 235) !important;
+  }
+
+  .seller-mono .bg-cyan-500\/5,
+  .seller-mono .bg-cyan-500\/10,
+  .seller-mono .bg-cyan-500\/20,
+  .seller-mono .bg-cyan-600\/20,
+  .seller-mono .bg-teal-500\/10,
+  .seller-mono .bg-teal-500\/20,
+  .seller-mono .bg-blue-500\/10,
+  .seller-mono .bg-purple-500\/10,
+  .seller-mono .bg-amber-600\/20,
+  .seller-mono .bg-red-500\/10,
+  .seller-mono .bg-red-500\/20,
+  .seller-mono .bg-red-600\/20,
+  .seller-mono .bg-indigo-500\/5,
+  .seller-mono .bg-indigo-500\/10,
+  .seller-mono .bg-indigo-600\/20 {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .seller-mono .border-cyan-500\/10,
+  .seller-mono .border-cyan-500\/20,
+  .seller-mono .border-cyan-500\/30,
+  .seller-mono .border-teal-500\/20,
+  .seller-mono .border-blue-500\/20,
+  .seller-mono .border-purple-500\/20,
+  .seller-mono .border-amber-500\/30,
+  .seller-mono .border-red-500\/20,
+  .seller-mono .border-red-500\/30,
+  .seller-mono .border-indigo-500\/20,
+  .seller-mono .border-indigo-500\/30,
+  .seller-mono .border-indigo-500\/40 {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+  }
+
+  .seller-mono .from-cyan-500,
+  .seller-mono .from-cyan-600,
+  .seller-mono .from-teal-500,
+  .seller-mono .from-teal-600,
+  .seller-mono .from-indigo-500,
+  .seller-mono .from-indigo-600,
+  .seller-mono .from-purple-500,
+  .seller-mono .from-blue-500,
+  .seller-mono .from-green-500 {
+    --tw-gradient-from: rgba(156, 163, 175, 0.95) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgba(156, 163, 175, 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  .seller-mono .to-cyan-500,
+  .seller-mono .to-cyan-600,
+  .seller-mono .to-teal-500,
+  .seller-mono .to-teal-600,
+  .seller-mono .to-indigo-700,
+  .seller-mono .to-slate-400,
+  .seller-mono .to-purple-500,
+  .seller-mono .to-green-500 {
+    --tw-gradient-to: rgba(75, 85, 99, 0.95) var(--tw-gradient-to-position) !important;
+  }
+
+  .seller-mono .via-cyan-200,
+  .seller-mono .via-indigo-200 {
+    --tw-gradient-to: rgba(209, 213, 219, 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), rgba(209, 213, 219, 0.9) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+
+  .seller-mono .text-green-400 {
+    color: rgb(74 222 128) !important;
+  }
 }
 
 @layer components {
   .gradient-text {
     @apply bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent;
   }
-  
+
   .card {
     @apply rounded-3xl p-6 sm:p-8;
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(75, 85, 99, 0.22);
-    box-shadow: 
-      0 20px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
-  /* Restored input-field (used by <Input /> and admin forms) */
   .input-field {
     @apply w-full rounded-lg border border-gray-800 bg-black/50 px-4 py-3 text-gray-100 placeholder:text-gray-500 outline-none transition-all;
     @apply focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30;
   }
 
-  /* Chrome/Edge autofill can force white background + black text */
   input.input-field:-webkit-autofill,
   input.input-field:-webkit-autofill:hover,
   input.input-field:-webkit-autofill:focus,
@@ -248,9 +328,9 @@
     box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
     border-color: rgba(31, 41, 55, 1) !important;
   }
-  
-  /* Droplet style removed - keep as no-op for legacy class names */
-  .droplet-container, .water-droplet {
+
+  .droplet-container,
+  .water-droplet {
     border-radius: 24px;
     background: rgba(15, 23, 42, 0.35);
     backdrop-filter: blur(10px);
@@ -263,17 +343,19 @@
     transform: none;
   }
 
-  .droplet-container:hover, .water-droplet:hover {
+  .droplet-container:hover,
+  .water-droplet:hover {
     transform: none;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   }
 
-  .droplet-container::before, .droplet-container::after,
-  .water-droplet::before, .water-droplet::after {
+  .droplet-container::before,
+  .droplet-container::after,
+  .water-droplet::before,
+  .water-droplet::after {
     display: none !important;
   }
-  
-  /* iOS 26 3D Light Source Simulation */
+
   @keyframes light-sweep {
     0% {
       transform: translateX(-100%) translateY(-100%) rotate(45deg);
@@ -287,10 +369,10 @@
       opacity: 0;
     }
   }
-  
-  /* Enhanced pulse highlight with 3D effect */
+
   @keyframes pulse-highlight {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.7;
       transform: scale(1) translateZ(0);
       filter: blur(8px);
@@ -301,26 +383,25 @@
       filter: blur(6px);
     }
   }
-  
-  /* 3D Depth Animation */
+
   @keyframes depth-breathe {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateZ(0);
-      box-shadow: 
+      box-shadow:
         0 20px 60px -12px rgba(0, 0, 0, 0.5),
         0 12px 40px -8px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 0 rgba(0, 0, 0, 0.0);
+        inset 0 1px 0 0 rgba(0, 0, 0, 0);
     }
     50% {
       transform: translateZ(5px);
-      box-shadow: 
+      box-shadow:
         0 24px 72px -12px rgba(0, 0, 0, 0.55),
         0 14px 44px -8px rgba(0, 0, 0, 0.45),
         inset 0 1px 0 0 rgba(0, 0, 0, 0);
     }
   }
 
-  /* Sparkle particle animations */
   @keyframes sparkleFade {
     0% {
       opacity: 0.6;

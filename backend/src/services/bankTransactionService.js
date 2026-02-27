@@ -17,7 +17,7 @@ async function fetchBankTransactions(bankAccount) {
     const apiUrl = bankAccount.apiUrl.trim();
     
     const response = await axios.get(apiUrl, {
-      timeout: 15000, // 15 giây timeout
+      timeout: 10000, // 15 giây timeout
     });
 
     // Parse response từ sieuthicode.net API hoặc tương tự
@@ -205,4 +205,3 @@ module.exports = {
   fetchBankTransactions,
   checkAndUpdatePayments,
 };
-

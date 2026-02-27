@@ -10,6 +10,7 @@ const {
   getTopupLeaderboard,
   listSellerProductPrices,
   setSellerProductPrice,
+  deleteSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
   createCategory,
@@ -32,6 +33,7 @@ const {
   getResetRequests,
   approveResetRequest,
   rejectResetRequest,
+  getDashboardStats,
   getAllOrders,
   listHacks,
   createHack,
@@ -62,6 +64,7 @@ router.get("/leaderboard/topup", getTopupLeaderboard);
 // Seller specific product prices
 router.get("/seller-product-prices", listSellerProductPrices);
 router.post("/seller-product-prices", setSellerProductPrice);
+router.delete("/seller-product-prices/:id", deleteSellerProductPrice);
 
 // Hack status management
 router.get("/hacks", listHacks);
@@ -98,6 +101,9 @@ router.delete("/bank-accounts/:id", deleteBankAccount);
     router.get("/reset-requests", getResetRequests);
     router.put("/reset-requests/:id/approve", approveResetRequest);
     router.put("/reset-requests/:id/reject", rejectResetRequest);
+
+    // Dashboard stats
+    router.get("/dashboard-stats", getDashboardStats);
 
     // Orders history management
     router.get("/orders", getAllOrders);

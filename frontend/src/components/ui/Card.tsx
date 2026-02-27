@@ -10,25 +10,22 @@ interface CardProps {
 
 export default function Card({ children, className = '', title, id, style }: CardProps) {
   return (
-    <div 
-      id={id} 
+    <div
+      id={id}
       className={`card ${className}`}
       style={{
-        background: 'rgba(15, 23, 42, 0.35)',
+        background: 'rgba(10, 10, 10, 0.62)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(31, 41, 55, 0.5)',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        boxShadow: '0 18px 45px rgba(0, 0, 0, 0.45)',
         ...style,
       }}
     >
       {title && (
-        <h3 className="text-2xl sm:text-3xl font-bold text-white mb-6 relative z-10">{title}</h3>
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-5 relative z-10">{title}</h3>
       )}
-      <div className="relative z-10">
-      {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }
-

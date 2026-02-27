@@ -74,7 +74,7 @@ export default function DashboardLayout() {
       onClick={() => navigate('/admin')}
       className={`flex items-center gap-3 px-6 py-3 font-bold rounded-2xl border transition-all text-base w-full sm:w-auto sm:justify-center ${
         location.pathname === '/admin'
-          ? 'bg-indigo-600/20 border-indigo-500/30 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]'
+          ? 'bg-cyan-600/20 border-cyan-500/30 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]'
           : 'bg-slate-900/40 border-gray-800/40 text-gray-400 hover:border-gray-700 hover:text-gray-200'
       }`}
     >
@@ -92,7 +92,7 @@ export default function DashboardLayout() {
             onClick={() => navigate(item.path)}
             className={`flex items-center gap-3 px-6 py-3 font-bold rounded-2xl border transition-all text-base w-full sm:w-auto sm:justify-center ${
               isActive
-                ? 'bg-indigo-600/20 border-indigo-500/30 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]'
+                ? 'bg-cyan-600/20 border-cyan-500/30 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]'
                 : 'bg-slate-900/40 border-gray-800/40 text-gray-400 hover:border-gray-700 hover:text-gray-200'
             }`}
           >
@@ -105,7 +105,7 @@ export default function DashboardLayout() {
   );
 
   return (
-    <div className="min-h-screen relative bg-black text-white">
+    <div className={`${isAdmin ? '' : 'seller-mono '}min-h-screen relative bg-black text-white`}>
       <ParticleNetwork
         particleColor="rgba(99, 102, 241, 0.7)"
         lineColor="rgba(255, 255, 255, 0.25)"
@@ -136,20 +136,20 @@ export default function DashboardLayout() {
                 onClick={() => navigate('/')}
               >
                 {isAdmin ? (
-                  <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-indigo-400/80" />
+                  <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-cyan-400/80" />
                 ) : (
-                  <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-indigo-400/80" />
+                  <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-cyan-400/80" />
                 )}
               </div>
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-100 via-indigo-200 to-slate-400 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-100 via-cyan-200 to-slate-400 bg-clip-text text-transparent">
                 {isAdmin ? t('admin.dashboard') : t('dashboard.title')}
               </h1>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
               {!isAdmin && user && (
-                <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-indigo-500/5 border border-indigo-500/10 shadow-[0_0_5px_rgba(99,102,241,0.15)]">
-                  <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400/60" />
+                <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-cyan-500/5 border border-cyan-500/10 shadow-[0_0_5px_rgba(99,102,241,0.15)]">
+                  <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
                   <span className="text-gray-200 font-bold text-xs sm:text-base">
                     {formatBalance(user.wallet || 0, language)}
                   </span>
@@ -162,7 +162,7 @@ export default function DashboardLayout() {
 
               <button
                 onClick={handleLogout}
-                className="hidden sm:flex items-center gap-2 text-gray-500 hover:text-indigo-300 transition-colors text-base sm:text-lg"
+                className="hidden sm:flex items-center gap-2 text-gray-500 hover:text-cyan-300 transition-colors text-base sm:text-lg"
               >
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{t('auth.logout')}</span>
@@ -195,7 +195,7 @@ export default function DashboardLayout() {
               <div className="absolute right-0 top-0 bottom-0 w-[280px] bg-slate-950 border-l border-gray-800 shadow-2xl p-6 animate-in slide-in-from-right duration-300">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
-                    <span className="text-lg font-bold text-indigo-400 uppercase tracking-wider">Menu</span>
+                    <span className="text-lg font-bold text-cyan-400 uppercase tracking-wider">Menu</span>
               <button
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900/40 border border-gray-800/40 text-gray-400"
