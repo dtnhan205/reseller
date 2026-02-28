@@ -12,6 +12,7 @@ import Input from '@/components/ui/Input';
 import { getDisplayProductName } from '@/utils/translateProductName';
 
 const ITEMS_PER_PAGE = 10;
+const MAX_APPROVED_RESETS = 3;
 
 export default function HistoryPage() {
   const { t, language } = useTranslation();
@@ -95,11 +96,27 @@ export default function HistoryPage() {
     }
   };
 
-  const getResetStatus = (orderId: string) => {
-    return resetRequests.find((r) => {
+  const getResetRequestsByOrder = (orderId: string) => {
+    return resetRequests.filter((r) => {
       const rOrderId = typeof r.orderId === 'object' ? r.orderId._id : r.orderId;
       return rOrderId === orderId;
     });
+  };
+
+  const getLatestResetStatus = (orderId: string) => {
+    const orderRequests = getResetRequestsByOrder(orderId);
+    return orderRequests.length > 0 ? orderRequests[0] : null;
+  };
+
+  const getApprovedResetCount = (orderId: string) => {
+    return getResetRequestsByOrder(orderId).filter((r) => r.status === 'approved').length;
+  };
+
+  const getResetRequestButtonLabel = (orderId: string) => {
+    const approvedCount = getApprovedResetCount(orderId);
+    if (approvedCount >= MAX_APPROVED_RESETS) return 'Đã đạt giới hạn reset';
+    if (approvedCount === 0) return t('history.requestReset') || 'Yêu cầu reset';
+    return `Yêu cầu reset lần ${approvedCount + 1}`;
   };
 
   const filteredOrders = useMemo(() => {
@@ -309,42 +326,48 @@ export default function HistoryPage() {
                               )}
                             </button>
                             {(() => {
-                              const resetStatus = getResetStatus(order._id);
-                              if (resetStatus) {
-                                if (resetStatus.status === 'approved') {
-                                  return (
-                                    <span className="px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm font-medium">
-                                      {t('history.resetApproved') || 'Đã reset'}
+                              const latestResetStatus = getLatestResetStatus(order._id);
+                              const approvedResetCount = getApprovedResetCount(order._id);
+                              const hasPendingRequest = getResetRequestsByOrder(order._id).some((r) => r.status === 'pending');
+                              const hasReachedResetLimit = approvedResetCount >= MAX_APPROVED_RESETS;
+
+                              return (
+                                <div className="flex items-center gap-2">
+                                  {approvedResetCount > 0 && (
+                                    <span className="px-3 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs font-medium whitespace-nowrap">
+                                      Đã reset {approvedResetCount} lần
                                     </span>
-                                  );
-                                } else if (resetStatus.status === 'rejected') {
-                                  return (
-                                    <span className="px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium">
-                                      {t('history.resetRejected') || 'Không thể reset'}
-                                    </span>
-                                  );
-                                } else {
-                                  return (
-                                    <span className="px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium">
+                                  )}
+
+                                  {hasPendingRequest ? (
+                                    <span className="px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium whitespace-nowrap">
                                       {t('history.resetPending') || 'Đang chờ'}
                                     </span>
-                                  );
-                                }
-                              } else {
-                                return (
-                                  <button
-                                    onClick={() => handleRequestReset(order._id)}
-                                    disabled={requestingResetId === order._id}
-                                    className="px-3 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border border-orange-500/30 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title={t('history.requestReset') || 'Yêu cầu reset'}
-                                  >
-                                    <RotateCcw className="w-4 h-4 text-orange-400" />
-                                    <span className="text-orange-400 text-sm font-medium">
-                                      {t('history.requestReset') || 'Yêu cầu reset'}
+                                  ) : hasReachedResetLimit ? (
+                                    <span className="px-3 py-2 bg-gray-500/20 border border-gray-500/30 rounded-lg text-gray-300 text-sm font-medium whitespace-nowrap">
+                                      Đã đạt giới hạn reset (3 lần)
                                     </span>
-                                  </button>
-                                );
-                              }
+                                  ) : (
+                                    <button
+                                      onClick={() => handleRequestReset(order._id)}
+                                      disabled={requestingResetId === order._id}
+                                      className="px-3 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border border-orange-500/30 rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title={getResetRequestButtonLabel(order._id)}
+                                    >
+                                      <RotateCcw className="w-4 h-4 text-orange-400" />
+                                      <span className="text-orange-400 text-sm font-medium whitespace-nowrap">
+                                        {getResetRequestButtonLabel(order._id)}
+                                      </span>
+                                    </button>
+                                  )}
+
+                                  {latestResetStatus?.status === 'rejected' && !hasPendingRequest && (
+                                    <span className="px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium whitespace-nowrap">
+                                      {t('history.resetRejected') || 'Không thể reset'}
+                                    </span>
+                                  )}
+                                </div>
+                              );
                             })()}
                           </div>
                         </td>
@@ -358,7 +381,10 @@ export default function HistoryPage() {
             <div className="md:hidden space-y-3">
               {paginatedOrders.map((order, idx) => {
                 const globalIndex = startIndex + idx;
-                const resetStatus = getResetStatus(order._id);
+                const latestResetStatus = getLatestResetStatus(order._id);
+                const approvedResetCount = getApprovedResetCount(order._id);
+                const hasPendingRequest = getResetRequestsByOrder(order._id).some((r) => r.status === 'pending');
+                const hasReachedResetLimit = approvedResetCount >= MAX_APPROVED_RESETS;
                 return (
                   <div key={order._id} className="bg-gray-950/50 rounded-xl p-4 border border-gray-800 space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -396,20 +422,20 @@ export default function HistoryPage() {
                           </>
                         )}
                       </button>
-                      {resetStatus ? (
-                        resetStatus.status === 'approved' ? (
-                          <span className="w-full px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm font-medium text-center">
-                            {t('history.resetApproved') || 'Đã reset'}
-                          </span>
-                        ) : resetStatus.status === 'rejected' ? (
-                          <span className="w-full px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium text-center">
-                            {t('history.resetRejected') || 'Không thể reset'}
-                          </span>
-                        ) : (
-                          <span className="w-full px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium text-center">
-                            {t('history.resetPending') || 'Đang chờ'}
-                          </span>
-                        )
+                      {approvedResetCount > 0 && (
+                        <span className="w-full px-3 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-sm font-medium text-center">
+                          Đã reset {approvedResetCount} lần
+                        </span>
+                      )}
+
+                      {hasPendingRequest ? (
+                        <span className="w-full px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium text-center">
+                          {t('history.resetPending') || 'Đang chờ'}
+                        </span>
+                      ) : hasReachedResetLimit ? (
+                        <span className="w-full px-3 py-2 bg-gray-500/20 border border-gray-500/30 rounded-lg text-gray-300 text-sm font-medium text-center">
+                          Đã đạt giới hạn reset (3 lần)
+                        </span>
                       ) : (
                         <button
                           onClick={() => handleRequestReset(order._id)}
@@ -417,8 +443,14 @@ export default function HistoryPage() {
                           className="w-full px-3 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border border-orange-500/30 rounded-lg transition-all flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                           <RotateCcw className="w-4 h-4 text-orange-400" />
-                          <span className="text-orange-400 font-medium">{t('history.requestReset') || 'Yêu cầu reset'}</span>
+                          <span className="text-orange-400 font-medium">{getResetRequestButtonLabel(order._id)}</span>
                         </button>
+                      )}
+
+                      {latestResetStatus?.status === 'rejected' && !hasPendingRequest && (
+                        <span className="w-full px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium text-center">
+                          {t('history.resetRejected') || 'Không thể reset'}
+                        </span>
                       )}
                     </div>
                   </div>

@@ -382,6 +382,16 @@ async function createResetRequest(req, res) {
     throw new HttpError(400, "You already have a pending reset request for this order");
   }
 
+  // Giới hạn tối đa 3 lần reset đã duyệt cho mỗi order
+  const approvedResetCount = await ResetRequest.countDocuments({
+    orderId: order._id,
+    status: "approved",
+  });
+
+  if (approvedResetCount >= 3) {
+    throw new HttpError(400, "Reset limit reached (maximum 3 times)");
+  }
+
   // Lấy category name
   const categoryName =
     order.productId?.categoryId?.name || "Unknown Category";
