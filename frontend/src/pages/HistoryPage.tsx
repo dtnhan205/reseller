@@ -326,6 +326,8 @@ export default function HistoryPage() {
                               )}
                             </button>
                             {(() => {
+                              // Hiển thị trạng thái Proxy VIP nếu có
+                              const isProxyVip = order.proxyvipStatus !== null && order.proxyvipStatus !== undefined;
                               const latestResetStatus = getLatestResetStatus(order._id);
                               const approvedResetCount = getApprovedResetCount(order._id);
                               const hasPendingRequest = getResetRequestsByOrder(order._id).some((r) => r.status === 'pending');
@@ -333,6 +335,21 @@ export default function HistoryPage() {
 
                               return (
                                 <div className="flex items-center gap-2">
+                                  {/* Badge trạng thái Proxy VIP */}
+                                  {isProxyVip && (
+                                    <>
+                                      {order.proxyvipStatus === 'pending' ? (
+                                        <span className="px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium whitespace-nowrap">
+                                          Đang chờ duyệt
+                                        </span>
+                                      ) : order.proxyvipStatus === 'processed' ? (
+                                        <span className="px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm font-medium whitespace-nowrap">
+                                          Đã duyệt
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  )}
+
                                   {approvedResetCount > 0 && (
                                     <span className="px-3 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-xs font-medium whitespace-nowrap">
                                       Đã reset {approvedResetCount} lần
@@ -347,7 +364,8 @@ export default function HistoryPage() {
                                     <span className="px-3 py-2 bg-gray-500/20 border border-gray-500/30 rounded-lg text-gray-300 text-sm font-medium whitespace-nowrap">
                                       Đã đạt giới hạn reset (3 lần)
                                     </span>
-                                  ) : (
+                                  ) : !isProxyVip ? (
+                                    // Chỉ hiển thị nút reset nếu không phải Proxy VIP
                                     <button
                                       onClick={() => handleRequestReset(order._id)}
                                       disabled={requestingResetId === order._id}
@@ -359,7 +377,7 @@ export default function HistoryPage() {
                                         {getResetRequestButtonLabel(order._id)}
                                       </span>
                                     </button>
-                                  )}
+                                  ) : null}
 
                                   {latestResetStatus?.status === 'rejected' && !hasPendingRequest && (
                                     <span className="px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-xs font-medium whitespace-nowrap">
@@ -381,6 +399,7 @@ export default function HistoryPage() {
             <div className="md:hidden space-y-3">
               {paginatedOrders.map((order, idx) => {
                 const globalIndex = startIndex + idx;
+                const isProxyVip = order.proxyvipStatus !== null && order.proxyvipStatus !== undefined;
                 const latestResetStatus = getLatestResetStatus(order._id);
                 const approvedResetCount = getApprovedResetCount(order._id);
                 const hasPendingRequest = getResetRequestsByOrder(order._id).some((r) => r.status === 'pending');
@@ -422,6 +441,22 @@ export default function HistoryPage() {
                           </>
                         )}
                       </button>
+
+                      {/* Badge trạng thái Proxy VIP */}
+                      {isProxyVip && (
+                        <>
+                          {order.proxyvipStatus === 'pending' ? (
+                            <span className="w-full px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm font-medium text-center">
+                              Đang chờ duyệt
+                            </span>
+                          ) : order.proxyvipStatus === 'processed' ? (
+                            <span className="w-full px-3 py-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm font-medium text-center">
+                              Đã duyệt
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+
                       {approvedResetCount > 0 && (
                         <span className="w-full px-3 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-sm font-medium text-center">
                           Đã reset {approvedResetCount} lần
@@ -436,7 +471,8 @@ export default function HistoryPage() {
                         <span className="w-full px-3 py-2 bg-gray-500/20 border border-gray-500/30 rounded-lg text-gray-300 text-sm font-medium text-center">
                           Đã đạt giới hạn reset (3 lần)
                         </span>
-                      ) : (
+                      ) : !isProxyVip ? (
+                        // Chỉ hiển thị nút reset nếu không phải Proxy VIP
                         <button
                           onClick={() => handleRequestReset(order._id)}
                           disabled={requestingResetId === order._id}
@@ -445,7 +481,7 @@ export default function HistoryPage() {
                           <RotateCcw className="w-4 h-4 text-orange-400" />
                           <span className="text-orange-400 font-medium">{getResetRequestButtonLabel(order._id)}</span>
                         </button>
-                      )}
+                      ) : null}
 
                       {latestResetStatus?.status === 'rejected' && !hasPendingRequest && (
                         <span className="w-full px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium text-center">

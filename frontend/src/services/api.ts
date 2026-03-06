@@ -371,9 +371,9 @@ export const adminApi = {
   uploadVideo: async (file: File): Promise<{ url: string; filename: string }> => {
     const formData = new FormData();
     formData.append('video', file);
-    const res = await api.post('/admin/upload-video', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Không set Content-Type header, để axios tự động set với boundary cho multipart/form-data
+    // Điều này quan trọng để multer có thể parse file đúng cách
+    const res = await api.post('/admin/upload-video', formData);
     return res.data;
   },
   // Proxy VIP requests (Admin)

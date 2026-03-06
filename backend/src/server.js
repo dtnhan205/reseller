@@ -27,7 +27,11 @@ app.use(cors({
 // Handle preflight requests
 app.options('*', cors());
 
+// Body parser với limit lớn hơn cho upload files
+// express.json chỉ áp dụng cho JSON, không ảnh hưởng multipart/form-data
+// Multer sẽ tự xử lý limit cho file uploads
 app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" })); // Tăng limit cho urlencoded (backup)
 app.use(morgan("dev"));
 
 // Serve static files from uploads directory

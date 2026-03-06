@@ -280,18 +280,57 @@ async function createProxyVipRequest(req, res) {
 async function listOrders(req, res) {
   if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
   const orders = await Order.find({ sellerId: req.user._id })
+    .populate("productId", "proxyvip")
     .sort({ purchasedAt: -1 })
     .lean();
+  
+  // Lấy tất cả ProxyVipRequest của seller này để map với orders
+  const ProxyVipRequest = require("../models/ProxyVipRequest").ProxyVipRequest;
+  const proxyVipRequests = await ProxyVipRequest.find({ sellerId: req.user._id })
+    .sort({ createdAt: -1 })
+    .lean();
+  
+  // Tạo map để tìm ProxyVipRequest mới nhất theo productId và gameId (keyValue)
+  // Key format: `${productId}_${gameId}`
+  const proxyVipRequestMap = new Map();
+  proxyVipRequests.forEach((req) => {
+    const key = `${req.productId.toString()}_${req.gameId}`;
+    // Chỉ lưu request mới nhất cho mỗi key
+    if (!proxyVipRequestMap.has(key)) {
+      proxyVipRequestMap.set(key, req);
+    }
+  });
+  
   // Transform để match frontend format
-  const transformed = orders.map((o) => ({
-    _id: o._id,
-    product: o.productId,
-    productName: o.productName,
-    key: o.keyValue,
-    price: o.price,
-    seller: o.sellerId,
-    createdAt: o.purchasedAt || o.createdAt,
-  }));
+  const transformed = orders.map((o) => {
+    const product = o.productId;
+    const isProxyVip = product && product.proxyvip === 1;
+    let proxyvipStatus = null;
+    
+    if (isProxyVip) {
+      // Tìm ProxyVipRequest tương ứng với order này
+      // Order.keyValue chính là gameId được lưu khi tạo ProxyVipRequest
+      const key = `${product._id.toString()}_${o.keyValue}`;
+      const proxyVipReq = proxyVipRequestMap.get(key);
+      if (proxyVipReq) {
+        proxyvipStatus = proxyVipReq.status; // "pending" hoặc "processed"
+      } else {
+        // Nếu không tìm thấy request, mặc định là pending
+        proxyvipStatus = "pending";
+      }
+    }
+    
+    return {
+      _id: o._id,
+      product: o.productId,
+      productName: o.productName,
+      key: o.keyValue,
+      price: o.price,
+      seller: o.sellerId,
+      createdAt: o.purchasedAt || o.createdAt,
+      proxyvipStatus: proxyvipStatus, // null nếu không phải Proxy VIP, "pending" hoặc "processed" nếu là Proxy VIP
+    };
+  });
   res.json(transformed);
 }
 

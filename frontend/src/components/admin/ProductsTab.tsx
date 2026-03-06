@@ -12,7 +12,6 @@ import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Sparkles, Upl
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
-
 interface ProxyVipConfig {
   ip?: string
   port?: string
@@ -20,7 +19,6 @@ interface ProxyVipConfig {
   installText?: string
   installVideoUrl?: string
 }
-
 interface ProductsTabProps {
   onCreateProduct: (data: {
     name: string
@@ -112,10 +110,9 @@ export default function ProductsTab({
     if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
       try {
         const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
-        const videoPath = res.url.startsWith('/') ? res.url : `/${res.url}`;
-        videoUrl = res.url.startsWith('http') ? res.url : `${baseUrl}${videoPath}`;
+        // Backend trả về relative URL (/uploads/filename.mp4), giữ nguyên để lưu vào database
+        // Frontend sẽ tự resolve relative URL dựa trên domain hiện tại khi hiển thị
+        videoUrl = res.url;
       } catch (err: any) {
         const errorMessage =
           err.response?.data?.message ||
@@ -201,10 +198,9 @@ export default function ProductsTab({
     if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
       try {
         const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-        const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
-        const videoPath = res.url.startsWith('/') ? res.url : `/${res.url}`;
-        videoUrl = res.url.startsWith('http') ? res.url : `${baseUrl}${videoPath}`;
+        // Backend trả về relative URL (/uploads/filename.mp4), giữ nguyên để lưu vào database
+        // Frontend sẽ tự resolve relative URL dựa trên domain hiện tại khi hiển thị
+        videoUrl = res.url;
       } catch (err: any) {
         const errorMessage =
           err.response?.data?.message ||
@@ -499,7 +495,16 @@ export default function ProductsTab({
                         className="w-40 rounded-xl border border-slate-700"
                         src={
                           productForm.proxyInstallVideoPreviewUrl ||
-                          productForm.proxyInstallVideoUrl
+                          (() => {
+                            const url = productForm.proxyInstallVideoUrl;
+                            if (!url) return '';
+                            // Nếu URL đã là absolute (http/https), dùng trực tiếp
+                            if (url.startsWith('http://') || url.startsWith('https://')) {
+                              return url;
+                            }
+                            // Nếu là relative URL (/uploads/...), browser sẽ tự resolve từ domain hiện tại
+                            return url.startsWith('/') ? url : `/${url}`;
+                          })()
                         }
                         controls
                       />

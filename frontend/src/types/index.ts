@@ -53,6 +53,7 @@ export interface Order {
   price: number;
   seller: string;
   createdAt: string;
+  proxyvipStatus?: 'pending' | 'processed' | null; // null nếu không phải Proxy VIP, 'pending' hoặc 'processed' nếu là Proxy VIP
 }
 
 export interface TopupTransaction {

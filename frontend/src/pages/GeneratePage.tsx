@@ -726,9 +726,9 @@ export default function GeneratePage() {
                     </div>
                   )}
                   {(selectedProductData as any).proxyvipConfig?.installText && (
-                   <p className="space-y-3 text-[11px] text-slate-300">
-                   {(selectedProductData as any).proxyvipConfig.installText}
-                 </p>
+                    <p className="my-5 text-[11px] text-slate-300">
+                      {(selectedProductData as any).proxyvipConfig.installText}
+                    </p>
                   )}
 
                   {/* ID game + giá/số dư bên trong khung Proxy */}
@@ -773,11 +773,13 @@ export default function GeneratePage() {
                         src={(() => {
                           const url = (selectedProductData as any).proxyvipConfig.installVideoUrl as string;
                           if (!url) return '';
-                          if (url.startsWith('http')) return url;
-                          const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-                          const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
-                          const videoPath = url.startsWith('/') ? url : `/${url}`;
-                          return `${baseUrl}${videoPath}`;
+                          // Nếu URL đã là absolute (http/https), dùng trực tiếp
+                          if (url.startsWith('http://') || url.startsWith('https://')) {
+                            return url;
+                          }
+                          // Nếu là relative URL (/uploads/...), browser sẽ tự resolve từ domain hiện tại
+                          // Điều này hoạt động tốt cả trên localhost và VPS khi frontend/backend cùng domain
+                          return url.startsWith('/') ? url : `/${url}`;
                         })()}
                         controls
                       />
