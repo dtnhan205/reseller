@@ -18,7 +18,16 @@ const productSchema = new mongoose.Schema(
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
     totalQtyAvailable: { type: Number, default: 0, min: 0 },
     totalQtySold: { type: Number, default: 0, min: 0 },
-    inventory: { type: [inventoryItemSchema], default: [] }
+    inventory: { type: [inventoryItemSchema], default: [] },
+    // proxyvip = 1: sản phẩm dạng Proxy VIP, các sản phẩm khác để null
+    proxyvip: { type: Number, default: null },
+    proxyvipConfig: {
+      ip: { type: String, trim: true },
+      port: { type: String, trim: true },
+      aimLink: { type: String, trim: true },
+      installText: { type: String, trim: true },
+      installVideoUrl: { type: String, trim: true },
+    },
   },
   { timestamps: true }
 );
@@ -27,3 +36,4 @@ const Product = mongoose.model("Product", productSchema);
 module.exports = { Product };
 
 
+ 

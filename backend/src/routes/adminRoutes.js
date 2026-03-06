@@ -1,6 +1,7 @@
 const express = require("express");
 const { requireRole } = require("../middleware/auth");
 const { upload } = require("../middleware/upload");
+const { uploadVideo: uploadVideoMiddleware } = require("../middleware/uploadVideo");
 const {
   createSeller,
   listSellers,
@@ -40,14 +41,18 @@ const {
   updateHack,
   deleteHack,
   uploadImage,
+  uploadVideo,
+  getProxyVipRequests,
+  markProxyVipRequestProcessed,
 } = require("../controllers/adminController");
 
 const router = express.Router();
 
 router.use(requireRole("admin"));
 
-// Upload image route
+// Upload image & video routes
 router.post("/upload-image", upload.single('image'), uploadImage);
+router.post("/upload-video", uploadVideoMiddleware.single('video'), uploadVideo);
 
 // Sellers
 router.post("/sellers", createSeller);
@@ -107,5 +112,9 @@ router.delete("/bank-accounts/:id", deleteBankAccount);
 
     // Orders history management
     router.get("/orders", getAllOrders);
+
+// Proxy VIP requests
+router.get("/proxyvip-requests", getProxyVipRequests);
+router.put("/proxyvip-requests/:id/process", markProxyVipRequestProcessed);
 
     module.exports = { adminRouter: router };

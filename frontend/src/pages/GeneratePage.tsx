@@ -52,6 +52,9 @@ export default function GeneratePage() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [purchasedKeys, setPurchasedKeys] = useState<Order[]>([]);
   const [copiedKeyIndex, setCopiedKeyIndex] = useState<number | null>(null);
+  const [isProxyVipModalOpen, setIsProxyVipModalOpen] = useState(false);
+  const [proxyVipGameId, setProxyVipGameId] = useState('');
+  const [isSubmittingProxyVip, setIsSubmittingProxyVip] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -137,6 +140,19 @@ export default function GeneratePage() {
       showError('Please select a product');
       return;
     }
+    const selected = products.find((p) => p._id === selectedProduct);
+    if (!selected) {
+      showError('Product not found');
+      return;
+    }
+
+    if (selected.proxyvip === 1) {
+      // Proxy VIP: mở modal nhập ID game
+      setProxyVipGameId('');
+      setIsProxyVipModalOpen(true);
+      return;
+    }
+
     if (!quantity || quantity < 1 || !Number.isInteger(quantity) || !isFinite(quantity)) {
       showError('Please enter a valid quantity');
       return;
@@ -145,17 +161,12 @@ export default function GeneratePage() {
       showError('Quantity is too large. Maximum is 1000');
       return;
     }
-    const selectedProductData = products.find((p) => p._id === selectedProduct);
-    if (!selectedProductData) {
-      showError('Product not found');
-      return;
-    }
-    if (quantity > (selectedProductData.remainingQuantity || 0)) {
+    if (quantity > (selected.remainingQuantity || 0)) {
       showError('Not enough stock available');
       return;
     }
-    const totalPrice = quantity * selectedProductData.price;
-    if (totalPrice > (user?.wallet || 0)) {
+    const total = quantity * selected.price;
+    if (total > (user?.wallet || 0)) {
       showError('Insufficient balance');
       return;
     }
@@ -242,7 +253,9 @@ export default function GeneratePage() {
   };
 
   const selectedProductData = products.find((p) => p._id === selectedProduct);
-  const totalPrice = selectedProductData ? selectedProductData.price * quantity : 0;
+  const isSelectedProxyVip = selectedProductData?.proxyvip === 1;
+  const effectiveQuantity = selectedProductData ? (isSelectedProxyVip ? 1 : quantity) : 0;
+  const totalPrice = selectedProductData ? selectedProductData.price * effectiveQuantity : 0;
   const totalProducts = products.length;
   const availableProducts = products.filter(p => (p.remainingQuantity || 0) > 0).length;
   const totalValue = products.reduce((sum, p) => sum + (p.price * (p.remainingQuantity || 0)), 0);
@@ -383,7 +396,8 @@ export default function GeneratePage() {
                       <div className="space-y-2">
                         {group.products.map((product) => {
                         const isSelected = selectedProduct === product._id;
-                        const isOutOfStock = (product.remainingQuantity || 0) === 0;
+                        const isProxyVip = product.proxyvip === 1;
+                        const isOutOfStock = !isProxyVip && (product.remainingQuantity || 0) === 0;
                         return (
                           <div
                             key={product._id}
@@ -402,9 +416,15 @@ export default function GeneratePage() {
                                   </p>
                                   <div className="flex items-center gap-3 mt-1">
                                     <span className="text-cyan-400 font-black text-sm">{formatPrice(product.price, language, usdToVnd)}</span>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${isOutOfStock ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                                      {isOutOfStock ? t('generate.outOfStock') : t('generate.inStock')}
-                                    </span>
+                                    {isProxyVip ? (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/40">
+                                        Proxy VIP
+                                      </span>
+                                    ) : (
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${isOutOfStock ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                        {isOutOfStock ? t('generate.outOfStock') : t('generate.inStock')}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                                 {isSelected && !isOutOfStock && <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />}
@@ -436,32 +456,60 @@ export default function GeneratePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-400 font-medium">{t('generate.quantity')}</span>
-                        <span className="text-slate-500 text-xs italic">{t('generate.maxAvailable')}: {selectedProductData.remainingQuantity}</span>
-                  </div>
-                      <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors border border-white/5"
-                    >
-                          <Minus className="w-5 h-5" />
-                    </button>
-                    <input
-                      type="number"
-                      value={quantity}
-                          onChange={(e) => setQuantity(Math.max(1, Math.min(selectedProductData.remainingQuantity, parseInt(e.target.value) || 1)))}
-                          className="flex-1 h-12 bg-slate-900/60 border border-white/10 rounded-xl text-center text-white font-black text-xl focus:outline-none focus:border-cyan-500/50"
-                    />
-                    <button
-                      onClick={() => setQuantity(Math.min(selectedProductData.remainingQuantity, quantity + 1))}
-                          className="w-12 h-12 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 flex items-center justify-center transition-colors border border-cyan-500/30"
-                    >
-                          <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
+                    {isSelectedProxyVip ? (
+                      <div className="space-y-3 p-4 rounded-2xl bg-fuchsia-500/5 border border-fuchsia-400/30">
+                        <p className="text-sm text-fuchsia-100 font-semibold">
+                          Đây là sản phẩm Proxy VIP.
+                        </p>
+                        <p className="text-xs text-fuchsia-200/80">
+                          Mỗi lần mua, bạn sẽ nhập <span className="font-bold">ID game</span> của
+                          mình ở bước tiếp theo. Admin sẽ xử lý yêu cầu theo ID bạn cung cấp.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400 font-medium">{t('generate.quantity')}</span>
+                          <span className="text-slate-500 text-xs italic">
+                            {t('generate.maxAvailable')}: {selectedProductData.remainingQuantity}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors border border-white/5"
+                          >
+                            <Minus className="w-5 h-5" />
+                          </button>
+                          <input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) =>
+                              setQuantity(
+                                Math.max(
+                                  1,
+                                  Math.min(
+                                    selectedProductData.remainingQuantity,
+                                    parseInt(e.target.value) || 1
+                                  )
+                                )
+                              )
+                            }
+                            className="flex-1 h-12 bg-slate-900/60 border border-white/10 rounded-xl text-center text-white font-black text-xl focus:outline-none focus:border-cyan-500/50"
+                          />
+                          <button
+                            onClick={() =>
+                              setQuantity(
+                                Math.min(selectedProductData.remainingQuantity, quantity + 1)
+                              )
+                            }
+                            className="w-12 h-12 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 flex items-center justify-center transition-colors border border-cyan-500/30"
+                          >
+                            <Plus className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="p-5 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 rounded-2xl border border-cyan-500/20 space-y-3">
                       <div className="flex justify-between items-center">
@@ -481,7 +529,11 @@ export default function GeneratePage() {
                       disabled={totalPrice > (user?.wallet || 0)}
                     >
                       <Zap className="w-5 h-5 mr-2" />
-                      {isLoading ? t('generate.processing') : t('generate.generateKeys')}
+                      {isLoading
+                        ? t('generate.processing')
+                        : selectedProductData.proxyvip === 1
+                        ? 'Tạo yêu cầu Proxy VIP'
+                        : t('generate.generateKeys')}
                     </Button>
 
                   {totalPrice > (user?.wallet || 0) && (
@@ -504,7 +556,7 @@ export default function GeneratePage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Keys Modal */}
       {showKeyModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-white/10 bg-slate-900/70" style={{ backdropFilter: 'blur(16px) saturate(160%)', WebkitBackdropFilter: 'blur(16px) saturate(160%)' }}>
@@ -552,6 +604,237 @@ export default function GeneratePage() {
               <Button onClick={() => setShowKeyModal(false)} variant="secondary" className="flex-1 py-4 rounded-2xl bg-slate-800 text-white hover:bg-slate-700 font-black uppercase tracking-widest">
                 {t('common.close')}
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proxy VIP Modal */}
+      {isProxyVipModalOpen && selectedProductData && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div
+            className="rounded-3xl p-6 sm:p-8 w-full max-h-[90vh] overflow-y-auto flex flex-col border border-fuchsia-500/30 bg-slate-900/80 max-w-xl sm:max-w-2xl lg:max-w-3xl"
+            style={{
+              backdropFilter: 'blur(18px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-400/50">
+                  <Zap className="w-8 h-8 text-fuchsia-300" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white">Proxy VIP Request</h2>
+                  <p className="text-fuchsia-100/80 text-xs font-bold uppercase tracking-widest">
+                    {getDisplayProductName(selectedProductData.name, language)}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => !isSubmittingProxyVip && setIsProxyVipModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-5 mb-6">
+              <p className="text-sm text-slate-200">
+                Nhập <span className="font-semibold text-white">ID game</span> của bạn để tạo yêu cầu
+                Proxy VIP. Admin sẽ xử lý dựa trên ID này.
+              </p>
+
+              {/* Thông tin cấu hình Proxy VIP từ admin */}
+              <div className="rounded-2xl border border-fuchsia-400/30 bg-slate-900/80 px-4 py-3 space-y-3">
+                <p className="text-xs font-semibold text-fuchsia-200 uppercase tracking-[0.18em] mb-1">
+                  THÔNG TIN PROXY VIP
+                </p>
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Left: text info */}
+                  <div className="flex-1 space-y-1 text-xs text-slate-200">
+                  {(selectedProductData as any).proxyvipConfig?.ip && (
+                    <div className="space-y-1">
+                      <span className="text-slate-400 text-[11px]">IP : </span>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] text-cyan-200 hover:border-cyan-400 hover:bg-slate-900 transition-colors"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              (selectedProductData as any).proxyvipConfig.ip
+                            );
+                            showSuccess('Đã sao chép IP');
+                          } catch {
+                            showError('Không sao chép được, vui lòng copy thủ công.');
+                          }
+                        }}
+                      >
+                        <code className="font-mono text-xs">
+                          {(selectedProductData as any).proxyvipConfig.ip}
+                        </code>
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                  {(selectedProductData as any).proxyvipConfig?.port && (
+                    <div className="space-y-1">
+                      <span className="text-slate-400 text-[11px]">PORT : </span>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] text-cyan-200 hover:border-cyan-400 hover:bg-slate-900 transition-colors"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              (selectedProductData as any).proxyvipConfig.port
+                            );
+                            showSuccess('Đã sao chép PORT');
+                          } catch {
+                            showError('Không sao chép được, vui lòng copy thủ công.');
+                          }
+                        }}
+                      >
+                        <code className="font-mono text-xs">
+                          {(selectedProductData as any).proxyvipConfig.port}
+                        </code>
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                  {(selectedProductData as any).proxyvipConfig?.aimLink && (
+                    <div className="space-y-1 ">
+                      <span className="text-slate-400 text-[11px]">Link Tải Aim : </span>
+                      <button
+                        type="button"
+                        className="w-full inline-flex items-center justify-between gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-[11px] text-cyan-200 hover:border-cyan-400 hover:bg-slate-900 transition-colors"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              (selectedProductData as any).proxyvipConfig.aimLink
+                            );
+                            showSuccess('Đã sao chép link tải');
+                          } catch {
+                            showError('Không sao chép được, vui lòng copy thủ công.');
+                          }
+                        }}
+                      >
+                        <span className="truncate text-left">
+                          {(selectedProductData as any).proxyvipConfig.aimLink}
+                        </span>
+                        <Copy className="w-3 h-3 flex-shrink-0" />
+                      </button>
+                    </div>
+                  )}
+                  {(selectedProductData as any).proxyvipConfig?.installText && (
+                   <p className="space-y-3 text-[11px] text-slate-300">
+                   {(selectedProductData as any).proxyvipConfig.installText}
+                 </p>
+                  )}
+
+                  {/* ID game + giá/số dư bên trong khung Proxy */}
+                  <div className="mt-4 space-y-3">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                        ID game của bạn
+                      </label>
+                      <input
+                        type="text"
+                        value={proxyVipGameId}
+                        onChange={(e) => setProxyVipGameId(e.target.value)}
+                        placeholder="Ví dụ: UID / ID nhân vật / ID tài khoản trong game"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-900/70 border border-fuchsia-400/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-fuchsia-400 focus:ring-1 focus:ring-fuchsia-400/40"
+                        style={{ fontSize: '14px' }}
+                      />
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 text-xs text-slate-300 space-y-1">
+                      <p>
+                        • Giá mỗi yêu cầu:{' '}
+                        <span className="font-bold text-cyan-300">
+                          {formatPrice(selectedProductData.price, language, usdToVnd)}
+                        </span>
+                      </p>
+                      <p>
+                        • Số dư hiện tại:{' '}
+                        <span className="font-bold text-emerald-300">
+                          {formatBalance(user?.wallet || 0, language, usdToVnd)}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  </div>
+
+                  {/* Right: video */}
+                  {(selectedProductData as any).proxyvipConfig?.installVideoUrl && (
+                    <div className="w-full lg:w-[320px] mt-3 lg:mt-0 mx-auto lg:mx-0">
+                      <p className="text-xs text-slate-300 mb-1">Video hướng dẫn cài:</p>
+                      <video
+                        className="w-full max-h-[460px] rounded-xl border border-slate-700 object-contain bg-black"
+                        src={(() => {
+                          const url = (selectedProductData as any).proxyvipConfig.installVideoUrl as string;
+                          if (!url) return '';
+                          if (url.startsWith('http')) return url;
+                          const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+                          const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+                          const videoPath = url.startsWith('/') ? url : `/${url}`;
+                          return `${baseUrl}${videoPath}`;
+                        })()}
+                        controls
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+
+            <div className="mt-auto flex flex-col gap-3">
+              <Button
+                onClick={async () => {
+                  if (!selectedProductData) return;
+                  const trimmedId = proxyVipGameId.trim();
+                  if (!trimmedId) {
+                    showError('Vui lòng nhập ID game của bạn');
+                    return;
+                  }
+                  if (selectedProductData.price > (user?.wallet || 0)) {
+                    showError('Insufficient balance');
+                    return;
+                  }
+                  setIsSubmittingProxyVip(true);
+                  try {
+                    const res = await sellerApi.createProxyVipRequest({
+                      productId: selectedProductData._id,
+                      gameId: trimmedId,
+                    });
+                    updateUser({ ...user!, wallet: res.newBalance });
+                    showSuccess('Yêu cầu Proxy VIP đã được gửi tới admin!');
+                    setIsProxyVipModalOpen(false);
+                    setProxyVipGameId('');
+                    await loadProducts();
+                  } catch (err: any) {
+                    const errorMessage =
+                      err.response?.data?.message ||
+                      err.response?.data?.error ||
+                      'Gửi yêu cầu Proxy VIP thất bại';
+                    showError(errorMessage);
+                  } finally {
+                    setIsSubmittingProxyVip(false);
+                  }
+                }}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-400 hover:from-fuchsia-400 hover:to-cyan-300 text-black font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] border-none shadow-lg shadow-fuchsia-500/30"
+                isLoading={isSubmittingProxyVip}
+                disabled={isSubmittingProxyVip || selectedProductData.price > (user?.wallet || 0)}
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                {isSubmittingProxyVip ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu Proxy VIP'}
+              </Button>
+
+              {selectedProductData.price > (user?.wallet || 0) && (
+                <p className="text-red-400 text-center text-xs font-bold uppercase tracking-wider bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                  Số dư không đủ để tạo yêu cầu Proxy VIP
+                </p>
+              )}
             </div>
           </div>
         </div>

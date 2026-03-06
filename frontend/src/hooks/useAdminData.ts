@@ -179,7 +179,19 @@ export function useProducts() {
   }, [showError]);
 
   const createProduct = useCallback(
-    async (data: { name: string; categoryId: string; price: number }) => {
+    async (data: {
+      name: string;
+      categoryId: string;
+      price: number;
+      proxyvip?: number | null;
+      proxyvipConfig?: {
+        ip?: string;
+        port?: string;
+        aimLink?: string;
+        installText?: string;
+        installVideoUrl?: string;
+      } | null;
+    }) => {
       try {
         await adminApi.createProduct(data);
         showSuccess('Product created successfully!');
@@ -211,7 +223,22 @@ export function useProducts() {
   );
 
   const updateProduct = useCallback(
-    async (id: string, data: { name?: string; categoryId?: string; price?: number }) => {
+    async (
+      id: string,
+      data: {
+        name?: string;
+        categoryId?: string;
+        price?: number;
+        proxyvip?: number | null;
+        proxyvipConfig?: {
+          ip?: string;
+          port?: string;
+          aimLink?: string;
+          installText?: string;
+          installVideoUrl?: string;
+        } | null;
+      }
+    ) => {
       try {
         const updated = await adminApi.updateProduct(id, data);
         setProducts(prev => prev.map(prod => prod._id === id ? updated : prod));

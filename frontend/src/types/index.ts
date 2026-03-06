@@ -28,6 +28,14 @@ export interface Product {
   remainingQuantity: number;
   soldQuantity: number;
   createdAt: string;
+  proxyvip?: number | null;
+  proxyvipConfig?: {
+    ip?: string;
+    port?: string;
+    aimLink?: string;
+    installText?: string;
+    installVideoUrl?: string;
+  } | null;
 }
 
 export interface InventoryItem {
@@ -80,6 +88,29 @@ export interface PurchaseRequest {
 
 export interface PurchaseResponse {
   order: Order;
+  newBalance: number;
+}
+
+export interface ProxyVipRequest {
+  _id: string;
+  sellerEmail?: string;
+  sellerId: string;
+  productName?: string;
+  productId: string;
+  gameId: string;
+  status: 'pending' | 'processed';
+  createdAt: string;
+  processedAt?: string;
+}
+
+export interface CreateProxyVipRequestRequest {
+  productId: string;
+  gameId: string;
+}
+
+export interface CreateProxyVipRequestResponse {
+  request: ProxyVipRequest;
+  order: Order | null;
   newBalance: number;
 }
 

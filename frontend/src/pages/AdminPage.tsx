@@ -15,6 +15,7 @@ import {
   Wallet,
   CalendarDays,
   BarChart3,
+  Key,
 } from 'lucide-react';
 
 import { useSellers, useCategories, useProducts } from '@/hooks/useAdminData';
@@ -29,6 +30,7 @@ import OrdersHistoryTab from '@/components/admin/OrdersHistoryTab';
 import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 import HacksTab from '@/components/admin/HacksTab';
 import SellerPricesTab from '@/components/admin/SellerPricesTab';
+import ProxyVipRequestsTab from '@/components/admin/ProxyVipRequestsTab';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatCurrency } from '@/utils/format';
@@ -45,7 +47,8 @@ type TabType =
   | 'orders'
   | 'reset-requests'
   | 'hacks-status'
-  | 'seller-prices';
+  | 'seller-prices'
+  | 'proxyvip-requests';
 
 const emptyStats: AdminDashboardStats = {
   today: { totalOrders: 0, totalRevenue: 0 },
@@ -110,6 +113,7 @@ export default function AdminPage() {
     { id: 'hacks-status', label: 'Status hack', icon: Activity },
     { id: 'banks', label: 'Ngân hàng', icon: Building2 },
     { id: 'exchange-rate', label: 'Tỷ giá', icon: DollarSign },
+    { id: 'proxyvip-requests', label: 'Proxy VIP IDs', icon: Key },
   ];
 
   const chartPoints = useMemo(() => {
@@ -314,6 +318,8 @@ export default function AdminPage() {
         {activeTab === 'hacks-status' && <HacksTab />}
 
         {activeTab === 'seller-prices' && <SellerPricesTab />}
+
+        {activeTab === 'proxyvip-requests' && <ProxyVipRequestsTab />}
 
         {activeTab === 'banks' && (
           <BankAccountsTab

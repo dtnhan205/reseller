@@ -8,15 +8,37 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
-import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check } from 'lucide-react';
+import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Sparkles, UploadCloud } from 'lucide-react';
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 
+interface ProxyVipConfig {
+  ip?: string
+  port?: string
+  aimLink?: string
+  installText?: string
+  installVideoUrl?: string
+}
+
 interface ProductsTabProps {
-  onCreateProduct: (data: { name: string; categoryId: string; price: number }) => Promise<boolean>;
-  onUpdateProduct: (id: string, data: { name?: string; categoryId?: string; price?: number }) => Promise<boolean>;
-  onDeleteProduct: (id: string) => Promise<boolean>;
+  onCreateProduct: (data: {
+    name: string
+    categoryId: string
+    price: number
+    proxyvip?: number | null
+    proxyvipConfig?: ProxyVipConfig | null
+  }) => Promise<boolean>
+
+  onUpdateProduct: (id: string, data: {
+    name?: string
+    categoryId?: string
+    price?: number
+    proxyvip?: number | null
+    proxyvipConfig?: ProxyVipConfig | null
+  }) => Promise<boolean>
+
+  onDeleteProduct: (id: string) => Promise<boolean>
 }
 
 export default function ProductsTab({
@@ -33,6 +55,14 @@ export default function ProductsTab({
     name: '',
     categoryId: '',
     price: '',
+    isProxyVip: false,
+    proxyIp: '',
+    proxyPort: '',
+    proxyAimLink: '',
+    proxyInstallText: '',
+    proxyInstallVideoUrl: '',
+    proxyInstallVideoFile: null as File | null,
+    proxyInstallVideoPreviewUrl: '',
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productSearch, setProductSearch] = useState('');
@@ -77,14 +107,54 @@ export default function ProductsTab({
       showError('Price is too large. Maximum is $1,000,000');
       return;
     }
-    
+
+    let videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
+    if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
+      try {
+        const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+        const videoPath = res.url.startsWith('/') ? res.url : `/${res.url}`;
+        videoUrl = res.url.startsWith('http') ? res.url : `${baseUrl}${videoPath}`;
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          'Upload video thất bại';
+        showError(errorMessage);
+        return;
+      }
+    }
+
     const success = await onCreateProduct({
       name: productForm.name.trim(),
       categoryId: productForm.categoryId,
       price: price,
+      proxyvip: productForm.isProxyVip ? 1 : null,
+      proxyvipConfig: productForm.isProxyVip
+        ? {
+            ip: productForm.proxyIp.trim() || undefined,
+            port: productForm.proxyPort.trim() || undefined,
+            aimLink: productForm.proxyAimLink.trim() || undefined,
+            installText: productForm.proxyInstallText.trim() || undefined,
+            installVideoUrl: videoUrl,
+          }
+        : null,
     });
     if (success) {
-      setProductForm({ name: '', categoryId: '', price: '' });
+      setProductForm({
+        name: '',
+        categoryId: '',
+        price: '',
+        isProxyVip: false,
+        proxyIp: '',
+        proxyPort: '',
+        proxyAimLink: '',
+        proxyInstallText: '',
+        proxyInstallVideoUrl: '',
+        proxyInstallVideoFile: null,
+        proxyInstallVideoPreviewUrl: '',
+      });
     }
   };
 
@@ -94,6 +164,14 @@ export default function ProductsTab({
       name: product.name,
       categoryId: typeof product.category === 'object' ? product.category._id : product.category,
       price: product.price.toString(),
+      isProxyVip: product.proxyvip === 1,
+      proxyIp: (product as any).proxyvipConfig?.ip || '',
+      proxyPort: (product as any).proxyvipConfig?.port || '',
+      proxyAimLink: (product as any).proxyvipConfig?.aimLink || '',
+      proxyInstallText: (product as any).proxyvipConfig?.installText || '',
+      proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
+      proxyInstallVideoFile: null,
+      proxyInstallVideoPreviewUrl: '',
     });
   };
 
@@ -118,14 +196,54 @@ export default function ProductsTab({
       showError('Price is too large. Maximum is $1,000,000');
       return;
     }
-    
+
+    let videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
+    if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
+      try {
+        const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+        const baseUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+        const videoPath = res.url.startsWith('/') ? res.url : `/${res.url}`;
+        videoUrl = res.url.startsWith('http') ? res.url : `${baseUrl}${videoPath}`;
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          'Upload video thất bại';
+        showError(errorMessage);
+        return;
+      }
+    }
+
     const success = await onUpdateProduct(editingProduct._id, {
       name: productForm.name.trim(),
       categoryId: productForm.categoryId,
       price: price,
+      proxyvip: productForm.isProxyVip ? 1 : null,
+      proxyvipConfig: productForm.isProxyVip
+        ? {
+            ip: productForm.proxyIp.trim() || undefined,
+            port: productForm.proxyPort.trim() || undefined,
+            aimLink: productForm.proxyAimLink.trim() || undefined,
+            installText: productForm.proxyInstallText.trim() || undefined,
+            installVideoUrl: videoUrl,
+          }
+        : null,
     });
     if (success) {
-      setProductForm({ name: '', categoryId: '', price: '' });
+      setProductForm({
+        name: '',
+        categoryId: '',
+        price: '',
+        isProxyVip: false,
+        proxyIp: '',
+        proxyPort: '',
+        proxyAimLink: '',
+        proxyInstallText: '',
+        proxyInstallVideoUrl: '',
+        proxyInstallVideoFile: null,
+        proxyInstallVideoPreviewUrl: '',
+      });
       setEditingProduct(null);
     }
   };
@@ -138,7 +256,35 @@ export default function ProductsTab({
 
   const handleCancelEditProduct = () => {
     setEditingProduct(null);
-    setProductForm({ name: '', categoryId: '', price: '' });
+    setProductForm({
+      name: '',
+      categoryId: '',
+      price: '',
+      isProxyVip: false,
+      proxyIp: '',
+      proxyPort: '',
+      proxyAimLink: '',
+      proxyInstallText: '',
+      proxyInstallVideoUrl: '',
+      proxyInstallVideoFile: null,
+      proxyInstallVideoPreviewUrl: '',
+    });
+  };
+
+  const handleUploadVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setProductForm((prev) => ({
+      ...prev,
+      proxyInstallVideoFile: file,
+      proxyInstallVideoPreviewUrl: previewUrl,
+    }));
+
+    // reset input để có thể chọn lại cùng file nếu cần
+    e.target.value = '';
   };
 
   const handleViewKeys = async (productId: string) => {
@@ -239,6 +385,130 @@ export default function ProductsTab({
               required
             />
           </div>
+          <div className="flex items-center justify-between px-3 py-3 rounded-xl bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/80 border border-cyan-500/20 shadow-[0_0_25px_rgba(56,189,248,0.25)]">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center border border-cyan-400/40">
+                <Sparkles className="w-4 h-4 text-cyan-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Proxy VIP</p>
+                <p className="text-xs text-white/60">
+                  Sản phẩm dạng Proxy VIP, seller mua sẽ nhập ID game để admin xử lý thủ công.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setProductForm((prev) => ({ ...prev, isProxyVip: !prev.isProxyVip }))
+              }
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 ${
+                productForm.isProxyVip ? 'bg-gradient-to-r from-cyan-400 to-emerald-400' : 'bg-slate-700'
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-slate-900 shadow-md transition-transform duration-200 ${
+                  productForm.isProxyVip ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {productForm.isProxyVip && (
+            <div className="space-y-4 rounded-2xl border border-cyan-500/20 bg-slate-900/70 px-4 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                    IP
+                  </label>
+                  <Input
+                    placeholder="Ví dụ: 123.45.67.89"
+                    value={productForm.proxyIp}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({ ...prev, proxyIp: e.target.value }))
+                    }
+                    className="bg-black/50 border-gray-800 focus:border-cyan-500 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                    PORT
+                  </label>
+                  <Input
+                    placeholder="Ví dụ: 8080"
+                    value={productForm.proxyPort}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({ ...prev, proxyPort: e.target.value }))
+                    }
+                    className="bg-black/50 border-gray-800 focus:border-cyan-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                  Link File Aim
+                </label>
+                <Input
+                  placeholder="URL tải file aim (nếu có)"
+                  value={productForm.proxyAimLink}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({ ...prev, proxyAimLink: e.target.value }))
+                  }
+                  className="bg-black/50 border-gray-800 focus:border-cyan-500 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                  Cách cài (ghi chú)
+                </label>
+                <textarea
+                  placeholder="Ghi hướng dẫn cài đặt chi tiết cho Proxy VIP..."
+                  value={productForm.proxyInstallText}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      proxyInstallText: e.target.value,
+                    }))
+                  }
+                  className="w-full min-h-[80px] rounded-xl bg-black/50 border border-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 resize-y"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                  Video hướng dẫn cài
+                </label>
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-xs font-semibold text-cyan-300 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <UploadCloud className="w-4 h-4" />
+                    <span>Upload video (mp4, webm, ogg)</span>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/ogg"
+                      className="hidden"
+                      onChange={handleUploadVideo}
+                    />
+                  </label>
+
+                  {(productForm.proxyInstallVideoPreviewUrl ||
+                    productForm.proxyInstallVideoUrl) && (
+                    <div className="mt-2 sm:mt-0">
+                      <video
+                        className="w-40 rounded-xl border border-slate-700"
+                        src={
+                          productForm.proxyInstallVideoPreviewUrl ||
+                          productForm.proxyInstallVideoUrl
+                        }
+                        controls
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex gap-3">
             {editingProduct && (
               <Button
@@ -335,25 +605,45 @@ export default function ProductsTab({
                     <p className="text-cyan-400 font-bold text-base sm:text-lg">
                       {formatCurrency(product.price, language, usdToVnd)}
                     </p>
+                    {product.proxyvip === 1 && (
+                      <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-fuchsia-500/15 border border-fuchsia-400/40">
+                        <Sparkles className="w-3 h-3 text-fuchsia-300" />
+                        <span className="text-[10px] font-semibold tracking-wide uppercase text-fuchsia-200">
+                          Proxy VIP
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap">
-                    <div className={`flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border whitespace-nowrap ${
-                      (product.remainingQuantity || 0) > 0 
-                        ? 'bg-green-500/10 border-green-500/20' 
-                        : 'bg-red-500/10 border-red-500/20'
-                    }`}>
-                      <span className={`font-medium ${
-                        (product.remainingQuantity || 0) > 0 
-                          ? 'text-green-400' 
-                          : 'text-red-400'
-                      }`}>
-                        {(product.remainingQuantity || 0) > 0 
-                          ? `${t('admin.inStock')}: ${product.remainingQuantity} key` 
-                          : t('admin.outOfStock')}
-                      </span>
-                    </div>
+                    {product.proxyvip === 1 ? (
+                      <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border bg-cyan-500/10 border-cyan-500/30 whitespace-nowrap">
+                        <span className="text-cyan-300 font-medium">
+                          Proxy VIP • Xử lý theo yêu cầu
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        className={`flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border whitespace-nowrap ${
+                          (product.remainingQuantity || 0) > 0
+                            ? 'bg-green-500/10 border-green-500/20'
+                            : 'bg-red-500/10 border-red-500/20'
+                        }`}
+                      >
+                        <span
+                          className={`font-medium ${
+                            (product.remainingQuantity || 0) > 0
+                              ? 'text-green-400'
+                              : 'text-red-400'
+                          }`}
+                        >
+                          {(product.remainingQuantity || 0) > 0
+                            ? `${t('admin.inStock')}: ${product.remainingQuantity} key`
+                            : t('admin.outOfStock')}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
                       <span className="text-purple-400 font-medium whitespace-nowrap">
                         {t('admin.sold')}: {product.soldQuantity}

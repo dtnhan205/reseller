@@ -12,12 +12,15 @@ import type {
   TopupRequest,
   PurchaseRequest,
   PurchaseResponse,
+  CreateProxyVipRequestRequest,
+  CreateProxyVipRequestResponse,
   BankAccount,
   Payment,
   ExchangeRate,
   SellerProductPrice,
   Hack,
   AdminDashboardStats,
+  ProxyVipRequest,
 } from '@/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -155,14 +158,30 @@ export const adminApi = {
     name: string;
     categoryId: string;
     price: number;
+    proxyvip?: number | null;
+    proxyvipConfig?: {
+      ip?: string;
+      port?: string;
+      aimLink?: string;
+      installText?: string;
+      installVideoUrl?: string;
+    } | null;
   }): Promise<Product> => {
     const res = await api.post('/admin/products', data);
-    return res.data;
+    return res.data.product || res.data;
   },
   updateProduct: async (id: string, data: {
     name?: string;
     categoryId?: string;
     price?: number;
+    proxyvip?: number | null;
+    proxyvipConfig?: {
+      ip?: string;
+      port?: string;
+      aimLink?: string;
+      installText?: string;
+      installVideoUrl?: string;
+    } | null;
   }): Promise<Product> => {
     const res = await api.put(`/admin/products/${id}`, data);
     return res.data;
@@ -344,7 +363,26 @@ export const adminApi = {
     formData.append('image', file);
     
     // Không set Content-Type header, để axios tự động set với boundary cho multipart/form-data
-    const res = await api.post('/admin/upload-image', formData);
+    const res = await api.post('/admin/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+  uploadVideo: async (file: File): Promise<{ url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('video', file);
+    const res = await api.post('/admin/upload-video', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+  // Proxy VIP requests (Admin)
+  getProxyVipRequests: async (): Promise<ProxyVipRequest[]> => {
+    const res = await api.get('/admin/proxyvip-requests');
+    return res.data;
+  },
+  markProxyVipRequestProcessed: async (id: string): Promise<any> => {
+    const res = await api.put(`/admin/proxyvip-requests/${id}/process`);
     return res.data;
   },
 };
@@ -366,6 +404,10 @@ export const sellerApi = {
   },
   purchase: async (data: PurchaseRequest): Promise<PurchaseResponse> => {
     const res = await api.post('/purchase', data);
+    return res.data;
+  },
+  createProxyVipRequest: async (data: CreateProxyVipRequestRequest): Promise<CreateProxyVipRequestResponse> => {
+    const res = await api.post('/proxyvip-request', data);
     return res.data;
   },
   getOrders: async (): Promise<Order[]> => {

@@ -11,6 +11,7 @@ const { Payment } = require("../models/Payment");
 const { SellerProductPrice } = require("../models/SellerProductPrice");
 const { HackStatus } = require("../models/HackStatus");
 const { ResetRequest } = require("../models/ResetRequest");
+const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { Order } = require("../models/Order");
 
 async function createSeller(req, res) {
@@ -116,7 +117,7 @@ async function deleteCategory(req, res) {
 }
 
 async function createProduct(req, res) {
-  const { name, slug, price, categoryId } = req.body || {};
+  const { name, slug, price, categoryId, proxyvip, proxyvipConfig } = req.body || {};
   if (!name || price == null || !categoryId) throw new HttpError(400, "Missing name, price, or categoryId");
 
   const finalSlug = slug ? slugify(slug) : slugify(name);
@@ -128,6 +129,26 @@ async function createProduct(req, res) {
   const exists = await Product.findOne({ slug: finalSlug }).lean();
   if (exists) throw new HttpError(409, "Product slug already exists");
 
+  let proxyvipValue = null;
+  if (proxyvip !== undefined && proxyvip !== null && proxyvip !== "") {
+    const num = Number(proxyvip);
+    if (Number.isNaN(num)) {
+      throw new HttpError(400, "Invalid proxyvip value");
+    }
+    proxyvipValue = num === 1 ? 1 : null;
+  }
+
+  let proxyvipConfigValue = undefined;
+  if (proxyvipValue === 1 && proxyvipConfig && typeof proxyvipConfig === "object") {
+    proxyvipConfigValue = {
+      ip: proxyvipConfig.ip ? String(proxyvipConfig.ip).trim() : undefined,
+      port: proxyvipConfig.port ? String(proxyvipConfig.port).trim() : undefined,
+      aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
+      installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
+      installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
+    };
+  }
+
   const product = await Product.create({
     name: String(name).trim(),
     slug: finalSlug,
@@ -135,7 +156,9 @@ async function createProduct(req, res) {
     categoryId: new mongoose.Types.ObjectId(categoryId),
     totalQtyAvailable: 0,
     totalQtySold: 0,
-    inventory: []
+    inventory: [],
+    proxyvip: proxyvipValue,
+    proxyvipConfig: proxyvipConfigValue,
   });
 
   res.status(201).json({ product });
@@ -158,6 +181,8 @@ async function listProducts(req, res) {
     remainingQuantity: p.totalQtyAvailable || 0,
     soldQuantity: p.totalQtySold || 0,
     createdAt: p.createdAt,
+    proxyvip: p.proxyvip ?? null,
+    proxyvipConfig: p.proxyvipConfig || null,
     // KHÔNG bao gồm inventory để bảo mật
   }));
   res.json(transformed);
@@ -165,7 +190,7 @@ async function listProducts(req, res) {
 
 async function updateProduct(req, res) {
   const { id } = req.params;
-  const { name, price, categoryId } = req.body || {};
+  const { name, price, categoryId, proxyvip, proxyvipConfig } = req.body || {};
   
   const product = await Product.findById(id);
   if (!product) throw new HttpError(404, "Product not found");
@@ -192,6 +217,32 @@ async function updateProduct(req, res) {
     product.categoryId = new mongoose.Types.ObjectId(categoryId);
   }
 
+  if (proxyvip !== undefined) {
+    if (proxyvip === null || proxyvip === "" || proxyvip === 0 || proxyvip === "0") {
+      product.proxyvip = null;
+    } else {
+      const num = Number(proxyvip);
+      if (Number.isNaN(num)) {
+        throw new HttpError(400, "Invalid proxyvip value");
+      }
+      product.proxyvip = num === 1 ? 1 : null;
+    }
+  }
+
+  if (product.proxyvip === 1 && proxyvipConfig && typeof proxyvipConfig === "object") {
+    product.proxyvipConfig = {
+      ip: proxyvipConfig.ip ? String(proxyvipConfig.ip).trim() : undefined,
+      port: proxyvipConfig.port ? String(proxyvipConfig.port).trim() : undefined,
+      aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
+      installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
+      installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
+    };
+  }
+
+  if (product.proxyvip !== 1) {
+    product.proxyvipConfig = undefined;
+  }
+
   await product.save();
   
   // Populate category for response
@@ -207,6 +258,8 @@ async function updateProduct(req, res) {
     remainingQuantity: product.totalQtyAvailable || 0,
     soldQuantity: product.totalQtySold || 0,
     createdAt: product.createdAt,
+    proxyvip: product.proxyvip ?? null,
+    proxyvipConfig: product.proxyvipConfig || null,
   });
 }
 
@@ -739,6 +792,63 @@ async function getDashboardStats(req, res) {
   });
 }
 
+// Upload video hướng dẫn Proxy VIP
+async function uploadVideo(req, res) {
+  if (!req.file) {
+    throw new HttpError(400, "Không có file video được upload");
+  }
+
+  const fileUrl = `/uploads/${req.file.filename}`;
+
+  res.status(200).json({
+    success: true,
+    url: fileUrl,
+    filename: req.file.filename,
+  });
+}
+
+// ---- Proxy VIP Requests (Admin) ----
+
+async function getProxyVipRequests(req, res) {
+  const requests = await ProxyVipRequest.find()
+    .populate("sellerId", "email")
+    .populate("productId", "name")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const transformed = requests.map((r) => ({
+    _id: r._id,
+    sellerEmail: r.sellerId?.email || "Unknown",
+    sellerId: r.sellerId?._id || r.sellerId,
+    productName: r.productId?.name || "Unknown",
+    productId: r.productId?._id || r.productId,
+    gameId: r.gameId,
+    status: r.status,
+    createdAt: r.createdAt,
+    processedAt: r.processedAt,
+  }));
+
+  res.json(transformed);
+}
+
+async function markProxyVipRequestProcessed(req, res) {
+  const { id } = req.params;
+
+  const request = await ProxyVipRequest.findById(id);
+  if (!request) throw new HttpError(404, "Proxy VIP request not found");
+
+  if (request.status === "processed") {
+    return res.json(request);
+  }
+
+  request.status = "processed";
+  request.processedAt = new Date();
+  request.processedBy = req.user._id;
+  await request.save();
+
+  res.json(request);
+}
+
 async function getAllOrders(req, res) {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -1010,6 +1120,9 @@ module.exports = {
   updateHack,
   deleteHack,
   uploadImage,
+  uploadVideo,
+  getProxyVipRequests,
+  markProxyVipRequestProcessed,
 };
 
 

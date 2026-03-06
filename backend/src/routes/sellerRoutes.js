@@ -13,6 +13,7 @@ const {
   getResetRequests,
   listHacks,
   getHackDetail,
+  createProxyVipRequest,
 } = require("../controllers/sellerController");
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get("/wallet/topup-history", requireRole("seller"), getTopupHistory);
 router.post("/purchase", requireRole("seller"), purchase);
 router.get("/orders", requireRole("seller"), listOrders);
 router.get("/products", requireRole("seller"), getProducts);
+router.post("/proxyvip-request", requireRole("seller"), createProxyVipRequest);
 
 // Payment routes
 router.get("/payments", requireRole("seller"), getPayments);

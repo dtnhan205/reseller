@@ -10,6 +10,7 @@ const { Payment } = require("../models/Payment");
 const { BankAccount } = require("../models/BankAccount");
 const { ExchangeRate } = require("../models/ExchangeRate");
 const { ResetRequest } = require("../models/ResetRequest");
+const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { generateTransferContent } = require("../controllers/adminController");
 
 async function topupWallet(req, res) {
@@ -98,6 +99,9 @@ async function purchase(req, res) {
 
       const product = await Product.findById(productId).session(session);
       if (!product) throw new HttpError(404, "Product not found");
+      if (product.proxyvip === 1) {
+        throw new HttpError(400, "Cannot purchase Proxy VIP product via this endpoint");
+      }
 
       // Nếu có giá riêng cho seller này thì dùng, không thì dùng giá chung
       const override = await SellerProductPrice.findOne({
@@ -169,6 +173,110 @@ async function purchase(req, res) {
   }
 }
 
+// Seller: gửi yêu cầu Proxy VIP với ID game
+async function createProxyVipRequest(req, res) {
+  const { productId, gameId } = req.body || {};
+
+  if (!productId || !gameId) {
+    throw new HttpError(400, "Missing productId or gameId");
+  }
+
+  const trimmedGameId = String(gameId).trim();
+  if (!trimmedGameId) {
+    throw new HttpError(400, "Game ID is required");
+  }
+
+  const session = await mongoose.startSession();
+  try {
+    let createdRequest;
+    let createdOrder;
+
+    await session.withTransaction(async () => {
+      const seller = await User.findById(req.user._id).session(session);
+      if (!seller) throw new HttpError(404, "Seller not found");
+      if (seller.role !== "seller") throw new HttpError(403, "Only seller can create proxy vip request");
+
+      const product = await Product.findById(productId).session(session);
+      if (!product) throw new HttpError(404, "Product not found");
+      if (product.proxyvip !== 1) {
+        throw new HttpError(400, "Product is not Proxy VIP");
+      }
+
+      const override = await SellerProductPrice.findOne({
+        sellerId: seller._id,
+        productId: product._id,
+      }).session(session);
+
+      const price = override ? override.price : product.price;
+      if (seller.walletBalance < price) throw new HttpError(400, "Insufficient wallet balance");
+
+      seller.walletBalance -= price;
+      product.totalQtySold = (product.totalQtySold || 0) + 1;
+
+      createdOrder = await Order.create(
+        [
+          {
+            sellerId: seller._id,
+            productId: product._id,
+            productName: product.name,
+            keyValue: trimmedGameId, // lưu ID game vào order để tracking
+            price,
+            purchasedAt: new Date(),
+          },
+        ],
+        { session }
+      );
+
+      createdRequest = await ProxyVipRequest.create(
+        [
+          {
+            sellerId: seller._id,
+            productId: product._id,
+            gameId: trimmedGameId,
+          },
+        ],
+        { session }
+      );
+
+      await product.save({ session });
+      await seller.save({ session });
+    });
+
+    const updatedSeller = await User.findById(req.user._id);
+    const request = createdRequest?.[0];
+    const order = createdOrder?.[0];
+
+    const transformedOrder = order
+      ? {
+          _id: order._id,
+          product: order.productId,
+          productName: order.productName,
+          key: order.keyValue,
+          price: order.price,
+          seller: order.sellerId,
+          createdAt: order.purchasedAt || order.createdAt,
+        }
+      : null;
+
+    res.status(201).json({
+      request: request
+        ? {
+            _id: request._id,
+            sellerId: request.sellerId,
+            productId: request.productId,
+            gameId: request.gameId,
+            status: request.status,
+            createdAt: request.createdAt,
+          }
+        : null,
+      order: transformedOrder,
+      newBalance: updatedSeller?.walletBalance || 0,
+    });
+  } finally {
+    session.endSession();
+  }
+}
+
 async function listOrders(req, res) {
   if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
   const orders = await Order.find({ sellerId: req.user._id })
@@ -222,6 +330,8 @@ async function getProducts(req, res) {
       remainingQuantity: p.totalQtyAvailable || 0,
       soldQuantity: p.totalQtySold || 0,
       createdAt: p.createdAt,
+      proxyvip: p.proxyvip ?? null,
+      proxyvipConfig: p.proxyvipConfig || null,
       // KHÔNG bao gồm inventory để bảo mật
     }));
     
@@ -435,6 +545,7 @@ module.exports = {
   getHackDetail,
   createResetRequest,
   getResetRequests,
+  createProxyVipRequest,
 };
 
 
