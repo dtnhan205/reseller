@@ -55,6 +55,7 @@ export default function GeneratePage() {
   const [isProxyVipModalOpen, setIsProxyVipModalOpen] = useState(false);
   const [proxyVipGameId, setProxyVipGameId] = useState('');
   const [isSubmittingProxyVip, setIsSubmittingProxyVip] = useState(false);
+  const [showInsufficientBalancePopup, setShowInsufficientBalancePopup] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -425,6 +426,11 @@ export default function GeneratePage() {
                                         {isOutOfStock ? t('generate.outOfStock') : t('generate.inStock')}
                                       </span>
                                     )}
+                                    {isProxyVip && (
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-emerald-500/10 text-emerald-300 border border-emerald-400/40">
+                                        Không giới hạn
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                                 {isSelected && !isOutOfStock && <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />}
@@ -526,7 +532,7 @@ export default function GeneratePage() {
                       onClick={handlePurchase}
                       className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] border-none shadow-none"
                       isLoading={isLoading}
-                      disabled={totalPrice > (user?.wallet || 0)}
+                      disabled={!isSelectedProxyVip && totalPrice > (user?.wallet || 0)}
                     >
                       <Zap className="w-5 h-5 mr-2" />
                       {isLoading
@@ -799,8 +805,9 @@ export default function GeneratePage() {
                     showError('Vui lòng nhập ID game của bạn');
                     return;
                   }
+                  // Show popup instead of error when insufficient balance
                   if (selectedProductData.price > (user?.wallet || 0)) {
-                    showError('Insufficient balance');
+                    setShowInsufficientBalancePopup(true);
                     return;
                   }
                   setIsSubmittingProxyVip(true);
@@ -826,7 +833,7 @@ export default function GeneratePage() {
                 }}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-400 hover:from-fuchsia-400 hover:to-cyan-300 text-black font-black uppercase tracking-widest transition-all duration-300 transform active:scale-[0.98] border-none shadow-lg shadow-fuchsia-500/30"
                 isLoading={isSubmittingProxyVip}
-                disabled={isSubmittingProxyVip || selectedProductData.price > (user?.wallet || 0)}
+                disabled={isSubmittingProxyVip}
               >
                 <Zap className="w-5 h-5 mr-2" />
                 {isSubmittingProxyVip ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu Proxy VIP'}
@@ -838,6 +845,54 @@ export default function GeneratePage() {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insufficient Balance Popup */}
+      {showInsufficientBalancePopup && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div
+            className="rounded-3xl p-6 sm:p-8 w-full max-w-sm border border-red-500/40 bg-slate-900/90 flex flex-col items-center gap-5"
+            style={{ backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }}
+          >
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center border border-red-400/40">
+              <Wallet className="w-8 h-8 text-red-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-black text-white">Số dư không đủ</h3>
+              <p className="text-slate-300 text-sm">
+                Bạn cần nạp thêm tiền để tạo yêu cầu Proxy VIP này.
+              </p>
+              {selectedProductData && (
+                <div className="mt-3 p-3 rounded-xl bg-slate-800/60 border border-white/10 text-xs space-y-1">
+                  <p className="text-slate-400">
+                    Giá yêu cầu:{' '}
+                    <span className="font-bold text-fuchsia-300">
+                      {formatPrice(selectedProductData.price, language, usdToVnd)}
+                    </span>
+                  </p>
+                  <p className="text-slate-400">
+                    Số dư hiện tại:{' '}
+                    <span className="font-bold text-red-300">
+                      {formatBalance(user?.wallet || 0, language, usdToVnd)}
+                    </span>
+                  </p>
+                  <p className="text-slate-400">
+                    Cần nạp thêm:{' '}
+                    <span className="font-bold text-yellow-300">
+                      {formatPrice(selectedProductData.price - (user?.wallet || 0), language, usdToVnd)}
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setShowInsufficientBalancePopup(false)}
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-red-500 to-fuchsia-500 hover:from-red-400 hover:to-fuchsia-400 text-white font-black uppercase tracking-widest transition-all duration-300 active:scale-[0.98]"
+            >
+              Đã hiểu, đóng
+            </button>
           </div>
         </div>
       )}
