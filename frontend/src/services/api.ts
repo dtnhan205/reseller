@@ -156,7 +156,7 @@ export const adminApi = {
   },
   // Public API - không cần auth
   getPublicProxyProducts: async (): Promise<Product[]> => {
-    const res = await api.get('/admin/products/proxy-public');
+    const res = await api.get('/proxy-products');
     return res.data;
   },
   createProduct: async (data: {
