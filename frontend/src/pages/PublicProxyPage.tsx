@@ -60,7 +60,7 @@ export default function PublicProxyPage() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] text-white selection:bg-indigo-500/25 flex items-center justify-center">
         <ParticleNetwork
-          particleColor="rgba(168, 85, 247, 0.6)"
+          particleColor="rgba(168, 85, 247, 0.5)"
           lineColor="rgba(168, 85, 247, 0.15)"
           particleCount={50}
           linkDistance={120}
