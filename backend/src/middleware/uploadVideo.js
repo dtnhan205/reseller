@@ -66,5 +66,5 @@ const uploadVideoOptional = multer({
   fileFilter: videoFileFilter,
 }).single('video');
 
-module.exports = { uploadVideo };
+module.exports = { uploadVideo, uploadVideoOptional };
 

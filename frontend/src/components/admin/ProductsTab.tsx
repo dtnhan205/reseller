@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
 import ProductImage from './ProductImage';
-import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Sparkles, UploadCloud } from 'lucide-react';
+import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Sparkles } from 'lucide-react';
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
@@ -59,8 +59,6 @@ export default function ProductsTab({
     proxyAimLink: '',
     proxyInstallText: '',
     proxyInstallVideoUrl: '',
-    proxyInstallVideoFile: null as File | null,
-    proxyInstallVideoPreviewUrl: '',
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productSearch, setProductSearch] = useState('');
@@ -106,22 +104,8 @@ export default function ProductsTab({
       return;
     }
 
-    let videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
-    if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
-      try {
-        const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
-        // Backend trả về relative URL (/uploads/filename.mp4), giữ nguyên để lưu vào database
-        // Frontend sẽ tự resolve relative URL dựa trên domain hiện tại khi hiển thị
-        videoUrl = res.url;
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Upload video thất bại';
-        showError(errorMessage);
-        return;
-      }
-    }
+    // Sử dụng URL video trực tiếp
+    const videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
 
     const success = await onCreateProduct({
       name: productForm.name.trim(),
@@ -149,8 +133,6 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
-        proxyInstallVideoFile: null,
-        proxyInstallVideoPreviewUrl: '',
       });
     }
   };
@@ -167,8 +149,6 @@ export default function ProductsTab({
       proxyAimLink: (product as any).proxyvipConfig?.aimLink || '',
       proxyInstallText: (product as any).proxyvipConfig?.installText || '',
       proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
-      proxyInstallVideoFile: null,
-      proxyInstallVideoPreviewUrl: '',
     });
   };
 
@@ -194,22 +174,8 @@ export default function ProductsTab({
       return;
     }
 
-    let videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
-    if (productForm.isProxyVip && productForm.proxyInstallVideoFile) {
-      try {
-        const res = await adminApi.uploadVideo(productForm.proxyInstallVideoFile);
-        // Backend trả về relative URL (/uploads/filename.mp4), giữ nguyên để lưu vào database
-        // Frontend sẽ tự resolve relative URL dựa trên domain hiện tại khi hiển thị
-        videoUrl = res.url;
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Upload video thất bại';
-        showError(errorMessage);
-        return;
-      }
-    }
+    // Sử dụng URL video trực tiếp
+    const videoUrl = productForm.proxyInstallVideoUrl.trim() || undefined;
 
     const success = await onUpdateProduct(editingProduct._id, {
       name: productForm.name.trim(),
@@ -237,8 +203,6 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
-        proxyInstallVideoFile: null,
-        proxyInstallVideoPreviewUrl: '',
       });
       setEditingProduct(null);
     }
@@ -262,25 +226,7 @@ export default function ProductsTab({
       proxyAimLink: '',
       proxyInstallText: '',
       proxyInstallVideoUrl: '',
-      proxyInstallVideoFile: null,
-      proxyInstallVideoPreviewUrl: '',
     });
-  };
-
-  const handleUploadVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const previewUrl = URL.createObjectURL(file);
-
-    setProductForm((prev) => ({
-      ...prev,
-      proxyInstallVideoFile: file,
-      proxyInstallVideoPreviewUrl: previewUrl,
-    }));
-
-    // reset input để có thể chọn lại cùng file nếu cần
-    e.target.value = '';
   };
 
   const handleViewKeys = async (productId: string) => {
@@ -474,43 +420,35 @@ export default function ProductsTab({
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
-                  Video hướng dẫn cài
+                  Video hướng dẫn cài (URL)
                 </label>
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                  <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-xs font-semibold text-cyan-300 cursor-pointer hover:bg-slate-800 transition-colors">
-                    <UploadCloud className="w-4 h-4" />
-                    <span>Upload video (mp4, webm, ogg)</span>
-                    <input
-                      type="file"
-                      accept="video/mp4,video/webm,video/ogg"
-                      className="hidden"
-                      onChange={handleUploadVideo}
-                    />
-                  </label>
-
-                  {(productForm.proxyInstallVideoPreviewUrl ||
-                    productForm.proxyInstallVideoUrl) && (
-                    <div className="mt-2 sm:mt-0">
-                      <video
-                        className="w-40 rounded-xl border border-slate-700"
-                        src={
-                          productForm.proxyInstallVideoPreviewUrl ||
-                          (() => {
-                            const url = productForm.proxyInstallVideoUrl;
-                            if (!url) return '';
-                            // Nếu URL đã là absolute (http/https), dùng trực tiếp
-                            if (url.startsWith('http://') || url.startsWith('https://')) {
-                              return url;
-                            }
-                            // Nếu là relative URL (/uploads/...), browser sẽ tự resolve từ domain hiện tại
-                            return url.startsWith('/') ? url : `/${url}`;
-                          })()
+                <Input
+                  placeholder="https://drive.google.com/uc?export=download&id=..."
+                  value={productForm.proxyInstallVideoUrl}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      proxyInstallVideoUrl: e.target.value,
+                    }))
+                  }
+                  className="bg-black/50 border-gray-800 focus:border-cyan-500 text-sm"
+                />
+                {productForm.proxyInstallVideoUrl && (
+                  <div className="mt-2">
+                    <video
+                      className="w-48 rounded-xl border border-slate-700"
+                      src={(() => {
+                        const url = productForm.proxyInstallVideoUrl;
+                        if (!url) return '';
+                        if (url.startsWith('http://') || url.startsWith('https://')) {
+                          return url;
                         }
-                        controls
-                      />
-                    </div>
-                  )}
-                </div>
+                        return url.startsWith('/') ? url : `/${url}`;
+                      })()}
+                      controls
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

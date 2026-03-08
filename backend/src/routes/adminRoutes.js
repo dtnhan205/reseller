@@ -1,7 +1,7 @@
 const express = require("express");
 const { requireRole } = require("../middleware/auth");
 const { upload } = require("../middleware/upload");
-const { uploadVideo: uploadVideoMiddleware, uploadVideoOptional } = require("../middleware/uploadVideo");
+const { uploadVideoOptional } = require("../middleware/uploadVideo");
 const {
   createSeller,
   listSellers,
@@ -52,7 +52,7 @@ router.use(requireRole("admin"));
 
 // Upload image & video routes
 router.post("/upload-image", upload.single('image'), uploadImage);
-router.post("/upload-video", uploadVideoMiddleware.single('video'), uploadVideo);
+router.post("/upload-video", uploadVideoOptional, uploadVideo);
 
 // Sellers
 router.post("/sellers", createSeller);

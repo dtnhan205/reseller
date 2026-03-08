@@ -1,55 +1,50 @@
-# Hướng dẫn cấu hình Nginx cho upload video
-
-Nếu bạn đang sử dụng Nginx làm reverse proxy cho backend, bạn cần cấu hình `client_max_body_size` để cho phép upload file lớn.
-
-## Cấu hình Nginx
-
-Thêm hoặc sửa dòng sau trong file cấu hình Nginx của bạn (thường là `/etc/nginx/sites-available/your-site` hoặc trong block `server`):
-
-```nginx
 server {
-    # ... các cấu hình khác ...
-    
-    # Tăng giới hạn upload lên 100MB (hoặc lớn hơn nếu cần)
-    client_max_body_size 100M;
-    
-    # ... các cấu hình khác ...
-    
-    location /api {
-        proxy_pass http://localhost:5000;  # Thay đổi port nếu cần
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
+    server_name resellerdtn.site www.resellerdtn.site;
+
+    root /var/www/reseller-site;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    location /uploads/ {
+        proxy_pass http://localhost:3000/uploads/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Tăng timeout cho upload file lớn
-        proxy_read_timeout 300s;
-        proxy_connect_timeout 300s;
-        proxy_send_timeout 300s;
     }
+
+    location /api/ {
+        proxy_pass http://localhost:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+   listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/resellerdtn.site/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/resellerdtn.site/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
 }
-```
+server {
+    if ($host = www.resellerdtn.site) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
 
-## Sau khi sửa cấu hình
 
-1. Kiểm tra cấu hình Nginx:
-   ```bash
-   sudo nginx -t
-   ```
+    if ($host = resellerdtn.site) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
 
-2. Reload Nginx:
-   ```bash
-   sudo systemctl reload nginx
-   # hoặc
-   sudo service nginx reload
-   ```
 
-## Lưu ý
+    listen 80 default_server;
+    server_name resellerdtn.site www.resellerdtn.site;
+    return 404; # managed by Certbot
 
-- `client_max_body_size` mặc định của Nginx là 1MB
-- Nếu không cấu hình, bạn sẽ gặp lỗi 413 (Request Entity Too Large) khi upload file lớn hơn 1MB
-- Multer đã được cấu hình limit 50MB trong code, nhưng Nginx sẽ chặn trước khi request đến được backend
+}
