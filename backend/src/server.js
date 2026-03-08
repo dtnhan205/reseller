@@ -41,7 +41,20 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-// Public API: Proxy VIP products (không cần đăng nhập) - Đặt ĐẦU TIÊN
+// Public API: Proxy VIP - Tạo mới hoàn toàn, không dùng controller cũ
+const { Product } = require("./models/Product");
+app.get("/api/v2/proxy-products", async (req, res) => {
+  try {
+    const products = await Product.find({
+      $or: [{ proxyvip: 1 }, { proxyvip: "1" }]
+    }).select('name price proxyvip proxyvipConfig').lean();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Public API: Proxy VIP - Giữ lại cái cũ để test
 const { getPublicProxyProducts } = require("./controllers/adminController");
 app.get("/api/proxy-products", (req, res) => {
   console.log("[DEBUG] /api/proxy-products called");
