@@ -41,6 +41,13 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+// Public API: Proxy VIP products (không cần đăng nhập) - Đặt ĐẦU TIÊN
+const { getPublicProxyProducts } = require("./controllers/adminController");
+app.get("/api/proxy-products", (req, res) => {
+  console.log("[DEBUG] /api/proxy-products called");
+  getPublicProxyProducts(req, res);
+});
+
 // Leaderboard Public (Đưa lên đầu để tránh bị middleware requireAuth chặn)
 const { getTopupLeaderboard }= require("./controllers/adminController");
 app.get("/api/leaderboard/topup", getTopupLeaderboard);
@@ -101,14 +108,6 @@ app.get("/api/hacks/:id", getHackDetail);
 // Keep for backward compatibility (non /api)
 app.get("/hacks", listHacks);
 app.get("/hacks/:id", getHackDetail);
-
-// Public API: Proxy VIP products (không cần đăng nhập) - Tách biệt hoàn toàn
-const { getPublicProxyProducts } = require("./controllers/adminController");
-app.get("/api/proxy-products", (req, res) => {
-  console.log("[DEBUG] /api/proxy-products called");
-  console.log("[DEBUG] Headers:", req.headers);
-  getPublicProxyProducts(req, res);
-});
 
 // Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);
