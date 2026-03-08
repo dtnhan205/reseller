@@ -102,6 +102,10 @@ app.get("/api/hacks/:id", getHackDetail);
 app.get("/hacks", listHacks);
 app.get("/hacks/:id", getHackDetail);
 
+// Public API: Proxy VIP products (không cần đăng nhập)
+const { getPublicProxyProducts } = require("./controllers/adminController");
+app.get("/api/admin/products/proxy-public", getPublicProxyProducts);
+
 // Tất cả các routes sau đây yêu cầu token
 app.use(requireAuth);
 app.use("/api/admin", adminRouter);

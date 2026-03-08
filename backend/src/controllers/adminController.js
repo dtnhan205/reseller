@@ -188,6 +188,27 @@ async function listProducts(req, res) {
   res.json(transformed);
 }
 
+// Public API: Lấy danh sách Proxy VIP (không cần đăng nhập)
+async function getPublicProxyProducts(req, res) {
+  // Tìm cả proxyvip = 1 (number) và "1" (string)
+  const products = await Product.find({
+    $or: [{ proxyvip: 1 }, { proxyvip: "1" }]
+  })
+    .select('name price proxyvip proxyvipConfig')
+    .populate("categoryId", "name")
+    .lean();
+
+  const transformed = products.map((p) => ({
+    _id: p._id,
+    name: p.name,
+    price: p.price,
+    proxyvip: p.proxyvip,
+    proxyvipConfig: p.proxyvipConfig || null,
+  }));
+
+  res.json(transformed);
+}
+
 async function updateProduct(req, res) {
   const { id } = req.params;
   const { name, price, categoryId, proxyvip, proxyvipConfig } = req.body || {};
@@ -1135,6 +1156,7 @@ module.exports = {
   deleteHack,
   uploadImage,
   uploadVideo,
+  getPublicProxyProducts,
   getProxyVipRequests,
   markProxyVipRequestProcessed,
 };

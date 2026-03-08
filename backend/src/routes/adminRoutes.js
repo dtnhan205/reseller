@@ -44,10 +44,15 @@ const {
   uploadVideo,
   getProxyVipRequests,
   markProxyVipRequestProcessed,
+  getPublicProxyProducts,
 } = require("../controllers/adminController");
 
 const router = express.Router();
 
+// Public API - không cần auth (đặt TRƯỚC requireRole)
+router.get("/products/proxy-public", getPublicProxyProducts);
+
+// Yêu cầu admin cho các route còn lại
 router.use(requireRole("admin"));
 
 // Upload image & video routes

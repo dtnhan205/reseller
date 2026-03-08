@@ -18,6 +18,7 @@ import AboutPage from './pages/AboutPage';
 import SupportPage from './pages/SupportPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import PublicProxyPage from './pages/PublicProxyPage';
 import ToastContainer from './components/ui/ToastContainer';
 import ScrollToTop from './components/ScrollToTop';
 import RainEffect from './components/RainEffect';
@@ -97,7 +98,9 @@ function HacksRouteWrapper() {
 
 function App() {
   const { user } = useAuthStore();
+  const location = useLocation();
   const defaultRoute = user?.role === 'admin' ? '/admin' : '/generate';
+  const isProxyPage = location.pathname === '/proxy';
 
   // Anti F12 / DevTools & disable right-click
   useEffect(() => {
@@ -129,14 +132,17 @@ function App() {
   return (
     <>
       <LenisController />
-      <RainEffect />
+      {!isProxyPage && <RainEffect />}
       <ScrollToTop />
       <ToastContainer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Public Pages outside of /app */}
+        {/* Public Pages without header/footer */}
+        <Route path="/proxy" element={<PublicProxyPage />} />
+
+        {/* Public Pages with header/footer */}
         <Route element={<PublicLayout />}>
           <Route path="/about" element={<AboutPage />} />
           <Route path="/support" element={<SupportPage />} />
