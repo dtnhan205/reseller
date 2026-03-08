@@ -1,7 +1,7 @@
 const express = require("express");
 const { requireRole } = require("../middleware/auth");
 const { upload } = require("../middleware/upload");
-const { uploadVideo: uploadVideoMiddleware } = require("../middleware/uploadVideo");
+const { uploadVideo: uploadVideoMiddleware, uploadVideoOptional } = require("../middleware/uploadVideo");
 const {
   createSeller,
   listSellers,

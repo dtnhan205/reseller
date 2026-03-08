@@ -794,10 +794,21 @@ async function getDashboardStats(req, res) {
 
 // Upload video hướng dẫn Proxy VIP
 async function uploadVideo(req, res) {
+  console.log('[UploadVideo] Request received');
+  console.log('[UploadVideo] req.file:', req.file);
+  console.log('[UploadVideo] req.body:', req.body);
+
+  // Nếu không có file, trả về thành công với url rỗng (optional upload)
   if (!req.file) {
-    throw new HttpError(400, "Không có file video được upload");
+    console.log('[UploadVideo] No file uploaded, returning null');
+    return res.status(200).json({
+      success: true,
+      url: null,
+      filename: null,
+    });
   }
 
+  console.log('[UploadVideo] File uploaded successfully:', req.file.filename);
   const fileUrl = `/uploads/${req.file.filename}`;
 
   res.status(200).json({
