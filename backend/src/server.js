@@ -57,8 +57,13 @@ app.get("/api/v2/proxy-products", async (req, res) => {
 // Public API: Proxy VIP - Giữ lại cái cũ để test
 const { getPublicProxyProducts } = require("./controllers/adminController");
 app.get("/api/proxy-products", (req, res) => {
-  console.log("[DEBUG] /api/proxy-products called");
+  console.log("[DEBUG] /api/proxy-products called, auth:", req.headers.authorization ? "Present" : "None");
   getPublicProxyProducts(req, res);
+});
+
+// Test endpoint để so sánh
+app.get("/api/test-proxy", (req, res) => {
+  res.json({ success: true, message: "Test endpoint works!" });
 });
 
 // Leaderboard Public (Đưa lên đầu để tránh bị middleware requireAuth chặn)
