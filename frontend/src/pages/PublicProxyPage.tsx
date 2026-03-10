@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/services/api';
-import { Copy, Check, Download, Play, Shield, Wifi, Target, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Copy, Check, Download, Play, ShieldCheck, Wifi, Crosshair, Radar, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import ParticleNetwork from '@/components/ParticleNetwork';
 
 interface ProxyVipConfig {
@@ -88,7 +88,7 @@ export default function PublicProxyPage() {
         />
         <div className="text-center max-w-md bg-black/40 backdrop-blur-md px-8 py-6 rounded-2xl border border-white/10">
           <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-10 h-10 text-gray-600" />
+            <Radar className="w-10 h-10 text-gray-600" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Chưa có sản phẩm</h2>
           <p className="text-gray-500">Hiện tại chưa có Proxy VIP nào được mở bán.</p>
@@ -120,6 +120,12 @@ export default function PublicProxyPage() {
             Danh sách các gói Proxy VIP dành riêng cho bạn. Click vào sản phẩm để xem chi tiết và hướng dẫn cài đặt.
           </p>
         </div>
+        <div className="mt-6 mx-auto max-w-3xl rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-6 py-4 text-left">
+          <p className="text-yellow-200 font-semibold">Lưu ý:</p>
+          <p className="text-yellow-100/80 text-sm mt-1">
+            Proxy VIP <span className="font-semibold">không phải free</span>. Bạn chỉ có thể chơi sau khi admin duyệt ID game khi mua.
+          </p>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto">
@@ -139,12 +145,12 @@ export default function PublicProxyPage() {
                 onClick={() => setSelectedProduct(selectedProduct === product._id ? null : product._id)}
                 className="w-full p-5 flex items-center justify-between text-left"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-xl flex items-center justify-center border border-white/10">
-                    <Target className="w-6 h-6 text-purple-400" />
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-purple-500/30 to-cyan-500/30 rounded-xl flex items-center justify-center border border-white/10">
+                    <Crosshair className="w-6 h-6 text-purple-400" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white">
+                  <div className="min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-white line-clamp-2">
                       {getDisplayProductName(product.name)}
                     </h3>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-xs font-semibold text-purple-300">
@@ -186,7 +192,7 @@ export default function PublicProxyPage() {
                       {product.proxyvipConfig?.port && (
                         <div className="bg-black/40 backdrop-blur-sm rounded-xl p-4 border border-white/5">
                           <div className="flex items-center gap-2 mb-2">
-                            <Shield className="w-4 h-4 text-emerald-400" />
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
                             <span className="text-xs font-semibold text-gray-400 uppercase">Port</span>
                           </div>
                           <div className="flex items-center justify-between">

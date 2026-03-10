@@ -17,6 +17,7 @@ export default function ProxyVipRequestsTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processed'>('all');
 
   useEffect(() => {
     loadRequests();
@@ -55,6 +56,19 @@ export default function ProxyVipRequestsTab() {
     }
   };
 
+  const handleCopyGameId = async (gameId: string) => {
+    if (!gameId) {
+      showError('Không có ID game để sao chép');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(gameId);
+      showSuccess('Đã sao chép ID game');
+    } catch (err) {
+      showError('Sao chép thất bại. Vui lòng thử lại.');
+    }
+  };
+
   const getStatusBadge = (status: ProxyVipRequest['status']) => {
     if (status === 'processed') {
       return (
@@ -74,12 +88,16 @@ export default function ProxyVipRequestsTab() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [requests.length]);
+  }, [requests.length, statusFilter]);
 
-  const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE) || 1;
+  const filteredRequests = requests.filter((request) =>
+    statusFilter === 'all' ? true : request.status === statusFilter
+  );
+
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedRequests = requests.slice(startIndex, endIndex);
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -115,12 +133,47 @@ export default function ProxyVipRequestsTab() {
             Seller mua Proxy VIP sẽ nhập ID game tại đây để admin xử lý thủ công.
           </p>
         </div>
-        <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-400/40">
-          <Key className="w-6 h-6 text-cyan-300" />
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-400/40">
+            <Key className="w-6 h-6 text-cyan-300" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-400">Lọc:</span>
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                statusFilter === 'all'
+                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                  : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+              }`}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setStatusFilter('pending')}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                statusFilter === 'pending'
+                  ? 'bg-yellow-500/20 border-yellow-400 text-yellow-300'
+                  : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+              }`}
+            >
+              Chưa xử lý
+            </button>
+            <button
+              onClick={() => setStatusFilter('processed')}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                statusFilter === 'processed'
+                  ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                  : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+              }`}
+            >
+              Đã xử lý
+            </button>
+          </div>
         </div>
       </div>
 
-      {requests.length === 0 ? (
+      {filteredRequests.length === 0 ? (
         <div className="text-center py-12">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-900/70 border border-white/10 flex items-center justify-center">
             <Key className="w-10 h-10 text-slate-500" />
@@ -172,9 +225,14 @@ export default function ProxyVipRequestsTab() {
                       {request.productName || request.productId}
                     </td>
                     <td className="py-4 px-4">
-                      <span className="font-mono text-sm text-cyan-400 break-all">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyGameId(request.gameId)}
+                        className="font-mono text-sm text-cyan-400 break-all hover:text-cyan-300 transition-colors"
+                        title="Nhấn để sao chép"
+                      >
                         {request.gameId}
-                      </span>
+                      </button>
                     </td>
                     <td className="py-4 px-4 text-gray-400 text-sm">
                       {formatDateShort(request.createdAt)}
@@ -205,13 +263,13 @@ export default function ProxyVipRequestsTab() {
             </table>
           </div>
 
-          {requests.length > 0 && totalPages > 1 && (
+          {filteredRequests.length > 0 && totalPages > 1 && (
             <div className="mt-6 pt-4 border-t border-gray-800">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-gray-400">
                   {t('history.showing')} {startIndex + 1}-
-                  {Math.min(endIndex, requests.length)} {t('history.of')}{' '}
-                  {requests.length} yêu cầu
+                  {Math.min(endIndex, filteredRequests.length)} {t('history.of')}{' '}
+                  {filteredRequests.length} yêu cầu
                 </div>
 
                 <div className="flex items-center gap-2">

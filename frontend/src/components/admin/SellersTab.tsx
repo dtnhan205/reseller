@@ -24,6 +24,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   const { success: showSuccess, error: showError } = useToastStore();
   const [sellerForm, setSellerForm] = useState({ email: '', password: '' });
   const [sellerSearch, setSellerSearch] = useState('');
+  const [zeroBalanceFilter, setZeroBalanceFilter] = useState<'all' | 'zero'>('all');
   const [selectedSeller, setSelectedSeller] = useState<User | null>(null);
   const [topupForm, setTopupForm] = useState({ amountUSD: '', note: '' });
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
@@ -70,11 +71,18 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   };
 
   const filteredSellers = useMemo(() => {
-    if (!sellerSearch) return sellers;
-    return sellers.filter((seller) =>
+    let result = sellers;
+
+    if (zeroBalanceFilter === 'zero') {
+      result = result.filter((seller) => (seller.totalTopup || 0) === 0);
+    }
+
+    if (!sellerSearch) return result;
+
+    return result.filter((seller) =>
       seller.email.toLowerCase().includes(sellerSearch.toLowerCase())
     );
-  }, [sellers, sellerSearch]);
+  }, [sellers, sellerSearch, zeroBalanceFilter]);
 
   const handleCreateSeller = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,7 +256,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
             WebkitBackdropFilter: 'blur(10px)',
           }}
         >
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -266,6 +274,29 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                   <X className="w-4 h-4" />
                 </button>
               )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-400">Lọc:</span>
+              <button
+                onClick={() => setZeroBalanceFilter('all')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                  zeroBalanceFilter === 'all'
+                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                    : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+                }`}
+              >
+                Tất cả
+              </button>
+              <button
+                onClick={() => setZeroBalanceFilter('zero')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                  zeroBalanceFilter === 'zero'
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                    : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
+                }`}
+              >
+                Chưa nạp
+              </button>
             </div>
           </div>
 
