@@ -42,6 +42,9 @@ const {
   deleteHack,
   uploadImage,
   uploadVideo,
+  getProxyVipAccessKey,
+  updateProxyVipAccessKey,
+  getPublicProxyVipAccessKey,
   getProxyVipRequests,
   markProxyVipRequestProcessed,
   getPublicProxyProducts,
@@ -51,6 +54,7 @@ const router = express.Router();
 
 // Public API - không cần auth (đặt TRƯỚC requireRole)
 router.get("/products/proxy-public", getPublicProxyProducts);
+router.get("/proxyvip-access-key", getPublicProxyVipAccessKey);
 
 // Yêu cầu admin cho các route còn lại
 router.use(requireRole("admin"));
@@ -117,6 +121,10 @@ router.delete("/bank-accounts/:id", deleteBankAccount);
 
     // Orders history management
     router.get("/orders", getAllOrders);
+
+// Proxy VIP access key (Admin)
+router.get("/proxyvip-access-key", getProxyVipAccessKey);
+router.put("/proxyvip-access-key", updateProxyVipAccessKey);
 
 // Proxy VIP requests
 router.get("/proxyvip-requests", getProxyVipRequests);

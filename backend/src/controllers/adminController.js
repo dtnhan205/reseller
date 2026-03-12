@@ -12,6 +12,7 @@ const { SellerProductPrice } = require("../models/SellerProductPrice");
 const { HackStatus } = require("../models/HackStatus");
 const { ResetRequest } = require("../models/ResetRequest");
 const { ProxyVipRequest } = require("../models/ProxyVipRequest");
+const { ProxyVipAccessKey } = require("../models/ProxyVipAccessKey");
 const { Order } = require("../models/Order");
 
 async function createSeller(req, res) {
@@ -842,6 +843,30 @@ async function uploadVideo(req, res) {
   });
 }
 
+// ---- Proxy VIP Access Key (Admin) ----
+
+async function getProxyVipAccessKey(req, res) {
+  const keyDoc = await ProxyVipAccessKey.getKey();
+  res.json({ value: keyDoc.value });
+}
+
+async function updateProxyVipAccessKey(req, res) {
+  const { value } = req.body || {};
+  const trimmed = String(value || "").trim();
+  if (!trimmed) throw new HttpError(400, "Missing key value");
+  if (trimmed.length < 4 || trimmed.length > 128) {
+    throw new HttpError(400, "Key length must be between 4 and 128 characters");
+  }
+  const keyDoc = await ProxyVipAccessKey.setKey(trimmed);
+  res.json({ value: keyDoc.value });
+}
+
+// Public API: Lấy Proxy VIP access key (không cần đăng nhập)
+async function getPublicProxyVipAccessKey(req, res) {
+  const keyDoc = await ProxyVipAccessKey.getKey();
+  res.json({ value: keyDoc.value });
+}
+
 // ---- Proxy VIP Requests (Admin) ----
 
 async function getProxyVipRequests(req, res) {
@@ -1157,6 +1182,9 @@ module.exports = {
   uploadImage,
   uploadVideo,
   getPublicProxyProducts,
+  getProxyVipAccessKey,
+  updateProxyVipAccessKey,
+  getPublicProxyVipAccessKey,
   getProxyVipRequests,
   markProxyVipRequestProcessed,
 };

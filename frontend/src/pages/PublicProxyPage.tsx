@@ -24,10 +24,46 @@ export default function PublicProxyPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [keyInput, setKeyInput] = useState('');
+  const [keyError, setKeyError] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [serverKey, setServerKey] = useState<string>('');
+  const [isCheckingKey, setIsCheckingKey] = useState(true);
 
   useEffect(() => {
-    loadProducts();
+    const loadKey = async () => {
+      setIsCheckingKey(true);
+      try {
+        const data = await adminApi.getPublicProxyVipAccessKey();
+        setServerKey(data.value || '');
+        const savedKey = localStorage.getItem('public_proxy_key');
+        const savedAt = localStorage.getItem('public_proxy_key_at');
+        if (savedKey && savedAt && data.value) {
+          const savedTime = Number(savedAt);
+          const isValidTime = Number.isFinite(savedTime) && Date.now() - savedTime < 60_000;
+          const isValidKey = savedKey === data.value;
+          if (isValidTime && isValidKey) {
+            setIsAuthorized(true);
+          } else {
+            localStorage.removeItem('public_proxy_key');
+            localStorage.removeItem('public_proxy_key_at');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load proxy access key:', err);
+      } finally {
+        setIsCheckingKey(false);
+      }
+    };
+
+    loadKey();
   }, []);
+
+  useEffect(() => {
+    if (isAuthorized) {
+      loadProducts();
+    }
+  }, [isAuthorized]);
 
   const loadProducts = async () => {
     setIsLoading(true);
@@ -42,6 +78,36 @@ export default function PublicProxyPage() {
     }
   };
 
+  const handleSubmitKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = keyInput.trim();
+    if (!serverKey) {
+      setKeyError('Không thể kiểm tra key. Vui lòng thử lại sau.');
+      return;
+    }
+    if (trimmed === serverKey) {
+      localStorage.setItem('public_proxy_key', serverKey);
+      localStorage.setItem('public_proxy_key_at', Date.now().toString());
+      setIsAuthorized(true);
+      setKeyError('');
+      return;
+    }
+    setKeyError('Key không đúng. Vui lòng thử lại.');
+  };
+
+  useEffect(() => {
+    if (!isAuthorized) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsAuthorized(false);
+      localStorage.removeItem('public_proxy_key');
+      localStorage.removeItem('public_proxy_key_at');
+      setKeyInput('');
+      setKeyError('Phiên đã hết hạn. Vui lòng nhập lại key.');
+    }, 60_000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isAuthorized]);
+
   const copyToClipboard = async (text: string, field: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -55,6 +121,56 @@ export default function PublicProxyPage() {
   const getDisplayProductName = (name: string) => {
     return name.replace(/^Proxy\s*VIP\s*[-–]\s*/i, '').trim();
   };
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] text-white selection:bg-indigo-500/25 flex items-center justify-center p-4">
+        <ParticleNetwork
+          particleColor="rgba(168, 85, 247, 0.5)"
+          lineColor="rgba(168, 85, 247, 0.15)"
+          particleCount={50}
+          linkDistance={120}
+          opacity={0.6}
+          lineOpacityMultiplier={1.5}
+        />
+        <div className="w-full max-w-md bg-black/40 backdrop-blur-md px-8 py-6 rounded-2xl border border-white/10">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/20">
+              <ShieldCheck className="w-8 h-8 text-purple-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Nhập Key Truy Cập</h2>
+            <p className="text-gray-400 mt-2 text-sm">Vui lòng nhập key để truy cập trang Proxy VIP.</p>
+          </div>
+          {isCheckingKey ? (
+            <div className="text-center text-sm text-gray-400">Đang kiểm tra key...</div>
+          ) : (
+            <form onSubmit={handleSubmitKey} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                  placeholder="Nhập key"
+                  className="w-full px-4 py-3 rounded-xl bg-black/60 border border-gray-800 focus:border-purple-500 outline-none text-white"
+                  autoFocus
+                />
+                {keyError && (
+                  <p className="mt-2 text-sm text-red-400">{keyError}</p>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 font-semibold"
+                disabled={!serverKey}
+              >
+                Xác nhận
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

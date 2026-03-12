@@ -35,6 +35,11 @@ const api = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
+const publicApi = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
+});
+
 // Request interceptor để thêm token
 api.interceptors.request.use(
   (config) => {
@@ -156,7 +161,20 @@ export const adminApi = {
   },
   // Public API - không cần auth
   getPublicProxyProducts: async (): Promise<Product[]> => {
-    const res = await api.get('/v2/proxy-products');
+    const res = await publicApi.get('/v2/proxy-products');
+    return res.data;
+  },
+  getPublicProxyVipAccessKey: async (): Promise<{ value: string }> => {
+    const res = await publicApi.get('/v2/proxy-access-key');
+    return res.data;
+  },
+  // Admin API - quản lý key Proxy VIP
+  getProxyVipAccessKey: async (): Promise<{ value: string }> => {
+    const res = await api.get('/admin/proxyvip-access-key');
+    return res.data;
+  },
+  updateProxyVipAccessKey: async (value: string): Promise<{ value: string }> => {
+    const res = await api.put('/admin/proxyvip-access-key', { value });
     return res.data;
   },
   createProduct: async (data: {
@@ -383,6 +401,15 @@ export const adminApi = {
     console.log('[Frontend uploadVideo] Response:', res.data);
     return res.data;
   },
+  // Proxy VIP access key (Admin)
+  getProxyVipAccessKey: async (): Promise<{ value: string }> => {
+    const res = await api.get('/admin/proxyvip-access-key');
+    return res.data;
+  },
+  updateProxyVipAccessKey: async (value: string): Promise<{ value: string }> => {
+    const res = await api.put('/admin/proxyvip-access-key', { value });
+    return res.data;
+  },
   // Proxy VIP requests (Admin)
   getProxyVipRequests: async (): Promise<ProxyVipRequest[]> => {
     const res = await api.get('/admin/proxyvip-requests');
@@ -390,6 +417,11 @@ export const adminApi = {
   },
   markProxyVipRequestProcessed: async (id: string): Promise<any> => {
     const res = await api.put(`/admin/proxyvip-requests/${id}/process`);
+    return res.data;
+  },
+  // Public API - proxy access key
+  getPublicProxyAccessKey: async (): Promise<{ value: string }> => {
+    const res = await api.get('/v2/proxy-access-key');
     return res.data;
   },
 };

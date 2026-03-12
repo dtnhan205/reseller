@@ -31,6 +31,7 @@ import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 import HacksTab from '@/components/admin/HacksTab';
 import SellerPricesTab from '@/components/admin/SellerPricesTab';
 import ProxyVipRequestsTab from '@/components/admin/ProxyVipRequestsTab';
+import ProxyVipAccessKeyTab from '@/components/admin/ProxyVipAccessKeyTab';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatCurrency } from '@/utils/format';
@@ -48,7 +49,8 @@ type TabType =
   | 'reset-requests'
   | 'hacks-status'
   | 'seller-prices'
-  | 'proxyvip-requests';
+  | 'proxyvip-requests'
+  | 'proxyvip-access-key';
 
 const emptyStats: AdminDashboardStats = {
   today: { totalOrders: 0, totalRevenue: 0 },
@@ -114,6 +116,7 @@ export default function AdminPage() {
     { id: 'banks', label: 'Ngân hàng', icon: Building2 },
     { id: 'exchange-rate', label: 'Tỷ giá', icon: DollarSign },
     { id: 'proxyvip-requests', label: 'Proxy VIP IDs', icon: Key },
+    { id: 'proxyvip-access-key', label: 'Proxy VIP Key', icon: Key },
   ];
 
   const chartPoints = useMemo(() => {
@@ -320,6 +323,8 @@ export default function AdminPage() {
         {activeTab === 'seller-prices' && <SellerPricesTab />}
 
         {activeTab === 'proxyvip-requests' && <ProxyVipRequestsTab />}
+
+        {activeTab === 'proxyvip-access-key' && <ProxyVipAccessKeyTab />}
 
         {activeTab === 'banks' && (
           <BankAccountsTab

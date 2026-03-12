@@ -55,11 +55,14 @@ app.get("/api/v2/proxy-products", async (req, res) => {
 });
 
 // Public API: Proxy VIP - Giữ lại cái cũ để test
-const { getPublicProxyProducts } = require("./controllers/adminController");
+const { getPublicProxyProducts, getPublicProxyVipAccessKey } = require("./controllers/adminController");
 app.get("/api/proxy-products", (req, res) => {
   console.log("[DEBUG] /api/proxy-products called, auth:", req.headers.authorization ? "Present" : "None");
   getPublicProxyProducts(req, res);
 });
+
+// Public API: Proxy VIP access key
+app.get("/api/v2/proxy-access-key", getPublicProxyVipAccessKey);
 
 // Test endpoint để so sánh
 app.get("/api/test-proxy", (req, res) => {
