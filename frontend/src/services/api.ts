@@ -168,15 +168,6 @@ export const adminApi = {
     const res = await publicApi.get('/v2/proxy-access-key');
     return res.data;
   },
-  // Admin API - quản lý key Proxy VIP
-  getProxyVipAccessKey: async (): Promise<{ value: string }> => {
-    const res = await api.get('/admin/proxyvip-access-key');
-    return res.data;
-  },
-  updateProxyVipAccessKey: async (value: string): Promise<{ value: string }> => {
-    const res = await api.put('/admin/proxyvip-access-key', { value });
-    return res.data;
-  },
   createProduct: async (data: {
     name: string;
     categoryId: string;
