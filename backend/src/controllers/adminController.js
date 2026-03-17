@@ -41,7 +41,7 @@ async function createSeller(req, res) {
 }
 
 async function createCategory(req, res) {
-  const { name, slug, image, order } = req.body || {};
+  const { name, slug, image, order, status } = req.body || {};
   if (!name) throw new HttpError(400, "Missing name");
   const finalSlug = slug ? slugify(slug) : slugify(name);
   if (!finalSlug) throw new HttpError(400, "Invalid slug");
@@ -58,6 +58,9 @@ async function createCategory(req, res) {
   if (order !== undefined && order !== null) {
     categoryData.order = Number(order) || 0;
   }
+  if (status !== undefined) {
+    categoryData.status = status === "inactive" ? "inactive" : "active";
+  }
 
   const category = await Category.create(categoryData);
   res.status(201).json({ category });
@@ -65,12 +68,21 @@ async function createCategory(req, res) {
 
 async function listCategories(req, res) {
   const categories = await Category.find().sort({ order: 1, createdAt: -1 }).lean();
-  res.json(categories);
+  const formatted = categories.map((category) => ({
+    _id: category._id,
+    name: category.name,
+    slug: category.slug,
+    image: category.image,
+    order: category.order,
+    status: category.status || "active",
+    createdAt: category.createdAt,
+  }));
+  res.json(formatted);
 }
 
 async function updateCategory(req, res) {
   const { id } = req.params;
-  const { name, image, order } = req.body || {};
+  const { name, image, order, status } = req.body || {};
   
   const category = await Category.findById(id);
   if (!category) throw new HttpError(404, "Category not found");
@@ -97,8 +109,20 @@ async function updateCategory(req, res) {
     category.order = Number(order) || 0;
   }
 
+  if (status !== undefined) {
+    category.status = status === "inactive" ? "inactive" : "active";
+  }
+
   await category.save();
-  res.json(category);
+  res.json({
+    _id: category._id,
+    name: category.name,
+    slug: category.slug,
+    image: category.image,
+    order: category.order,
+    status: category.status || "active",
+    createdAt: category.createdAt,
+  });
 }
 
 async function deleteCategory(req, res) {

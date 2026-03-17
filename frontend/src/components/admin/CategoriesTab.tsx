@@ -11,8 +11,8 @@ import { Plus, Search, X, Folder, Edit, Trash2 } from 'lucide-react';
 import type { Category } from '@/types';
 
 interface CategoriesTabProps {
-  onCreateCategory: (name: string, image?: string, order?: number) => Promise<boolean>;
-  onUpdateCategory: (id: string, data: { name?: string; image?: string; order?: number }) => Promise<boolean>;
+  onCreateCategory: (name: string, image?: string, order?: number, status?: 'active' | 'inactive') => Promise<boolean>;
+  onUpdateCategory: (id: string, data: { name?: string; image?: string; order?: number; status?: 'active' | 'inactive' }) => Promise<boolean>;
   onDeleteCategory: (id: string) => Promise<boolean>;
 }
 
@@ -23,7 +23,7 @@ export default function CategoriesTab({
 }: CategoriesTabProps) {
   const { t } = useTranslation();
   const { categories, isLoading: isLoadingCategories } = useCategories();
-  const [categoryForm, setCategoryForm] = useState({ name: '', image: '', order: '' });
+  const [categoryForm, setCategoryForm] = useState({ name: '', image: '', order: '', status: 'active' as 'active' | 'inactive' });
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categorySearch, setCategorySearch] = useState('');
 
@@ -40,10 +40,11 @@ export default function CategoriesTab({
     const success = await onCreateCategory(
       categoryForm.name,
       categoryForm.image || undefined,
-      categoryForm.order ? Number(categoryForm.order) : undefined
+      categoryForm.order ? Number(categoryForm.order) : undefined,
+      categoryForm.status
     );
     if (success) {
-      setCategoryForm({ name: '', image: '', order: '' });
+      setCategoryForm({ name: '', image: '', order: '', status: 'active' });
     }
   };
 
@@ -52,7 +53,8 @@ export default function CategoriesTab({
     setCategoryForm({ 
       name: category.name, 
       image: category.image || '',
-      order: category.order?.toString() || ''
+      order: category.order?.toString() || '',
+      status: category.status === 'inactive' ? 'inactive' : 'active',
     });
   };
 
@@ -63,9 +65,10 @@ export default function CategoriesTab({
       name: categoryForm.name,
       image: categoryForm.image || undefined,
       order: categoryForm.order ? Number(categoryForm.order) : undefined,
+      status: categoryForm.status,
     });
     if (success) {
-      setCategoryForm({ name: '', image: '', order: '' });
+      setCategoryForm({ name: '', image: '', order: '', status: 'active' });
       setEditingCategory(null);
     }
   };
@@ -78,7 +81,7 @@ export default function CategoriesTab({
 
   const handleCancelEditCategory = () => {
     setEditingCategory(null);
-    setCategoryForm({ name: '', image: '', order: '' });
+    setCategoryForm({ name: '', image: '', order: '', status: 'active' });
   };
 
   return (
@@ -133,6 +136,25 @@ export default function CategoriesTab({
             <p className="text-xs text-gray-500">
               {t('admin.orderHint')}
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Trạng thái danh mục
+            </label>
+            <select
+              value={categoryForm.status}
+              onChange={(e) =>
+                setCategoryForm({
+                  ...categoryForm,
+                  status: e.target.value as 'active' | 'inactive',
+                })
+              }
+              className="w-full bg-black/50 border border-gray-800 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
           <div className="flex gap-3">
             {editingCategory && (
@@ -219,11 +241,33 @@ export default function CategoriesTab({
                   <CategoryImage image={category.image} name={category.name} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-white font-medium text-sm sm:text-base truncate">{category.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-white font-medium text-sm sm:text-base truncate">{category.name}</p>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                          category.status === 'inactive'
+                            ? 'border-red-500/40 text-red-300 bg-red-500/10'
+                            : 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10'
+                        }`}
+                      >
+                        {category.status === 'inactive' ? 'Inactive' : 'Active'}
+                      </span>
+                    </div>
                     <p className="text-gray-400 text-xs mt-1 truncate">{category.slug}</p>
                   </div>
                 </div>
                 <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <button
+                    onClick={() =>
+                      onUpdateCategory(category._id, {
+                        status: category.status === 'inactive' ? 'active' : 'inactive',
+                      })
+                    }
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                    title={category.status === 'inactive' ? 'Activate' : 'Deactivate'}
+                  >
+                    <Folder className="w-4 h-4 text-emerald-400" />
+                  </button>
                   <button
                     onClick={() => handleEditCategory(category)}
                     className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"

@@ -76,10 +76,10 @@ export function useCategories() {
   }, [showError]);
 
   const createCategory = useCallback(
-    async (name: string, image?: string, order?: number) => {
+    async (name: string, image?: string, order?: number, status?: 'active' | 'inactive') => {
       try {
         // console.log('[useCategories] Creating category:', name, image, order);
-        const newCategory = await adminApi.createCategory(name, image, order);
+        const newCategory = await adminApi.createCategory(name, image, order, status);
         // console.log('[useCategories] Category created:', newCategory);
         
         // Optimistically update the state
@@ -117,7 +117,7 @@ export function useCategories() {
   }, [loadCategories]);
 
   const updateCategory = useCallback(
-    async (id: string, data: { name?: string; image?: string; order?: number }) => {
+    async (id: string, data: { name?: string; image?: string; order?: number; status?: 'active' | 'inactive' }) => {
       try {
         const updated = await adminApi.updateCategory(id, data);
         setCategories(prev => prev.map(cat => cat._id === id ? updated : cat));

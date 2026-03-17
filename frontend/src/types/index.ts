@@ -16,6 +16,7 @@ export interface Category {
   slug: string;
   image?: string;
   order?: number;
+  status?: 'active' | 'inactive';
   createdAt: string;
 }
 
