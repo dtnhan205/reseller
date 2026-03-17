@@ -36,6 +36,7 @@ export interface Product {
     installText?: string;
     installVideoUrl?: string;
   } | null;
+  status?: 'active' | 'inactive';
 }
 
 export interface InventoryItem {

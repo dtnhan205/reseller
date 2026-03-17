@@ -70,7 +70,7 @@ export default function InventoryTab({ onAddInventory }: InventoryTabProps) {
               required
             >
               <option value="">{t('admin.selectProduct')}</option>
-              {products.map((product) => (
+              {products.filter((product) => product.status !== 'inactive').map((product) => (
                 <option key={product._id} value={product._id}>
                   {product.name} - ${formatPrice(product.price)}
                 </option>

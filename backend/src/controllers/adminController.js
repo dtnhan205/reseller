@@ -118,7 +118,7 @@ async function deleteCategory(req, res) {
 }
 
 async function createProduct(req, res) {
-  const { name, slug, price, categoryId, proxyvip, proxyvipConfig } = req.body || {};
+  const { name, slug, price, categoryId, proxyvip, proxyvipConfig, status } = req.body || {};
   if (!name || price == null || !categoryId) throw new HttpError(400, "Missing name, price, or categoryId");
 
   const finalSlug = slug ? slugify(slug) : slugify(name);
@@ -160,6 +160,7 @@ async function createProduct(req, res) {
     inventory: [],
     proxyvip: proxyvipValue,
     proxyvipConfig: proxyvipConfigValue,
+    status: status === "inactive" ? "inactive" : "active",
   });
 
   res.status(201).json({ product });
@@ -184,6 +185,7 @@ async function listProducts(req, res) {
     createdAt: p.createdAt,
     proxyvip: p.proxyvip ?? null,
     proxyvipConfig: p.proxyvipConfig || null,
+    status: p.status || "active",
     // KHÔNG bao gồm inventory để bảo mật
   }));
   res.json(transformed);
@@ -212,7 +214,7 @@ async function getPublicProxyProducts(req, res) {
 
 async function updateProduct(req, res) {
   const { id } = req.params;
-  const { name, price, categoryId, proxyvip, proxyvipConfig } = req.body || {};
+  const { name, price, categoryId, proxyvip, proxyvipConfig, status } = req.body || {};
   
   const product = await Product.findById(id);
   if (!product) throw new HttpError(404, "Product not found");
@@ -265,6 +267,10 @@ async function updateProduct(req, res) {
     product.proxyvipConfig = undefined;
   }
 
+  if (status !== undefined) {
+    product.status = status === "inactive" ? "inactive" : "active";
+  }
+
   await product.save();
   
   // Populate category for response
@@ -282,6 +288,7 @@ async function updateProduct(req, res) {
     createdAt: product.createdAt,
     proxyvip: product.proxyvip ?? null,
     proxyvipConfig: product.proxyvipConfig || null,
+    status: product.status || "active",
   });
 }
 

@@ -191,6 +191,7 @@ export function useProducts() {
         installText?: string;
         installVideoUrl?: string;
       } | null;
+      status?: 'active' | 'inactive';
     }) => {
       try {
         await adminApi.createProduct(data);
@@ -237,6 +238,7 @@ export function useProducts() {
           installText?: string;
           installVideoUrl?: string;
         } | null;
+        status?: 'active' | 'inactive';
       }
     ) => {
       try {

@@ -28,6 +28,12 @@ const productSchema = new mongoose.Schema(
       installText: { type: String, trim: true },
       installVideoUrl: { type: String, trim: true },
     },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+      index: true,
+    },
   },
   { timestamps: true }
 );

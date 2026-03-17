@@ -211,6 +211,7 @@ export const adminApi = {
       installText?: string;
       installVideoUrl?: string;
     } | null;
+    status?: 'active' | 'inactive';
   }): Promise<Product> => {
     const res = await api.post('/admin/products', data);
     return res.data.product || res.data;
@@ -227,6 +228,7 @@ export const adminApi = {
       installText?: string;
       installVideoUrl?: string;
     } | null;
+    status?: 'active' | 'inactive';
   }): Promise<Product> => {
     const res = await api.put(`/admin/products/${id}`, data);
     return res.data;

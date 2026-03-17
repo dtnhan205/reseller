@@ -26,6 +26,7 @@ interface ProductsTabProps {
     price: number
     proxyvip?: number | null
     proxyvipConfig?: ProxyVipConfig | null
+    status?: 'active' | 'inactive'
   }) => Promise<boolean>
 
   onUpdateProduct: (id: string, data: {
@@ -34,6 +35,7 @@ interface ProductsTabProps {
     price?: number
     proxyvip?: number | null
     proxyvipConfig?: ProxyVipConfig | null
+    status?: 'active' | 'inactive'
   }) => Promise<boolean>
 
   onDeleteProduct: (id: string) => Promise<boolean>
@@ -59,6 +61,7 @@ export default function ProductsTab({
     proxyAimLink: '',
     proxyInstallText: '',
     proxyInstallVideoUrl: '',
+    status: 'active' as 'active' | 'inactive',
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productSearch, setProductSearch] = useState('');
@@ -121,6 +124,7 @@ export default function ProductsTab({
             installVideoUrl: videoUrl,
           }
         : null,
+      status: productForm.status,
     });
     if (success) {
       setProductForm({
@@ -133,6 +137,7 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
+        status: 'active',
       });
     }
   };
@@ -149,6 +154,7 @@ export default function ProductsTab({
       proxyAimLink: (product as any).proxyvipConfig?.aimLink || '',
       proxyInstallText: (product as any).proxyvipConfig?.installText || '',
       proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
+      status: product.status === 'inactive' ? 'inactive' : 'active',
     });
   };
 
@@ -191,6 +197,7 @@ export default function ProductsTab({
             installVideoUrl: videoUrl,
           }
         : null,
+      status: productForm.status,
     });
     if (success) {
       setProductForm({
@@ -203,6 +210,7 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
+        status: 'active',
       });
       setEditingProduct(null);
     }
@@ -226,6 +234,7 @@ export default function ProductsTab({
       proxyAimLink: '',
       proxyInstallText: '',
       proxyInstallVideoUrl: '',
+      status: 'active',
     });
   };
 
@@ -327,6 +336,25 @@ export default function ProductsTab({
               required
             />
           </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">
+              Trạng thái sản phẩm
+            </label>
+            <select
+              value={productForm.status}
+              onChange={(e) =>
+                setProductForm({
+                  ...productForm,
+                  status: e.target.value as 'active' | 'inactive',
+                })
+              }
+              className="w-full bg-black/50 border border-gray-800 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
           <div className="flex items-center justify-between px-3 py-3 rounded-xl bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/80 border border-cyan-500/20 shadow-[0_0_25px_rgba(56,189,248,0.25)]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center border border-cyan-400/40">
@@ -351,6 +379,36 @@ export default function ProductsTab({
               <span
                 className={`inline-block h-6 w-6 transform rounded-full bg-slate-900 shadow-md transition-transform duration-200 ${
                   productForm.isProxyVip ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between px-3 py-3 rounded-xl bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/80 border border-emerald-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center border border-emerald-400/40">
+                <Package className="w-4 h-4 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Trạng thái sản phẩm</p>
+                <p className="text-xs text-white/60">Chỉ hiển thị ở trang tạo key khi trạng thái Active.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setProductForm((prev) => ({
+                  ...prev,
+                  status: prev.status === 'active' ? 'inactive' : 'active',
+                }))
+              }
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 ${
+                productForm.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-cyan-400' : 'bg-slate-700'
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-slate-900 shadow-md transition-transform duration-200 ${
+                  productForm.status === 'active' ? 'translate-x-7' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -534,9 +592,20 @@ export default function ProductsTab({
                     <ProductImage product={product} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium text-sm sm:text-base md:text-lg truncate">
-                        {product.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-white font-medium text-sm sm:text-base md:text-lg truncate">
+                          {product.name}
+                        </p>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                            product.status === 'inactive'
+                              ? 'border-red-500/40 text-red-300 bg-red-500/10'
+                              : 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10'
+                          }`}
+                        >
+                          {product.status === 'inactive' ? 'Inactive' : 'Active'}
+                        </span>
+                      </div>
                       <p className="text-gray-400 text-xs mt-1">
                         {typeof product.category === 'object'
                           ? product.category.name
@@ -600,6 +669,17 @@ export default function ProductsTab({
                       title="View Keys"
                     >
                       <Key className="w-4 h-4 text-yellow-400" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        onUpdateProduct(product._id, {
+                          status: product.status === 'inactive' ? 'active' : 'inactive',
+                        })
+                      }
+                      className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                      title={product.status === 'inactive' ? 'Activate' : 'Deactivate'}
+                    >
+                      <Package className="w-4 h-4 text-emerald-400" />
                     </button>
                     <button
                       onClick={() => handleEditProduct(product)}

@@ -371,6 +371,7 @@ async function getProducts(req, res) {
       createdAt: p.createdAt,
       proxyvip: p.proxyvip ?? null,
       proxyvipConfig: p.proxyvipConfig || null,
+      status: p.status || "active",
       // KHÔNG bao gồm inventory để bảo mật
     }));
     
