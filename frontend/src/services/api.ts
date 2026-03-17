@@ -135,16 +135,35 @@ export const adminApi = {
     const res = await api.get(`/admin/sellers/${sellerId}/topup-history`);
     return res.data;
   },
-  getAllTopupHistory: async (): Promise<Array<{
-    _id: string;
-    sellerEmail: string;
-    amount: number;
-    amountUSD?: number;
-    transferContent?: string;
-    note?: string;
-    createdAt: string;
-  }>> => {
-    const res = await api.get('/admin/topup-history');
+  getAllTopupHistory: async (
+    page?: number,
+    limit?: number,
+    startDate?: string,
+    endDate?: string,
+    search?: string
+  ): Promise<{
+    items: Array<{
+      _id: string;
+      sellerEmail: string;
+      amount: number;
+      amountUSD?: number;
+      transferContent?: string;
+      note?: string;
+      createdAt: string;
+    }>;
+    totalItems: number;
+    totalAmountUSD: number;
+    currentPage: number;
+    totalPages: number;
+    limit: number;
+  }> => {
+    const params: any = {};
+    if (page !== undefined) params.page = page;
+    if (limit !== undefined) params.limit = limit;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    if (search) params.search = search;
+    const res = await api.get('/admin/topup-history', { params });
     return res.data;
   },
   manualTopupSeller: async (sellerId: string, data: { amountUSD: number; note?: string }): Promise<{ payment: Payment; newBalance: number; message: string }> => {

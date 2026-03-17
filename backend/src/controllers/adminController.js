@@ -1106,10 +1106,65 @@ async function deleteSeller(req, res) {
 
 // GET /api/admin/topup-history - Admin: Xem lịch sử nạp tiền của tất cả seller
 async function getAllTopupHistory(req, res) {
-  const payments = await Payment.find({})
-    .populate("sellerId", "email")
-    .sort({ createdAt: -1 })
-    .lean();
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+  const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+  const searchQuery = req.query.search ? String(req.query.search).trim() : null;
+
+  if (page < 1) throw new HttpError(400, "Page must be >= 1");
+  if (limit < 1 || limit > 100) throw new HttpError(400, "Limit must be between 1 and 100");
+
+  const filter = {};
+  if (startDate || endDate) {
+    const createdAtCondition = {};
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      createdAtCondition.$gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      createdAtCondition.$lte = end;
+    }
+    if (Object.keys(createdAtCondition).length > 0) {
+      filter.createdAt = createdAtCondition;
+    }
+  }
+
+  if (searchQuery && searchQuery.length > 0) {
+    const searchRegex = new RegExp(searchQuery, 'i');
+    const sellerIds = await User.find({ email: searchRegex }).select('_id').lean();
+    const sellerIdList = sellerIds.map((s) => s._id);
+
+    filter.$or = [
+      { transferContent: searchRegex },
+      { note: searchRegex },
+      ...(sellerIdList.length > 0 ? [{ sellerId: { $in: sellerIdList } }] : []),
+    ];
+  }
+
+  const totalItems = await Payment.countDocuments(filter);
+
+  const [payments, totalAmountAgg] = await Promise.all([
+    Payment.find(filter)
+      .populate("sellerId", "email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Payment.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          totalAmountUSD: { $sum: { $ifNull: ["$amountUSD", 0] } },
+        },
+      },
+    ]),
+  ]);
 
   const formatted = payments.map((payment) => ({
     _id: payment._id,
@@ -1121,7 +1176,17 @@ async function getAllTopupHistory(req, res) {
     createdAt: payment.createdAt,
   }));
 
-  res.json(formatted);
+  const totalPages = Math.ceil(totalItems / limit) || 1;
+  const totalAmountUSD = totalAmountAgg?.[0]?.totalAmountUSD || 0;
+
+  res.json({
+    items: formatted,
+    totalItems,
+    totalAmountUSD,
+    currentPage: page,
+    totalPages,
+    limit,
+  });
 }
 
 async function getTopupLeaderboard(req, res) {
