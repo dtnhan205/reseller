@@ -1104,6 +1104,26 @@ async function deleteSeller(req, res) {
   res.json({ message: "Seller and associated data deleted successfully" });
 }
 
+// GET /api/admin/topup-history - Admin: Xem lịch sử nạp tiền của tất cả seller
+async function getAllTopupHistory(req, res) {
+  const payments = await Payment.find({})
+    .populate("sellerId", "email")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const formatted = payments.map((payment) => ({
+    _id: payment._id,
+    sellerEmail: payment.sellerId?.email || "Unknown",
+    amount: payment.amount || 0,
+    amountUSD: payment.amountUSD,
+    transferContent: payment.transferContent,
+    note: payment.note,
+    createdAt: payment.createdAt,
+  }));
+
+  res.json(formatted);
+}
+
 async function getTopupLeaderboard(req, res) {
   const sellers = await User.find({ role: "seller" })
     .select("email walletBalance")
@@ -1143,6 +1163,7 @@ async function getTopupLeaderboard(req, res) {
 module.exports = {
   createSeller,
   getTopupLeaderboard,
+  getAllTopupHistory,
   lockSeller,
   unlockSeller,
   deleteSeller,

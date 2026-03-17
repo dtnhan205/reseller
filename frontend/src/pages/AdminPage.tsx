@@ -27,6 +27,7 @@ import InventoryTab from '@/components/admin/InventoryTab';
 import ExchangeRateTab from '@/components/admin/ExchangeRateTab';
 import BankAccountsTab from '@/components/admin/BankAccountsTab';
 import OrdersHistoryTab from '@/components/admin/OrdersHistoryTab';
+import TopupHistoryTab from '@/components/admin/TopupHistoryTab';
 import ResetRequestsTab from '@/components/admin/ResetRequestsTab';
 import HacksTab from '@/components/admin/HacksTab';
 import SellerPricesTab from '@/components/admin/SellerPricesTab';
@@ -46,6 +47,7 @@ type TabType =
   | 'exchange-rate'
   | 'banks'
   | 'orders'
+  | 'topup-history'
   | 'reset-requests'
   | 'hacks-status'
   | 'seller-prices'
@@ -111,6 +113,7 @@ export default function AdminPage() {
     { id: 'products', label: 'Products', icon: Package },
     { id: 'inventory', label: 'Inventory', icon: Database },
     { id: 'orders', label: 'Lịch sử mua', icon: History },
+    { id: 'topup-history', label: 'Lịch sử nạp', icon: Wallet },
     { id: 'reset-requests', label: 'Yêu cầu reset', icon: RotateCcw },
     { id: 'hacks-status', label: 'Status hack', icon: Activity },
     { id: 'banks', label: 'Ngân hàng', icon: Building2 },
@@ -315,6 +318,8 @@ export default function AdminPage() {
         {activeTab === 'inventory' && <InventoryTab onAddInventory={addInventory} />}
 
         {activeTab === 'orders' && <OrdersHistoryTab />}
+
+        {activeTab === 'topup-history' && <TopupHistoryTab />}
 
         {activeTab === 'reset-requests' && <ResetRequestsTab />}
 

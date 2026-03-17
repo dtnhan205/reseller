@@ -135,6 +135,18 @@ export const adminApi = {
     const res = await api.get(`/admin/sellers/${sellerId}/topup-history`);
     return res.data;
   },
+  getAllTopupHistory: async (): Promise<Array<{
+    _id: string;
+    sellerEmail: string;
+    amount: number;
+    amountUSD?: number;
+    transferContent?: string;
+    note?: string;
+    createdAt: string;
+  }>> => {
+    const res = await api.get('/admin/topup-history');
+    return res.data;
+  },
   manualTopupSeller: async (sellerId: string, data: { amountUSD: number; note?: string }): Promise<{ payment: Payment; newBalance: number; message: string }> => {
     const res = await api.post(`/admin/sellers/${sellerId}/topup`, data);
     return res.data;

@@ -187,7 +187,7 @@ export default function OrdersHistoryTab() {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
             <input
               type="text"
-              placeholder={t('common.search') || 'Tìm kiếm...'}
+              placeholder={t('common.search') || 'Tìm kiếm theo gmail seller, key hoặc sản phẩm...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field w-full pl-12"

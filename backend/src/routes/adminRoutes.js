@@ -9,6 +9,7 @@ const {
   unlockSeller,
   deleteSeller,
   getTopupLeaderboard,
+  getAllTopupHistory,
   listSellerProductPrices,
   setSellerProductPrice,
   deleteSellerProductPrice,
@@ -74,6 +75,9 @@ router.post("/sellers/:id/topup", manualTopupSeller);
 
 // Leaderboard
 router.get("/leaderboard/topup", getTopupLeaderboard);
+
+// Topup history (all sellers)
+router.get("/topup-history", getAllTopupHistory);
 
 // Seller specific product prices
 router.get("/seller-product-prices", listSellerProductPrices);
