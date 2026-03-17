@@ -3,7 +3,7 @@ import { sellerApi } from '@/services/api';
 import { useToastStore } from '@/store/toastStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
-import type { Order, Product } from '@/types';
+import type { Order } from '@/types';
 import Card from '@/components/ui/Card';
 import { BarChart3, TrendingUp, Package, DollarSign, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
@@ -13,7 +13,6 @@ export default function StatsPage() {
   const { t, language } = useTranslation();
   const { usdToVnd } = useExchangeRate();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { error: showError } = useToastStore();
 
@@ -24,12 +23,8 @@ export default function StatsPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [ordersData, productsData] = await Promise.all([
-        sellerApi.getOrders(),
-        sellerApi.getProducts(),
-      ]);
+      const ordersData = await sellerApi.getOrders();
       setOrders(ordersData);
-      setProducts(productsData);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to load stats';
       showError(errorMessage);
@@ -42,20 +37,26 @@ export default function StatsPage() {
   const totalKeys = orders.length;
   const avgPrice = totalKeys > 0 ? totalSpent / totalKeys : 0;
 
-  // Group by product
-  const productStats = products.map((product) => {
-    const productOrders = orders.filter((o) => {
-      if (typeof o.product === 'object' && o.product !== null) {
-        return o.product._id === product._id;
+  // Group by product (derive from orders so stats don't depend on product list)
+  const productStats = orders.reduce(
+    (acc, order) => {
+      const productName =
+        typeof order.product === 'object' && order.product !== null
+          ? order.product.name
+          : order.productName || 'Unknown';
+
+      const key = productName;
+      if (!acc[key]) {
+        acc[key] = { name: getDisplayProductName(productName, language), purchased: 0, revenue: 0 };
       }
-      return o.product === product._id || o.productName === product.name;
-    });
-    return {
-      name: getDisplayProductName(product.name, language),
-      purchased: productOrders.length,
-      revenue: productOrders.reduce((sum, o) => sum + o.price, 0),
-    };
-  });
+      acc[key].purchased += 1;
+      acc[key].revenue += order.price || 0;
+      return acc;
+    },
+    {} as Record<string, { name: string; purchased: number; revenue: number }>
+  );
+
+  const productStatsList = Object.values(productStats);
 
   if (isLoading) {
     return (
@@ -148,7 +149,7 @@ export default function StatsPage() {
           WebkitBackdropFilter: 'blur(2px) saturate(120%)',
         }}
       >
-        {productStats.length === 0 ? (
+        {productStatsList.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 mx-auto mb-4 text-gray-600" />
             <p className="text-gray-400">{t('stats.noStatistics')}</p>
@@ -165,7 +166,7 @@ export default function StatsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {productStats.map((stat, idx) => (
+                  {productStatsList.map((stat, idx) => (
                     <tr key={idx} className="border-b border-gray-800/50 hover:bg-gray-900/50 transition-colors">
                       <td className="py-4 px-4 text-gray-200 font-medium">{stat.name}</td>
                       <td className="py-4 px-4 text-right text-cyan-400 font-semibold">{stat.purchased}</td>
@@ -177,7 +178,7 @@ export default function StatsPage() {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-3">
-              {productStats.map((stat, idx) => (
+              {productStatsList.map((stat, idx) => (
                 <div key={idx} className="bg-gray-950/50 rounded-xl p-4 border border-gray-800">
                   <div className="flex items-center justify-between">
                     <p className="text-gray-200 font-medium text-sm">{stat.name}</p>

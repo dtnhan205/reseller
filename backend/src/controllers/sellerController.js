@@ -338,13 +338,15 @@ async function getProducts(req, res) {
   try {
     console.log('Seller getProducts: User:', req.user?.email, 'Role:', req.user?.role);
     // Chỉ select các field cần thiết, loại bỏ inventory để bảo mật
-    let products = await Product.find({ status: "active" })
+    let products = await Product.find({ $or: [{ status: "active" }, { status: { $exists: false } }, { status: null }] })
       .select('-inventory') // Loại bỏ inventory để không trả về keys
       .populate("categoryId", "name slug image status")
       .sort({ createdAt: -1 })
       .lean();
 
-    products = products.filter((p) => !(p.categoryId && p.categoryId.status === "inactive"));
+    products = products.filter(
+      (p) => !(p.categoryId && p.categoryId.status === "inactive")
+    );
     
     console.log('Seller getProducts: Found', products.length, 'products in database');
 
