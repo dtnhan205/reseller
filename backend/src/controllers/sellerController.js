@@ -280,7 +280,7 @@ async function createProxyVipRequest(req, res) {
 async function listOrders(req, res) {
   if (req.user.role !== "seller") throw new HttpError(403, "Only seller");
   const orders = await Order.find({ sellerId: req.user._id })
-    .populate("productId", "proxyvip")
+    .populate("productId", "proxyvip name")
     .sort({ purchasedAt: -1 })
     .lean();
   
