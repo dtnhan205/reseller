@@ -14,8 +14,9 @@ const proxyVipRequestSchema = new mongoose.Schema(
       required: true,
     },
     gameId: {
+      // Legacy field: previously required. Now optional because purchase returns license key instantly.
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     status: {
@@ -30,6 +31,14 @@ const proxyVipRequestSchema = new mongoose.Schema(
     processedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    licenseKey: {
+      type: String,
+      trim: true,
+    },
+    licenseDuration: {
+      type: String,
+      enum: ["1d", "1w", "1m", "1y"],
     },
   },
   { timestamps: true }

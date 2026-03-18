@@ -53,9 +53,9 @@ export default function GeneratePage() {
   const [purchasedKeys, setPurchasedKeys] = useState<Order[]>([]);
   const [copiedKeyIndex, setCopiedKeyIndex] = useState<number | null>(null);
   const [isProxyVipModalOpen, setIsProxyVipModalOpen] = useState(false);
-  const [proxyVipGameId, setProxyVipGameId] = useState('');
   const [isSubmittingProxyVip, setIsSubmittingProxyVip] = useState(false);
   const [showInsufficientBalancePopup, setShowInsufficientBalancePopup] = useState(false);
+  const [proxyVipCreatedKey, setProxyVipCreatedKey] = useState<string | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -148,8 +148,7 @@ export default function GeneratePage() {
     }
 
     if (selected.proxyvip === 1) {
-      // Proxy VIP: mở modal nhập ID game
-      setProxyVipGameId('');
+      // Proxy VIP: mua sẽ tạo key tự động
       setIsProxyVipModalOpen(true);
       return;
     }
@@ -468,8 +467,7 @@ export default function GeneratePage() {
                           Đây là sản phẩm Proxy VIP.
                         </p>
                         <p className="text-xs text-fuchsia-200/80">
-                          Mỗi lần mua, bạn sẽ nhập <span className="font-bold">ID game</span> của
-                          mình ở bước tiếp theo. Admin sẽ xử lý yêu cầu theo ID bạn cung cấp.
+                          Mua Proxy VIP sẽ tạo <span className="font-bold">key</span> tự động và hiển thị ngay sau khi mua.
                         </p>
                       </div>
                     ) : (
@@ -647,8 +645,7 @@ export default function GeneratePage() {
 
             <div className="space-y-5 mb-6">
               <p className="text-sm text-slate-200">
-                Nhập <span className="font-semibold text-white">ID game</span> của bạn để tạo yêu cầu
-                Proxy VIP. Admin sẽ xử lý dựa trên ID này.
+                Mua Proxy VIP sẽ <span className="font-semibold text-white">tạo key tự động</span> và hiển thị ngay sau khi mua.
               </p>
 
               {/* Thông tin cấu hình Proxy VIP từ admin */}
@@ -737,22 +734,8 @@ export default function GeneratePage() {
                     </p>
                   )}
 
-                  {/* ID game + giá/số dư bên trong khung Proxy */}
+                  {/* Giá/số dư bên trong khung Proxy */}
                   <div className="mt-4 space-y-3">
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
-                        ID game của bạn
-                      </label>
-                      <input
-                        type="text"
-                        value={proxyVipGameId}
-                        onChange={(e) => setProxyVipGameId(e.target.value)}
-                        placeholder="Ví dụ: UID / ID nhân vật / ID tài khoản trong game"
-                        className="w-full px-4 py-3 rounded-xl bg-slate-900/70 border border-fuchsia-400/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-fuchsia-400 focus:ring-1 focus:ring-fuchsia-400/40"
-                        style={{ fontSize: '14px' }}
-                      />
-                    </div>
-
                     <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 text-xs text-slate-300 space-y-1">
                       <p>
                         • Giá mỗi yêu cầu:{' '}
@@ -800,11 +783,6 @@ export default function GeneratePage() {
               <Button
                 onClick={async () => {
                   if (!selectedProductData) return;
-                  const trimmedId = proxyVipGameId.trim();
-                  if (!trimmedId) {
-                    showError('Vui lòng nhập ID game của bạn');
-                    return;
-                  }
                   // Show popup instead of error when insufficient balance
                   if (selectedProductData.price > (user?.wallet || 0)) {
                     setShowInsufficientBalancePopup(true);
@@ -814,12 +792,15 @@ export default function GeneratePage() {
                   try {
                     const res = await sellerApi.createProxyVipRequest({
                       productId: selectedProductData._id,
-                      gameId: trimmedId,
                     });
                     updateUser({ ...user!, wallet: res.newBalance });
-                    showSuccess('Yêu cầu Proxy VIP đã được gửi tới admin!');
+                    if (res.request?.licenseKey) {
+                      setProxyVipCreatedKey(res.request.licenseKey);
+                      showSuccess('Mua thành công! Key đã được tạo.');
+                    } else {
+                      showSuccess('Yêu cầu Proxy VIP đã được gửi tới admin!');
+                    }
                     setIsProxyVipModalOpen(false);
-                    setProxyVipGameId('');
                     await loadProducts();
                   } catch (err: any) {
                     const errorMessage =
@@ -836,7 +817,7 @@ export default function GeneratePage() {
                 disabled={isSubmittingProxyVip}
               >
                 <Zap className="w-5 h-5 mr-2" />
-                {isSubmittingProxyVip ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu Proxy VIP'}
+                {isSubmittingProxyVip ? 'Đang mua...' : 'Mua Proxy VIP'}
               </Button>
 
               {selectedProductData.price > (user?.wallet || 0) && (
@@ -893,6 +874,52 @@ export default function GeneratePage() {
             >
               Đã hiểu, đóng
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Proxy VIP Key Success Modal */}
+      {proxyVipCreatedKey && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900/90 p-6 sm:p-7">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-white">Mua thành công</h3>
+                <p className="text-slate-300 text-sm mt-1">Dưới đây là key của bạn:</p>
+              </div>
+              <button
+                onClick={() => setProxyVipCreatedKey(null)}
+                className="px-3 py-2 rounded-xl bg-slate-800/70 border border-white/10 text-slate-200 hover:bg-slate-800"
+              >
+                Đóng
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs uppercase tracking-widest text-cyan-200/80">Key</div>
+                  <div className="mt-1 font-mono text-cyan-100 break-all">{proxyVipCreatedKey}</div>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(proxyVipCreatedKey);
+                      showSuccess('Đã copy key!');
+                    } catch {
+                      showError('Không copy được. Vui lòng copy thủ công.');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-400 to-fuchsia-400 text-black font-black uppercase tracking-wider"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs text-slate-400">
+              Lưu key lại ngay. Bạn có thể dùng key này để kích hoạt Proxy VIP.
+            </p>
           </div>
         </div>
       )}

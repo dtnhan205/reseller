@@ -56,14 +56,14 @@ export default function ProxyVipRequestsTab() {
     }
   };
 
-  const handleCopyGameId = async (gameId: string) => {
-    if (!gameId) {
-      showError('Không có ID game để sao chép');
+  const handleCopyKey = async (key: string) => {
+    if (!key) {
+      showError('Không có key để sao chép');
       return;
     }
     try {
-      await navigator.clipboard.writeText(gameId);
-      showSuccess('Đã sao chép ID game');
+      await navigator.clipboard.writeText(key);
+      showSuccess('Đã sao chép key');
     } catch (err) {
       showError('Sao chép thất bại. Vui lòng thử lại.');
     }
@@ -127,10 +127,10 @@ export default function ProxyVipRequestsTab() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-200 mb-1">
-            Danh sách ID game Proxy VIP
+            Danh sách đơn Proxy VIP
           </h2>
           <p className="text-gray-400 text-sm">
-            Seller mua Proxy VIP sẽ nhập ID game tại đây để admin xử lý thủ công.
+            Khi seller mua thành công, hệ thống sẽ tạo key và lưu tại đây.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -196,7 +196,10 @@ export default function ProxyVipRequestsTab() {
                     Sản phẩm
                   </th>
                   <th className="text-left py-4 px-4 text-gray-300 font-semibold">
-                    ID game
+                    Key
+                  </th>
+                  <th className="text-left py-4 px-4 text-gray-300 font-semibold">
+                    Gói
                   </th>
                   <th className="text-left py-4 px-4 text-gray-300 font-semibold">
                     Thời gian
@@ -227,12 +230,19 @@ export default function ProxyVipRequestsTab() {
                     <td className="py-4 px-4">
                       <button
                         type="button"
-                        onClick={() => handleCopyGameId(request.gameId)}
+                        onClick={() => handleCopyKey(request.licenseKey || '')}
                         className="font-mono text-sm text-cyan-400 break-all hover:text-cyan-300 transition-colors"
                         title="Nhấn để sao chép"
                       >
-                        {request.gameId}
+                        {request.licenseKey || (
+                          <span className="text-gray-500 italic">
+                            (chưa có key)
+                          </span>
+                        )}
                       </button>
+                    </td>
+                    <td className="py-4 px-4 text-gray-200 text-sm">
+                      {request.licenseDuration || <span className="text-gray-500 italic">—</span>}
                     </td>
                     <td className="py-4 px-4 text-gray-400 text-sm">
                       {formatDateShort(request.createdAt)}

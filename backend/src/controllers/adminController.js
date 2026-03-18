@@ -914,6 +914,8 @@ async function getProxyVipRequests(req, res) {
     productName: r.productId?.name || "Unknown",
     productId: r.productId?._id || r.productId,
     gameId: r.gameId,
+    licenseKey: r.licenseKey,
+    licenseDuration: r.licenseDuration,
     status: r.status,
     createdAt: r.createdAt,
     processedAt: r.processedAt,

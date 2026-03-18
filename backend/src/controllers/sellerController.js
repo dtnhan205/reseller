@@ -12,6 +12,7 @@ const { ExchangeRate } = require("../models/ExchangeRate");
 const { ResetRequest } = require("../models/ResetRequest");
 const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { generateTransferContent } = require("../controllers/adminController");
+const { createProxyVipLicenseKey, deriveDurationFromProductName } = require("../services/proxyVipKeyService");
 
 async function topupWallet(req, res) {
   const { amountUSD } = req.body || {};
@@ -173,23 +174,20 @@ async function purchase(req, res) {
   }
 }
 
-// Seller: gửi yêu cầu Proxy VIP với ID game
+// Seller: mua Proxy VIP -> tạo license key ngay (không cần ID game)
 async function createProxyVipRequest(req, res) {
-  const { productId, gameId } = req.body || {};
+  const { productId } = req.body || {};
 
-  if (!productId || !gameId) {
-    throw new HttpError(400, "Missing productId or gameId");
-  }
-
-  const trimmedGameId = String(gameId).trim();
-  if (!trimmedGameId) {
-    throw new HttpError(400, "Game ID is required");
+  if (!productId) {
+    throw new HttpError(400, "Missing productId");
   }
 
   const session = await mongoose.startSession();
   try {
     let createdRequest;
     let createdOrder;
+    let createdLicenseKey;
+    let licenseDuration;
 
     await session.withTransaction(async () => {
       const seller = await User.findById(req.user._id).session(session);
@@ -210,6 +208,10 @@ async function createProxyVipRequest(req, res) {
       const price = override ? override.price : product.price;
       if (seller.walletBalance < price) throw new HttpError(400, "Insufficient wallet balance");
 
+      // Create license key from key-server BEFORE charging, so if it fails the transaction aborts.
+      licenseDuration = deriveDurationFromProductName(product.name);
+      createdLicenseKey = await createProxyVipLicenseKey(licenseDuration);
+
       seller.walletBalance -= price;
       product.totalQtySold = (product.totalQtySold || 0) + 1;
 
@@ -219,7 +221,7 @@ async function createProxyVipRequest(req, res) {
             sellerId: seller._id,
             productId: product._id,
             productName: product.name,
-            keyValue: trimmedGameId, // lưu ID game vào order để tracking
+            keyValue: createdLicenseKey, // lưu key vào lịch sử mua
             price,
             purchasedAt: new Date(),
           },
@@ -232,7 +234,10 @@ async function createProxyVipRequest(req, res) {
           {
             sellerId: seller._id,
             productId: product._id,
-            gameId: trimmedGameId,
+            status: "processed",
+            processedAt: new Date(),
+            licenseKey: createdLicenseKey,
+            licenseDuration: licenseDuration,
           },
         ],
         { session }
@@ -264,9 +269,10 @@ async function createProxyVipRequest(req, res) {
             _id: request._id,
             sellerId: request.sellerId,
             productId: request.productId,
-            gameId: request.gameId,
             status: request.status,
             createdAt: request.createdAt,
+            licenseKey: request.licenseKey,
+            licenseDuration: request.licenseDuration,
           }
         : null,
       order: transformedOrder,
@@ -290,11 +296,12 @@ async function listOrders(req, res) {
     .sort({ createdAt: -1 })
     .lean();
   
-  // Tạo map để tìm ProxyVipRequest mới nhất theo productId và gameId (keyValue)
-  // Key format: `${productId}_${gameId}`
+  // Map request mới nhất theo productId + licenseKey (order.keyValue giờ lưu licenseKey)
+  // Key format: `${productId}_${licenseKey}`
   const proxyVipRequestMap = new Map();
   proxyVipRequests.forEach((req) => {
-    const key = `${req.productId.toString()}_${req.gameId}`;
+    const licKey = req.licenseKey || "";
+    const key = `${req.productId.toString()}_${licKey}`;
     // Chỉ lưu request mới nhất cho mỗi key
     if (!proxyVipRequestMap.has(key)) {
       proxyVipRequestMap.set(key, req);
@@ -308,8 +315,7 @@ async function listOrders(req, res) {
     let proxyvipStatus = null;
     
     if (isProxyVip) {
-      // Tìm ProxyVipRequest tương ứng với order này
-      // Order.keyValue chính là gameId được lưu khi tạo ProxyVipRequest
+      // Tìm ProxyVipRequest tương ứng với order này (match theo licenseKey)
       const key = `${product._id.toString()}_${o.keyValue}`;
       const proxyVipReq = proxyVipRequestMap.get(key);
       if (proxyVipReq) {

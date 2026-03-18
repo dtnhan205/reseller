@@ -100,15 +100,16 @@ export interface ProxyVipRequest {
   sellerId: string;
   productName?: string;
   productId: string;
-  gameId: string;
+  gameId?: string; // legacy
   status: 'pending' | 'processed';
   createdAt: string;
   processedAt?: string;
+  licenseKey?: string;
+  licenseDuration?: '1d' | '1w' | '1m' | '1y';
 }
 
 export interface CreateProxyVipRequestRequest {
   productId: string;
-  gameId: string;
 }
 
 export interface CreateProxyVipRequestResponse {

@@ -239,7 +239,7 @@ export default function PublicProxyPage() {
         <div className="mt-6 mx-auto max-w-3xl rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-6 py-4 text-left">
           <p className="text-yellow-200 font-semibold">Lưu ý:</p>
           <p className="text-yellow-100/80 text-sm mt-1">
-            Proxy VIP <span className="font-semibold">không phải free</span>. Bạn chỉ có thể chơi sau khi admin duyệt ID game khi mua.
+            Proxy VIP <span className="font-semibold">không phải free</span>. Sau khi mua thành công, hệ thống sẽ tạo key và hiển thị ngay cho bạn.
           </p>
         </div>
       </div>
