@@ -40,6 +40,11 @@ const proxyVipRequestSchema = new mongoose.Schema(
       type: String,
       enum: ["1d", "1w", "1m", "1y"],
     },
+    licenseSource: {
+      type: String,
+      enum: ["v1", "v2"],
+      default: "v1",
+    },
   },
   { timestamps: true }
 );

@@ -13,12 +13,12 @@ function getProxyVipKeyServerConfig() {
   return { baseUrl: baseUrl.replace(/\/+$/, ""), serviceKey };
 }
 
-async function createProxyVipLicenseKey(duration) {
+async function createProxyVipLicenseKey(duration, source = "v1") {
   const { baseUrl, serviceKey } = getProxyVipKeyServerConfig();
   try {
     const res = await axios.post(
       `${baseUrl}/api/service/keys/create`,
-      { duration },
+      { duration, source },
       {
         timeout: 12_000,
         headers: {
@@ -50,8 +50,17 @@ function deriveDurationFromProductName(name) {
   return "1m";
 }
 
+function deriveSourceFromProductName(name) {
+  const s = String(name || "").toLowerCase();
+  if (s.includes("v2") || s.includes("no antena") || s.includes("no-antena") || s.includes("noantenna")) {
+    return "v2";
+  }
+  return "v1";
+}
+
 module.exports = {
   createProxyVipLicenseKey,
   deriveDurationFromProductName,
+  deriveSourceFromProductName,
 };
 

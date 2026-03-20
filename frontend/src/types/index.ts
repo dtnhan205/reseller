@@ -36,6 +36,8 @@ export interface Product {
     aimLink?: string;
     installText?: string;
     installVideoUrl?: string;
+    source?: 'v1' | 'v2';
+    duration?: '1w' | '1m';
   } | null;
   status?: 'active' | 'inactive';
 }
@@ -106,6 +108,7 @@ export interface ProxyVipRequest {
   processedAt?: string;
   licenseKey?: string;
   licenseDuration?: '1d' | '1w' | '1m' | '1y';
+  licenseSource?: 'v1' | 'v2';
 }
 
 export interface CreateProxyVipRequestRequest {

@@ -798,7 +798,7 @@ export default function GeneratePage() {
                       setProxyVipCreatedKey(res.request.licenseKey);
                       showSuccess('Mua thành công! Key đã được tạo.');
                     } else {
-                      showSuccess('Yêu cầu Proxy VIP đã được gửi tới admin!');
+                    showSuccess('Yêu cầu Proxy VIP đã được gửi tới admin!');
                     }
                     setIsProxyVipModalOpen(false);
                     await loadProducts();

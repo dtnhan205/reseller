@@ -18,6 +18,8 @@ interface ProxyVipConfig {
   aimLink?: string
   installText?: string
   installVideoUrl?: string
+  source?: 'v1' | 'v2'
+  duration?: '1w' | '1m'
 }
 interface ProductsTabProps {
   onCreateProduct: (data: {
@@ -61,6 +63,8 @@ export default function ProductsTab({
     proxyAimLink: '',
     proxyInstallText: '',
     proxyInstallVideoUrl: '',
+    proxySource: 'v1' as 'v1' | 'v2',
+    proxyDuration: '1m' as '1w' | '1m',
     status: 'active' as 'active' | 'inactive',
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -122,6 +126,8 @@ export default function ProductsTab({
             aimLink: productForm.proxyAimLink.trim() || undefined,
             installText: productForm.proxyInstallText.trim() || undefined,
             installVideoUrl: videoUrl,
+            source: productForm.proxySource,
+            duration: productForm.proxyDuration,
           }
         : null,
       status: productForm.status,
@@ -137,6 +143,8 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
+        proxySource: 'v1',
+        proxyDuration: '1m',
         status: 'active',
       });
     }
@@ -154,6 +162,8 @@ export default function ProductsTab({
       proxyAimLink: (product as any).proxyvipConfig?.aimLink || '',
       proxyInstallText: (product as any).proxyvipConfig?.installText || '',
       proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
+      proxySource: (product as any).proxyvipConfig?.source === 'v2' ? 'v2' : 'v1',
+      proxyDuration: (product as any).proxyvipConfig?.duration === '1w' ? '1w' : '1m',
       status: product.status === 'inactive' ? 'inactive' : 'active',
     });
   };
@@ -195,6 +205,8 @@ export default function ProductsTab({
             aimLink: productForm.proxyAimLink.trim() || undefined,
             installText: productForm.proxyInstallText.trim() || undefined,
             installVideoUrl: videoUrl,
+            source: productForm.proxySource,
+            duration: productForm.proxyDuration,
           }
         : null,
       status: productForm.status,
@@ -210,6 +222,8 @@ export default function ProductsTab({
         proxyAimLink: '',
         proxyInstallText: '',
         proxyInstallVideoUrl: '',
+        proxySource: 'v1',
+        proxyDuration: '1m',
         status: 'active',
       });
       setEditingProduct(null);
@@ -234,6 +248,8 @@ export default function ProductsTab({
       proxyAimLink: '',
       proxyInstallText: '',
       proxyInstallVideoUrl: '',
+      proxySource: 'v1',
+      proxyDuration: '1m',
       status: 'active',
     });
   };
@@ -417,6 +433,36 @@ export default function ProductsTab({
           {productForm.isProxyVip && (
             <div className="space-y-4 rounded-2xl border border-cyan-500/20 bg-slate-900/70 px-4 py-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                    Nguồn Proxy
+                  </label>
+                  <select
+                    value={productForm.proxySource}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({ ...prev, proxySource: e.target.value as 'v1' | 'v2' }))
+                    }
+                    className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  >
+                    <option value="v1">Proxy v1</option>
+                    <option value="v2">Proxy v2</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                    Thời hạn
+                  </label>
+                  <select
+                    value={productForm.proxyDuration}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({ ...prev, proxyDuration: e.target.value as '1w' | '1m' }))
+                    }
+                    className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  >
+                    <option value="1w">Tuần (1w)</option>
+                    <option value="1m">Tháng (1m)</option>
+                  </select>
+                </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
                     IP
@@ -632,7 +678,7 @@ export default function ProductsTab({
                     {product.proxyvip === 1 ? (
                       <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border bg-cyan-500/10 border-cyan-500/30 whitespace-nowrap">
                         <span className="text-cyan-300 font-medium">
-                          Proxy VIP • Xử lý theo yêu cầu
+                          {`Proxy VIP • ${(product.proxyvipConfig?.source || 'v1').toUpperCase()} • ${(product.proxyvipConfig?.duration || '1m') === '1w' ? 'Tuần' : 'Tháng'}`}
                         </span>
                       </div>
                     ) : (

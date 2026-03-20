@@ -12,7 +12,7 @@ const { ExchangeRate } = require("../models/ExchangeRate");
 const { ResetRequest } = require("../models/ResetRequest");
 const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { generateTransferContent } = require("../controllers/adminController");
-const { createProxyVipLicenseKey, deriveDurationFromProductName } = require("../services/proxyVipKeyService");
+const { createProxyVipLicenseKey, deriveDurationFromProductName, deriveSourceFromProductName } = require("../services/proxyVipKeyService");
 
 async function topupWallet(req, res) {
   const { amountUSD } = req.body || {};
@@ -188,6 +188,7 @@ async function createProxyVipRequest(req, res) {
     let createdOrder;
     let createdLicenseKey;
     let licenseDuration;
+    let licenseSource;
 
     await session.withTransaction(async () => {
       const seller = await User.findById(req.user._id).session(session);
@@ -210,7 +211,8 @@ async function createProxyVipRequest(req, res) {
 
       // Create license key from key-server BEFORE charging, so if it fails the transaction aborts.
       licenseDuration = deriveDurationFromProductName(product.name);
-      createdLicenseKey = await createProxyVipLicenseKey(licenseDuration);
+      licenseSource = deriveSourceFromProductName(product.name);
+      createdLicenseKey = await createProxyVipLicenseKey(licenseDuration, licenseSource);
 
       seller.walletBalance -= price;
       product.totalQtySold = (product.totalQtySold || 0) + 1;
@@ -238,6 +240,7 @@ async function createProxyVipRequest(req, res) {
             processedAt: new Date(),
             licenseKey: createdLicenseKey,
             licenseDuration: licenseDuration,
+            licenseSource: licenseSource,
           },
         ],
         { session }
@@ -273,6 +276,7 @@ async function createProxyVipRequest(req, res) {
             createdAt: request.createdAt,
             licenseKey: request.licenseKey,
             licenseDuration: request.licenseDuration,
+            licenseSource: request.licenseSource,
           }
         : null,
       order: transformedOrder,

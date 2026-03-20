@@ -171,6 +171,8 @@ async function createProduct(req, res) {
       aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
       installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
       installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
+      source: proxyvipConfig.source === "v2" ? "v2" : "v1",
+      duration: proxyvipConfig.duration === "1w" ? "1w" : "1m",
     };
   }
 
@@ -284,6 +286,8 @@ async function updateProduct(req, res) {
       aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
       installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
       installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
+      source: proxyvipConfig.source === "v2" ? "v2" : "v1",
+      duration: proxyvipConfig.duration === "1w" ? "1w" : "1m",
     };
   }
 
@@ -916,6 +920,7 @@ async function getProxyVipRequests(req, res) {
     gameId: r.gameId,
     licenseKey: r.licenseKey,
     licenseDuration: r.licenseDuration,
+    licenseSource: r.licenseSource || "v1",
     status: r.status,
     createdAt: r.createdAt,
     processedAt: r.processedAt,
