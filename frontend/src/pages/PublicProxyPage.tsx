@@ -40,7 +40,7 @@ export default function PublicProxyPage() {
         const savedAt = localStorage.getItem('public_proxy_key_at');
         if (savedKey && savedAt && data.value) {
           const savedTime = Number(savedAt);
-          const isValidTime = Number.isFinite(savedTime) && Date.now() - savedTime < 60_000;
+          const isValidTime = Number.isFinite(savedTime) && Date.now() - savedTime < 30 * 60_000;
           const isValidKey = savedKey === data.value;
           if (isValidTime && isValidKey) {
             setIsAuthorized(true);
@@ -103,7 +103,7 @@ export default function PublicProxyPage() {
       localStorage.removeItem('public_proxy_key_at');
       setKeyInput('');
       setKeyError('Phiên đã hết hạn. Vui lòng nhập lại key.');
-    }, 60_000);
+    }, 30 * 60_000);
 
     return () => window.clearTimeout(timeoutId);
   }, [isAuthorized]);
