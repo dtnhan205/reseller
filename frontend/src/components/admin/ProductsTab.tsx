@@ -12,14 +12,33 @@ import { Plus, Search, X, Package, Edit, Trash2, Key, Copy, Check, Sparkles } fr
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
+
+type ProxyVipSource = 'v1' | 'v2' | 'v3'
+type ProxyVipDuration = '1h' | '2h' | '1d' | '1w' | '1m' | '1y'
+
+const PROXY_VIP_DURATIONS: ProxyVipDuration[] = ['1h', '2h', '1d', '1w', '1m', '1y']
+
+function formatProxyDurationLabel(d?: string | null): string {
+  const labels: Record<ProxyVipDuration, string> = {
+    '1h': '1 giờ',
+    '2h': '2 giờ',
+    '1d': '1 ngày',
+    '1w': 'Tuần',
+    '1m': 'Tháng',
+    '1y': '1 năm',
+  }
+  const key = (d || '1m') as ProxyVipDuration
+  return labels[key] || d || 'Tháng'
+}
+
 interface ProxyVipConfig {
   ip?: string
   port?: string
   aimLink?: string
   installText?: string
   installVideoUrl?: string
-  source?: 'v1' | 'v2'
-  duration?: '1w' | '1m'
+  source?: ProxyVipSource
+  duration?: ProxyVipDuration
 }
 interface ProductsTabProps {
   onCreateProduct: (data: {
@@ -63,8 +82,8 @@ export default function ProductsTab({
     proxyAimLink: '',
     proxyInstallText: '',
     proxyInstallVideoUrl: '',
-    proxySource: 'v1' as 'v1' | 'v2',
-    proxyDuration: '1m' as '1w' | '1m',
+    proxySource: 'v1' as ProxyVipSource,
+    proxyDuration: '1m' as ProxyVipDuration,
     status: 'active' as 'active' | 'inactive',
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -162,8 +181,14 @@ export default function ProductsTab({
       proxyAimLink: (product as any).proxyvipConfig?.aimLink || '',
       proxyInstallText: (product as any).proxyvipConfig?.installText || '',
       proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
-      proxySource: (product as any).proxyvipConfig?.source === 'v2' ? 'v2' : 'v1',
-      proxyDuration: (product as any).proxyvipConfig?.duration === '1w' ? '1w' : '1m',
+      proxySource: ((): ProxyVipSource => {
+        const s = (product as any).proxyvipConfig?.source
+        return s === 'v2' || s === 'v3' ? s : 'v1'
+      })(),
+      proxyDuration: ((): ProxyVipDuration => {
+        const d = (product as any).proxyvipConfig?.duration
+        return PROXY_VIP_DURATIONS.includes(d) ? d : '1m'
+      })(),
       status: product.status === 'inactive' ? 'inactive' : 'active',
     });
   };
@@ -440,12 +465,13 @@ export default function ProductsTab({
                   <select
                     value={productForm.proxySource}
                     onChange={(e) =>
-                      setProductForm((prev) => ({ ...prev, proxySource: e.target.value as 'v1' | 'v2' }))
+                      setProductForm((prev) => ({ ...prev, proxySource: e.target.value as ProxyVipSource }))
                     }
                     className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                   >
                     <option value="v1">Proxy v1</option>
                     <option value="v2">Proxy v2</option>
+                    <option value="v3">Proxy v3</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -455,12 +481,16 @@ export default function ProductsTab({
                   <select
                     value={productForm.proxyDuration}
                     onChange={(e) =>
-                      setProductForm((prev) => ({ ...prev, proxyDuration: e.target.value as '1w' | '1m' }))
+                      setProductForm((prev) => ({ ...prev, proxyDuration: e.target.value as ProxyVipDuration }))
                     }
                     className="w-full bg-black/50 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                   >
+                    <option value="1h">1 giờ (1h)</option>
+                    <option value="2h">2 giờ (2h)</option>
+                    <option value="1d">1 ngày (1d)</option>
                     <option value="1w">Tuần (1w)</option>
                     <option value="1m">Tháng (1m)</option>
+                    <option value="1y">1 năm (1y)</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -678,7 +708,7 @@ export default function ProductsTab({
                     {product.proxyvip === 1 ? (
                       <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border bg-cyan-500/10 border-cyan-500/30 whitespace-nowrap">
                         <span className="text-cyan-300 font-medium">
-                          {`Proxy VIP • ${(product.proxyvipConfig?.source || 'v1').toUpperCase()} • ${(product.proxyvipConfig?.duration || '1m') === '1w' ? 'Tuần' : 'Tháng'}`}
+                          {`Proxy VIP • ${(product.proxyvipConfig?.source || 'v1').toUpperCase()} • ${formatProxyDurationLabel(product.proxyvipConfig?.duration)}`}
                         </span>
                       </div>
                     ) : (

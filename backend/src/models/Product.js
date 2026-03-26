@@ -27,8 +27,8 @@ const productSchema = new mongoose.Schema(
       aimLink: { type: String, trim: true },
       installText: { type: String, trim: true },
       installVideoUrl: { type: String, trim: true },
-      source: { type: String, enum: ["v1", "v2"], default: "v1" },
-      duration: { type: String, enum: ["1w", "1m"], default: "1m" },
+      source: { type: String, enum: ["v1", "v2", "v3"], default: "v1" },
+      duration: { type: String, enum: ["1h", "2h", "1d", "1w", "1m", "1y"], default: "1m" },
     },
     status: {
       type: String,

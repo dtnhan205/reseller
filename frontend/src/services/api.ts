@@ -210,6 +210,8 @@ export const adminApi = {
       aimLink?: string;
       installText?: string;
       installVideoUrl?: string;
+      source?: 'v1' | 'v2' | 'v3';
+      duration?: '1h' | '2h' | '1d' | '1w' | '1m' | '1y';
     } | null;
     status?: 'active' | 'inactive';
   }): Promise<Product> => {
@@ -227,6 +229,8 @@ export const adminApi = {
       aimLink?: string;
       installText?: string;
       installVideoUrl?: string;
+      source?: 'v1' | 'v2' | 'v3';
+      duration?: '1h' | '2h' | '1d' | '1w' | '1m' | '1y';
     } | null;
     status?: 'active' | 'inactive';
   }): Promise<Product> => {

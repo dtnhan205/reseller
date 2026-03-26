@@ -42,7 +42,9 @@ async function createProxyVipLicenseKey(duration, source = "v1") {
 
 function deriveDurationFromProductName(name) {
   const s = String(name || "").toLowerCase();
-  // Heuristics: supports Vietnamese + shorthand.
+  // Heuristics: supports Vietnamese + shorthand (must match admin_server valid durations).
+  if (s.includes("2h") || s.includes("2 giờ") || s.includes("2 gio")) return "2h";
+  if (s.includes("1h") || s.includes("1 giờ") || s.includes("1 gio")) return "1h";
   if (s.includes("1w") || s.includes("week") || s.includes("tuần")) return "1w";
   if (s.includes("1d") || s.includes("day") || s.includes("ngày")) return "1d";
   if (s.includes("1y") || s.includes("year") || s.includes("năm")) return "1y";
@@ -52,7 +54,10 @@ function deriveDurationFromProductName(name) {
 
 function deriveSourceFromProductName(name) {
   const s = String(name || "").toLowerCase();
-  if (s.includes("v2") || s.includes("no antena") || s.includes("no-antena") || s.includes("noantenna")) {
+  if (s.includes("v3") || s.includes("no-antena-v3") || s.includes("no antenna v3") || s.includes("nov3") || s.includes("nov3")) {
+    return "v3";
+  }
+  if (s.includes("v2") || s.includes("no antena") || s.includes("no-antena") || s.includes("noantenna") || s.includes("nov2") || s.includes("no v2")) {
     return "v2";
   }
   return "v1";

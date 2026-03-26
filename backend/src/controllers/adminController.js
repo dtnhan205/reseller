@@ -15,6 +15,19 @@ const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { ProxyVipAccessKey } = require("../models/ProxyVipAccessKey");
 const { Order } = require("../models/Order");
 
+const PROXYVIP_SOURCES = new Set(["v1", "v2", "v3"]);
+const PROXYVIP_DURATIONS = new Set(["1h", "2h", "1d", "1w", "1m", "1y"]);
+
+function normalizeProxyVipSource(value) {
+  const v = String(value || "").trim().toLowerCase();
+  return PROXYVIP_SOURCES.has(v) ? v : "v1";
+}
+
+function normalizeProxyVipDuration(value) {
+  const v = String(value || "").trim().toLowerCase();
+  return PROXYVIP_DURATIONS.has(v) ? v : "1m";
+}
+
 async function createSeller(req, res) {
   const { email, password } = req.body || {};
   if (!email || !password) throw new HttpError(400, "Missing email or password");
@@ -171,8 +184,8 @@ async function createProduct(req, res) {
       aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
       installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
       installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
-      source: proxyvipConfig.source === "v2" ? "v2" : "v1",
-      duration: proxyvipConfig.duration === "1w" ? "1w" : "1m",
+      source: normalizeProxyVipSource(proxyvipConfig.source),
+      duration: normalizeProxyVipDuration(proxyvipConfig.duration),
     };
   }
 
@@ -286,8 +299,8 @@ async function updateProduct(req, res) {
       aimLink: proxyvipConfig.aimLink ? String(proxyvipConfig.aimLink).trim() : undefined,
       installText: proxyvipConfig.installText ? String(proxyvipConfig.installText).trim() : undefined,
       installVideoUrl: proxyvipConfig.installVideoUrl ? String(proxyvipConfig.installVideoUrl).trim() : undefined,
-      source: proxyvipConfig.source === "v2" ? "v2" : "v1",
-      duration: proxyvipConfig.duration === "1w" ? "1w" : "1m",
+      source: normalizeProxyVipSource(proxyvipConfig.source),
+      duration: normalizeProxyVipDuration(proxyvipConfig.duration),
     };
   }
 

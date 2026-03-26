@@ -210,8 +210,20 @@ async function createProxyVipRequest(req, res) {
       if (seller.walletBalance < price) throw new HttpError(400, "Insufficient wallet balance");
 
       // Create license key from key-server BEFORE charging, so if it fails the transaction aborts.
-      licenseDuration = deriveDurationFromProductName(product.name);
-      licenseSource = deriveSourceFromProductName(product.name);
+      const allowedDurations = new Set(["1h", "2h", "1d", "1w", "1m", "1y"]);
+      const allowedSources = new Set(["v1", "v2", "v3"]);
+      licenseDuration = product.proxyvipConfig?.duration
+        ? String(product.proxyvipConfig.duration).trim().toLowerCase()
+        : deriveDurationFromProductName(product.name);
+      if (!allowedDurations.has(licenseDuration)) {
+        licenseDuration = "1m";
+      }
+      licenseSource = product.proxyvipConfig?.source
+        ? String(product.proxyvipConfig.source).trim().toLowerCase()
+        : deriveSourceFromProductName(product.name);
+      if (!allowedSources.has(licenseSource)) {
+        licenseSource = "v1";
+      }
       createdLicenseKey = await createProxyVipLicenseKey(licenseDuration, licenseSource);
 
       seller.walletBalance -= price;
