@@ -440,7 +440,7 @@ async function getTopupHistory(req, res) {
     _id: p._id,
     seller: p.sellerId,
     amount: p.amount, // VND (backward compatibility)
-    amountUSD: p.amountUSD || (p.amount / 25000), // USD - fallback nếu không có
+    amountUSD: p.amountUSD != null ? p.amountUSD : p.amount / 25000, // USD (âm = admin trừ tiền)
     createdAt: p.createdAt,
     type: "payment", // Đánh dấu là payment (mới)
     transferContent: p.transferContent,

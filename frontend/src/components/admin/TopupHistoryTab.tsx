@@ -238,7 +238,8 @@ export default function TopupHistoryTab() {
                 </thead>
                 <tbody>
                   {history.map((item) => {
-                    const amountUSD = item.amountUSD || item.amount / usdToVnd;
+                    const amountUSD =
+                      item.amountUSD != null ? item.amountUSD : item.amount / usdToVnd;
                     const content = item.note || item.transferContent || '-';
                     return (
                       <tr
@@ -252,8 +253,13 @@ export default function TopupHistoryTab() {
                           <p className="text-white/80 text-sm break-all">{content}</p>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <p className="text-white text-sm font-semibold">
-                            +{formatCurrency(amountUSD, language, usdToVnd)}
+                          <p
+                            className={`text-sm font-semibold ${
+                              amountUSD < 0 ? 'text-red-400' : 'text-green-400'
+                            }`}
+                          >
+                            {amountUSD >= 0 ? '+' : ''}
+                            {formatCurrency(amountUSD, language, usdToVnd)}
                           </p>
                         </td>
                         <td className="py-3 px-4 text-right">

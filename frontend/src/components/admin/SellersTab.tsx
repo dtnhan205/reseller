@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import SkeletonLoader from './SkeletonLoader';
-import { UserPlus, Mail, Search, X, Calendar, Plus, History, DollarSign, Trash2, Lock, Unlock } from 'lucide-react';
+import { UserPlus, Mail, Search, X, Calendar, Plus, Minus, History, DollarSign, Trash2, Lock, Unlock } from 'lucide-react';
 import type { User, Payment } from '@/types';
 import { formatCurrency } from '@/utils/format';
 
@@ -28,10 +28,11 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   const [selectedSeller, setSelectedSeller] = useState<User | null>(null);
   const [topupForm, setTopupForm] = useState({ amountUSD: '', note: '' });
   const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
+  const [walletModalMode, setWalletModalMode] = useState<'topup' | 'deduct'>('topup');
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [topupHistory, setTopupHistory] = useState<Payment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [isTopupLoading, setIsTopupLoading] = useState(false);
+  const [isWalletAdjustLoading, setIsWalletAdjustLoading] = useState(false);
 
   const [sellerToDelete, setSellerToDelete] = useState<User | null>(null);
   const [isDeletingSeller, setIsDeletingSeller] = useState(false);
@@ -95,6 +96,14 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
   const handleOpenTopupModal = (seller: User) => {
     setSelectedSeller(seller);
     setTopupForm({ amountUSD: '', note: '' });
+    setWalletModalMode('topup');
+    setIsTopupModalOpen(true);
+  };
+
+  const handleOpenDeductModal = (seller: User) => {
+    setSelectedSeller(seller);
+    setTopupForm({ amountUSD: '', note: '' });
+    setWalletModalMode('deduct');
     setIsTopupModalOpen(true);
   };
 
@@ -104,41 +113,54 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
     setTopupForm({ amountUSD: '', note: '' });
   };
 
-  const handleTopup = async (e: React.FormEvent) => {
+  const handleWalletAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSeller) return;
-    
+
     const trimmedAmount = topupForm.amountUSD.trim();
     if (!trimmedAmount) {
       showError('Please enter an amount');
       return;
     }
-    
+
     const amount = parseFloat(trimmedAmount);
     if (isNaN(amount) || amount <= 0 || !isFinite(amount)) {
       showError('Please enter a valid amount');
       return;
     }
-    
-    // Prevent extremely large amounts (security check)
+
     if (amount > 1000000) {
       showError('Amount is too large. Maximum is $1,000,000');
       return;
     }
 
-    setIsTopupLoading(true);
+    const currentWallet = selectedSeller.wallet || 0;
+    if (walletModalMode === 'deduct' && amount > currentWallet) {
+      showError(t('admin.deductFailedBalance'));
+      return;
+    }
+
+    setIsWalletAdjustLoading(true);
     try {
-      await adminApi.manualTopupSeller(selectedSeller._id, {
-        amountUSD: amount,
-        note: topupForm.note || undefined,
-      });
-      showSuccess(`Successfully topped up ${formatCurrency(amount, language, usdToVnd)} to ${selectedSeller.email}`);
+      if (walletModalMode === 'topup') {
+        await adminApi.manualTopupSeller(selectedSeller._id, {
+          amountUSD: amount,
+          note: topupForm.note || undefined,
+        });
+        showSuccess(`Successfully topped up ${formatCurrency(amount, language, usdToVnd)} to ${selectedSeller.email}`);
+      } else {
+        await adminApi.manualDeductSeller(selectedSeller._id, {
+          amountUSD: amount,
+          note: topupForm.note || undefined,
+        });
+        showSuccess(`Successfully deducted ${formatCurrency(amount, language, usdToVnd)} from ${selectedSeller.email}`);
+      }
       handleCloseTopupModal();
       await loadSellers();
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to topup seller');
+      showError(err.response?.data?.message || (walletModalMode === 'topup' ? 'Failed to topup seller' : 'Failed to deduct from seller'));
     } finally {
-      setIsTopupLoading(false);
+      setIsWalletAdjustLoading(false);
     }
   };
 
@@ -381,17 +403,27 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                       <p className="text-green-400 font-bold">{formatCurrency(seller.totalTopup || 0, language, usdToVnd)}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
+                      type="button"
                       onClick={() => handleOpenTopupModal(seller)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 rounded-lg text-sm font-medium transition-colors"
+                      className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 rounded-lg text-sm font-medium transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       {t('admin.topup')}
                     </button>
                     <button
+                      type="button"
+                      onClick={() => handleOpenDeductModal(seller)}
+                      className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Minus className="w-4 h-4" />
+                      {t('admin.deduct')}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleOpenHistoryModal(seller)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
+                      className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
                     >
                       <History className="w-4 h-4" />
                       {t('admin.history')}
@@ -421,7 +453,9 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
             }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{t('admin.topupSeller')}</h2>
+              <h2 className="text-xl font-bold">
+                {walletModalMode === 'topup' ? t('admin.topupSeller') : t('admin.deductSeller')}
+              </h2>
               <button
                 onClick={handleCloseTopupModal}
                 className="text-gray-400 hover:text-white"
@@ -429,7 +463,7 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleTopup} className="space-y-4">
+            <form onSubmit={handleWalletAdjust} className="space-y-4">
               <div>
                 <p className="text-sm text-gray-400 mb-2">
                   {t('admin.seller')}: <span className="text-white font-medium">{selectedSeller.email}</span>
@@ -469,10 +503,26 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                 />
               </div>
               {topupForm.amountUSD && parseFloat(topupForm.amountUSD) > 0 && (
-                <div className="bg-gray-800/40 border border-green-500/30 rounded-lg p-3">
+                <div
+                  className={`rounded-lg p-3 border ${
+                    walletModalMode === 'topup'
+                      ? 'bg-gray-800/40 border-green-500/30'
+                      : 'bg-gray-800/40 border-orange-500/30'
+                  }`}
+                >
                   <p className="text-sm text-gray-300">
-                    {t('admin.newBalance')}: <span className="text-green-400 font-bold">
-                      {formatCurrency((selectedSeller.wallet || 0) + parseFloat(topupForm.amountUSD), language, usdToVnd)}
+                    {t('admin.newBalance')}:{' '}
+                    <span
+                      className={`font-bold ${
+                        walletModalMode === 'topup' ? 'text-green-400' : 'text-orange-400'
+                      }`}
+                    >
+                      {formatCurrency(
+                        (selectedSeller.wallet || 0) +
+                          (walletModalMode === 'topup' ? 1 : -1) * parseFloat(topupForm.amountUSD),
+                        language,
+                        usdToVnd
+                      )}
                     </span>
                   </p>
                 </div>
@@ -487,11 +537,20 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600"
-                  isLoading={isTopupLoading}
+                  className={
+                    walletModalMode === 'topup'
+                      ? 'flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600'
+                      : 'flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
+                  }
+                  isLoading={isWalletAdjustLoading}
                 >
-                  {!isTopupLoading && <Plus className="w-4 h-4 inline mr-2" />}
-                  {t('admin.topup')}
+                  {!isWalletAdjustLoading &&
+                    (walletModalMode === 'topup' ? (
+                      <Plus className="w-4 h-4 inline mr-2" />
+                    ) : (
+                      <Minus className="w-4 h-4 inline mr-2" />
+                    ))}
+                  {walletModalMode === 'topup' ? t('admin.topup') : t('admin.deduct')}
                 </Button>
               </div>
             </form>
@@ -528,7 +587,9 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {topupHistory.map((payment) => (
+                  {topupHistory.map((payment) => {
+                    const usd = payment.amountUSD ?? 0;
+                    return (
                     <div
                       key={payment._id}
                       className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
@@ -540,8 +601,9 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                             <span className="text-xs text-gray-500">({payment.note})</span>
                           )}
                         </div>
-                        <span className="text-green-400 font-bold">
-                          +{formatCurrency(payment.amountUSD || 0, language, usdToVnd)}
+                        <span className={`font-bold ${usd < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                          {usd >= 0 ? '+' : ''}
+                          {formatCurrency(usd, language, usdToVnd)}
                         </span>
                       </div>
                       <div className="text-xs text-gray-400 space-y-1">
@@ -554,7 +616,8 @@ export default function SellersTab({ onCreateSeller }: SellersTabProps) {
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>

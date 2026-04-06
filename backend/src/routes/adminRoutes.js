@@ -15,6 +15,7 @@ const {
   deleteSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
+  manualDeductSeller,
   createCategory,
   listCategories,
   updateCategory,
@@ -72,6 +73,7 @@ router.put("/sellers/:id/unlock", unlockSeller);
 router.delete("/sellers/:id", deleteSeller);
 router.get("/sellers/:id/topup-history", getSellerTopupHistory);
 router.post("/sellers/:id/topup", manualTopupSeller);
+router.post("/sellers/:id/deduct", manualDeductSeller);
 
 // Leaderboard
 router.get("/leaderboard/topup", getTopupLeaderboard);

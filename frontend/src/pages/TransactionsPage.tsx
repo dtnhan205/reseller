@@ -11,6 +11,11 @@ import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 const ITEMS_PER_PAGE = 10;
 
+/** USD của giao dịch (amountUSD có thể âm khi admin trừ tiền) */
+function txAmountUSD(t: { amountUSD?: number; amount: number }, usdToVnd: number): number {
+  return t.amountUSD != null ? t.amountUSD : t.amount / usdToVnd;
+}
+
 export default function TransactionsPage() {
   const { t, language } = useTranslation();
   const { usdToVnd } = useExchangeRate();
@@ -41,7 +46,7 @@ export default function TransactionsPage() {
     if (!searchQuery) return transactions;
     const query = searchQuery.toLowerCase();
     return transactions.filter((t) => {
-      const amountUSD = t.amountUSD || t.amount / usdToVnd;
+      const amountUSD = txAmountUSD(t, usdToVnd);
       const amountStr = formatCurrency(amountUSD, language, usdToVnd).toLowerCase();
       const dateStr = formatDateShort(t.createdAt).toLowerCase();
       return amountStr.includes(query) || dateStr.includes(query);
@@ -52,20 +57,20 @@ export default function TransactionsPage() {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const totalTopup = filteredTransactions.reduce(
-    (sum, t) => sum + (t.amountUSD || t.amount / usdToVnd),
-    0
-  );
+  const totalTopup = filteredTransactions.reduce((sum, t) => {
+    const u = txAmountUSD(t, usdToVnd);
+    return sum + (u > 0 ? u : 0);
+  }, 0);
 
   const thisMonth = filteredTransactions.filter((t) => {
     const transactionDate = new Date(t.createdAt);
     const now = new Date();
     return transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear();
   });
-  const thisMonthTotal = thisMonth.reduce(
-    (sum, t) => sum + (t.amountUSD || t.amount / usdToVnd),
-    0
-  );
+  const thisMonthTotal = thisMonth.reduce((sum, t) => {
+    const u = txAmountUSD(t, usdToVnd);
+    return sum + (u > 0 ? u : 0);
+  }, 0);
 
   const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -199,29 +204,37 @@ export default function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedTransactions.map((transaction, idx) => (
+                  {paginatedTransactions.map((transaction, idx) => {
+                    const u = txAmountUSD(transaction, usdToVnd);
+                    return (
                     <tr
                       key={transaction._id}
                       className="border-b border-gray-800/50 hover:bg-gray-900/50 transition-colors"
                     >
                       <td className="py-4 px-4 text-gray-200">#{startIndex + idx + 1}</td>
                       <td className="py-4 px-4 text-right">
-                        <span className="text-green-400 font-bold text-lg">
-                          +{formatCurrency(transaction.amountUSD || transaction.amount / usdToVnd, language, usdToVnd)}
+                        <span
+                          className={`font-bold text-lg ${u < 0 ? 'text-red-400' : 'text-green-400'}`}
+                        >
+                          {u >= 0 ? '+' : ''}
+                          {formatCurrency(u, language, usdToVnd)}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right text-gray-400 text-sm">
                         {formatDateShort(transaction.createdAt)}
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-3">
-              {paginatedTransactions.map((transaction, idx) => (
+              {paginatedTransactions.map((transaction, idx) => {
+                const u = txAmountUSD(transaction, usdToVnd);
+                return (
                 <div
                   key={transaction._id}
                   className="bg-gray-950/50 rounded-xl p-4 border border-gray-800"
@@ -234,12 +247,14 @@ export default function TransactionsPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300 text-sm">Amount</span>
-                    <span className="text-green-400 font-bold text-lg">
-                      +{formatCurrency(transaction.amountUSD || transaction.amount / usdToVnd, language, usdToVnd)}
+                    <span className={`font-bold text-lg ${u < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                      {u >= 0 ? '+' : ''}
+                      {formatCurrency(u, language, usdToVnd)}
                     </span>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
         )}

@@ -13,9 +13,9 @@ const paymentSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    // Âm = admin trừ tiền (ghi sổ); nạp/ngân hàng luôn >= 0
     amountUSD: {
       type: Number,
-      min: 0,
     },
     amountVND: {
       type: Number,

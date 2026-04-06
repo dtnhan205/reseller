@@ -170,6 +170,10 @@ export const adminApi = {
     const res = await api.post(`/admin/sellers/${sellerId}/topup`, data);
     return res.data;
   },
+  manualDeductSeller: async (sellerId: string, data: { amountUSD: number; note?: string }): Promise<{ payment: Payment; newBalance: number; message: string }> => {
+    const res = await api.post(`/admin/sellers/${sellerId}/deduct`, data);
+    return res.data;
+  },
   getCategories: async (): Promise<Category[]> => {
     const res = await api.get('/admin/categories');
     return res.data;

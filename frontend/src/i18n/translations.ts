@@ -299,8 +299,11 @@ export type TranslationKey =
   | 'admin.balance'
   | 'admin.totalTopup'
   | 'admin.topup'
+  | 'admin.deduct'
   | 'admin.history'
   | 'admin.topupSeller'
+  | 'admin.deductSeller'
+  | 'admin.deductFailedBalance'
   | 'admin.seller'
   | 'admin.amountUSD'
   | 'admin.note'
@@ -572,8 +575,11 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.balance': 'Số dư',
     'admin.totalTopup': 'Tổng nạp',
     'admin.topup': 'Nạp tiền',
+    'admin.deduct': 'Trừ tiền',
     'admin.history': 'Lịch sử',
     'admin.topupSeller': 'Nạp tiền cho Seller',
+    'admin.deductSeller': 'Trừ tiền Seller',
+    'admin.deductFailedBalance': 'Số dư không đủ để trừ',
     'admin.seller': 'Seller',
     'admin.amountUSD': 'Số tiền (USD)',
     'admin.note': 'Ghi chú',
@@ -923,8 +929,11 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'admin.balance': 'Balance',
     'admin.totalTopup': 'Total Topup',
     'admin.topup': 'Topup',
+    'admin.deduct': 'Deduct',
     'admin.history': 'History',
     'admin.topupSeller': 'Topup Seller',
+    'admin.deductSeller': 'Deduct from Seller',
+    'admin.deductFailedBalance': 'Insufficient balance for this deduction',
     'admin.seller': 'Seller',
     'admin.amountUSD': 'Amount (USD)',
     'admin.note': 'Note',

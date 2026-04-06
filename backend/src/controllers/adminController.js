@@ -440,12 +440,18 @@ async function listSellers(req, res) {
   const sellersWithStats = await Promise.all(
     sellers.map(async (seller) => {
       const totalTopup = await Payment.aggregate([
-        { $match: { sellerId: seller._id, status: "completed" } },
-        { $group: { _id: null, total: { $sum: "$amountUSD" } } }
+        {
+          $match: {
+            sellerId: seller._id,
+            status: "completed",
+            $expr: { $gte: [{ $ifNull: ["$amountUSD", 0] }, 0] },
+          },
+        },
+        { $group: { _id: null, total: { $sum: "$amountUSD" } } },
       ]);
-      
+
       const totalTopupAmount = totalTopup.length > 0 ? totalTopup[0].total : 0;
-      
+
       return {
         _id: seller._id,
         email: seller.email,
@@ -653,6 +659,48 @@ async function manualTopupSeller(req, res) {
     payment,
     newBalance: seller.walletBalance,
     message: `Successfully topped up ${numUSD} USD to seller ${seller.email}`
+  });
+}
+
+// POST /api/admin/sellers/:id/deduct - Admin: Trừ tiền ví seller (ghi Payment amountUSD âm)
+async function manualDeductSeller(req, res) {
+  const { id } = req.params;
+  const { amountUSD, note } = req.body || {};
+
+  const numUSD = Number(amountUSD);
+  if (!Number.isFinite(numUSD) || numUSD <= 0) {
+    throw new HttpError(400, "Invalid amount");
+  }
+
+  const seller = await User.findById(id);
+  if (!seller) throw new HttpError(404, "Seller not found");
+  if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
+
+  const balance = seller.walletBalance || 0;
+  if (balance < numUSD) {
+    throw new HttpError(400, "Insufficient wallet balance");
+  }
+
+  seller.walletBalance = balance - numUSD;
+  await seller.save();
+
+  const payment = await Payment.create({
+    sellerId: seller._id,
+    amount: 0,
+    amountUSD: -numUSD,
+    amountVND: 0,
+    transferContent: `ADMIN_DEDUCT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    bankAccountId: null,
+    status: "completed",
+    completedAt: new Date(),
+    expiresAt: new Date(),
+    note: note || "Manual deduction by admin",
+  });
+
+  res.status(201).json({
+    payment,
+    newBalance: seller.walletBalance,
+    message: `Successfully deducted ${numUSD} USD from seller ${seller.email}`,
   });
 }
 
@@ -1248,12 +1296,18 @@ async function getTopupLeaderboard(req, res) {
   const leaderboard = await Promise.all(
     sellers.map(async (seller) => {
       const totalTopup = await Payment.aggregate([
-        { $match: { sellerId: seller._id, status: "completed" } },
-        { $group: { _id: null, total: { $sum: "$amountUSD" } } }
+        {
+          $match: {
+            sellerId: seller._id,
+            status: "completed",
+            $expr: { $gte: [{ $ifNull: ["$amountUSD", 0] }, 0] },
+          },
+        },
+        { $group: { _id: null, total: { $sum: "$amountUSD" } } },
       ]);
-      
+
       const totalTopupAmount = totalTopup.length > 0 ? totalTopup[0].total : 0;
-      
+
       // Mask email: abc***@gmail.com
       const emailParts = seller.email.split('@');
       const name = emailParts[0];
@@ -1300,6 +1354,7 @@ module.exports = {
   deleteSellerProductPrice,
   getSellerTopupHistory,
   manualTopupSeller,
+  manualDeductSeller,
   getBankAccounts,
   createBankAccount,
   updateBankAccount,
