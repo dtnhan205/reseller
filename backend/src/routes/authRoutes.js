@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, register, me } = require("../controllers/authController");
+const { login, register, me, changePassword } = require("../controllers/authController");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.post("/register", requireAuth, requireRole("admin"), register);
 
 // Me - yêu cầu token
 router.get("/me", requireAuth, me);
+
+// Đổi mật khẩu - yêu cầu token (Seller và Admin đều dùng được)
+router.post("/change-password", requireAuth, changePassword);
 
 module.exports = { authRouter: router };
 

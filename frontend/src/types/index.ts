@@ -6,6 +6,7 @@ export interface User {
   role: UserRole;
   wallet?: number;
   totalTopup?: number; // Tổng nạp tiền (USD)
+  totalSpent?: number; // Tổng đã chi mua key (USD)
   isLocked?: boolean;
   createdAt: string;
 }
@@ -167,6 +168,20 @@ export interface AdminDashboardStats {
   thisYear: { totalOrders: number; totalRevenue: number };
   allTime: { totalOrders: number; totalRevenue: number };
   chart: Array<{ date: string; totalOrders: number; totalRevenue: number }>;
+  topProducts: {
+    today: TopProductItem[];
+    week: TopProductItem[];
+    month: TopProductItem[];
+    year: TopProductItem[];
+  };
+}
+
+export interface TopProductItem {
+  rank: number;
+  productId: string | null;
+  productName: string;
+  totalOrders: number;
+  totalRevenue: number;
 }
 
 export type HackStatusType = 'updating' | 'safe';

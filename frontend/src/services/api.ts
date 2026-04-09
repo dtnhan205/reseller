@@ -107,6 +107,10 @@ export const authApi = {
     const res = await api.get('/auth/me');
     return res.data;
   },
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+    const res = await api.post('/auth/change-password', { currentPassword, newPassword });
+    return res.data;
+  },
 };
 
 // Admin APIs

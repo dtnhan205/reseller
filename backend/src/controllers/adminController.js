@@ -856,33 +856,41 @@ async function getDashboardStats(req, res) {
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
 
+  // Tuần: lấy 7 ngày gần nhất
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
+  startOfWeek.setHours(0, 0, 0, 0);
+
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-  const [dayStats, monthStats, yearStats, totalStats, recentDaily] = await Promise.all([
+  const [
+    dayStats, monthStats, yearStats, totalStats, recentDaily,
+    topToday, topWeek, topMonth, topYear,
+  ] = await Promise.all([
     Order.aggregate([
-      { $match: { createdAt: { $gte: startOfDay } } },
+      { $match: { purchasedAt: { $gte: startOfDay } } },
       { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
     ]),
     Order.aggregate([
-      { $match: { createdAt: { $gte: startOfMonth } } },
+      { $match: { purchasedAt: { $gte: startOfMonth } } },
       { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
     ]),
     Order.aggregate([
-      { $match: { createdAt: { $gte: startOfYear } } },
+      { $match: { purchasedAt: { $gte: startOfYear } } },
       { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
     ]),
     Order.aggregate([
       { $group: { _id: null, totalOrders: { $sum: 1 }, totalRevenue: { $sum: "$price" } } },
     ]),
     Order.aggregate([
-      { $match: { createdAt: { $gte: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) } } },
+      { $match: { purchasedAt: { $gte: new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000) } } },
       {
         $group: {
           _id: {
-            y: { $year: "$createdAt" },
-            m: { $month: "$createdAt" },
-            d: { $dayOfMonth: "$createdAt" },
+            y: { $year: "$purchasedAt" },
+            m: { $month: "$purchasedAt" },
+            d: { $dayOfMonth: "$purchasedAt" },
           },
           totalOrders: { $sum: 1 },
           totalRevenue: { $sum: "$price" },
@@ -890,12 +898,78 @@ async function getDashboardStats(req, res) {
       },
       { $sort: { "_id.y": 1, "_id.m": 1, "_id.d": 1 } },
     ]),
+
+    // Top sản phẩm bán chạy
+    Order.aggregate([
+      { $match: { purchasedAt: { $gte: startOfDay } } },
+      {
+        $group: {
+          _id: { productId: "$productId", productName: "$productName" },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 3 },
+      { $project: { _id: 0, productId: "$_id.productId", productName: "$_id.productName", totalOrders: 1, totalRevenue: 1 } },
+    ]),
+
+    Order.aggregate([
+      { $match: { purchasedAt: { $gte: startOfWeek } } },
+      {
+        $group: {
+          _id: { productId: "$productId", productName: "$productName" },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 3 },
+      { $project: { _id: 0, productId: "$_id.productId", productName: "$_id.productName", totalOrders: 1, totalRevenue: 1 } },
+    ]),
+
+    Order.aggregate([
+      { $match: { purchasedAt: { $gte: startOfMonth } } },
+      {
+        $group: {
+          _id: { productId: "$productId", productName: "$productName" },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 3 },
+      { $project: { _id: 0, productId: "$_id.productId", productName: "$_id.productName", totalOrders: 1, totalRevenue: 1 } },
+    ]),
+
+    Order.aggregate([
+      { $match: { purchasedAt: { $gte: startOfYear } } },
+      {
+        $group: {
+          _id: { productId: "$productId", productName: "$productName" },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 3 },
+      { $project: { _id: 0, productId: "$_id.productId", productName: "$_id.productName", totalOrders: 1, totalRevenue: 1 } },
+    ]),
   ]);
 
   const toStats = (arr) => ({
     totalOrders: arr?.[0]?.totalOrders || 0,
     totalRevenue: arr?.[0]?.totalRevenue || 0,
   });
+
+  const toTop = (arr) =>
+    (arr || []).map((item, i) => ({
+      rank: i + 1,
+      productId: item.productId?.toString() || null,
+      productName: item.productName || "—",
+      totalOrders: item.totalOrders || 0,
+      totalRevenue: item.totalRevenue || 0,
+    }));
 
   res.json({
     today: toStats(dayStats),
@@ -907,6 +981,12 @@ async function getDashboardStats(req, res) {
       totalOrders: item.totalOrders,
       totalRevenue: item.totalRevenue,
     })),
+    topProducts: {
+      today: toTop(topToday),
+      week: toTop(topWeek),
+      month: toTop(topMonth),
+      year: toTop(topYear),
+    },
   });
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Users,
   FolderTree,
@@ -14,8 +14,11 @@ import {
   ShoppingCart,
   Wallet,
   CalendarDays,
-  BarChart3,
   Key,
+  Trophy,
+  Medal,
+  TrendingUp,
+  PieChart as PieChartIcon,
 } from 'lucide-react';
 
 import { useSellers, useCategories, useProducts } from '@/hooks/useAdminData';
@@ -36,7 +39,13 @@ import ProxyVipAccessKeyTab from '@/components/admin/ProxyVipAccessKeyTab';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { formatCurrency } from '@/utils/format';
-import type { AdminDashboardStats } from '@/types';
+import type { AdminDashboardStats, TopProductItem } from '@/types';
+import {
+  RevenueAreaChart,
+  RevenueBarChart,
+  RevenuePieChart,
+  usePreparePieChartData,
+} from '@/components/admin/DashboardCharts';
 
 type TabType =
   | 'dashboard'
@@ -60,15 +69,20 @@ const emptyStats: AdminDashboardStats = {
   thisYear: { totalOrders: 0, totalRevenue: 0 },
   allTime: { totalOrders: 0, totalRevenue: 0 },
   chart: [],
+  topProducts: { today: [], week: [], month: [], year: [] },
 };
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats>(emptyStats);
   const [isLoadingDashboardStats, setIsLoadingDashboardStats] = useState(false);
+  const [selectedChartType, setSelectedChartType] = useState<'area' | 'bar'>('area');
 
   const { language } = useTranslation();
   const { usdToVnd } = useExchangeRate();
+
+  // Prepare pie chart data
+  const pieChartData = usePreparePieChartData(dashboardStats);
 
   const { sellers, isLoading: isLoadingSellers, createSeller } = useSellers();
   const {
@@ -121,21 +135,6 @@ export default function AdminPage() {
     { id: 'proxyvip-requests', label: 'Proxy VIP IDs', icon: Key },
     { id: 'proxyvip-access-key', label: 'Proxy VIP Key', icon: Key },
   ];
-
-  const chartPoints = useMemo(() => {
-    const chart = dashboardStats.chart || [];
-    if (chart.length === 0) return '';
-
-    const maxRevenue = Math.max(...chart.map((c) => c.totalRevenue), 1);
-
-    return chart
-      .map((item, index) => {
-        const x = (index / Math.max(chart.length - 1, 1)) * 100;
-        const y = 100 - (item.totalRevenue / maxRevenue) * 100;
-        return `${x},${y}`;
-      })
-      .join(' ');
-  }, [dashboardStats.chart]);
 
   const handleUpdateExchangeRate = async (rate: number) => {
     return await adminApi.updateExchangeRate(rate);
@@ -245,39 +244,105 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Top Sản Phẩm Bán Chạy */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {(
+                [
+                  { period: 'Hôm nay', icon: <CalendarDays className="w-4 h-4 text-blue-400" />, data: dashboardStats.topProducts.today, color: 'border-blue-500/30', accent: 'text-blue-400' },
+                  { period: 'Tuần này', icon: <CalendarDays className="w-4 h-4 text-purple-400" />, data: dashboardStats.topProducts.week, color: 'border-purple-500/30', accent: 'text-purple-400' },
+                  { period: 'Tháng này', icon: <CalendarDays className="w-4 h-4 text-amber-400" />, data: dashboardStats.topProducts.month, color: 'border-amber-500/30', accent: 'text-amber-400' },
+                  { period: 'Năm nay', icon: <CalendarDays className="w-4 h-4 text-green-400" />, data: dashboardStats.topProducts.year, color: 'border-green-500/30', accent: 'text-green-400' },
+                ] as const
+              ).map(({ period, icon, data, color, accent }) => (
+                <div
+                  key={period}
+                  className={`rounded-xl border ${color} bg-white/5 p-4`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    {icon}
+                    <span className="text-sm font-semibold text-white/80">{period}</span>
+                    <Trophy className={`w-4 h-4 ml-auto ${accent}`} />
+                  </div>
+
+                  {data.length === 0 ? (
+                    <p className="text-xs text-white/40">Chưa có dữ liệu</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {data.map((item: TopProductItem) => (
+                        <div
+                          key={item.rank}
+                          className="flex items-center gap-2 bg-black/20 border border-white/10 rounded-lg px-3 py-2"
+                        >
+                          {item.rank === 1 && <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />}
+                          {item.rank === 2 && <Medal className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                          {item.rank === 3 && <Medal className="w-4 h-4 text-orange-400 flex-shrink-0" />}
+                          {item.rank > 3 && <span className="text-xs text-white/40 w-4 flex-shrink-0">#{item.rank}</span>}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-white/80 truncate" title={item.productName}>
+                              {item.productName}
+                            </p>
+                            <p className="text-xs text-white/50">
+                              {item.totalOrders} đơn · {formatCurrency(item.totalRevenue, language, usdToVnd)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
             <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChart3 className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-lg font-medium text-white">Biểu đồ doanh thu 14 ngày gần nhất</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-lg font-medium text-white">Biểu đồ doanh thu 14 ngày</h3>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedChartType('area')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      selectedChartType === 'area'
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                        : 'bg-black/20 text-gray-400 border border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    Diện tích
+                  </button>
+                  <button
+                    onClick={() => setSelectedChartType('bar')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      selectedChartType === 'bar'
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                        : 'bg-black/20 text-gray-400 border border-gray-800 hover:text-white'
+                    }`}
+                  >
+                    Cột
+                  </button>
+                </div>
               </div>
 
               {dashboardStats.chart.length === 0 ? (
                 <p className="text-sm text-white/50">Chưa có dữ liệu biểu đồ.</p>
               ) : (
                 <div className="space-y-4">
-                  <div className="h-56 w-full bg-black/20 rounded-lg p-3 border border-white/10">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-                      <polyline
-                        fill="none"
-                        stroke="#22d3ee"
-                        strokeWidth="2"
-                        points={chartPoints}
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-                    {dashboardStats.chart.map((item) => (
-                      <div key={item.date} className="text-xs bg-black/20 border border-white/10 rounded-md p-2">
-                        <p className="text-white/60">{item.date.slice(5)}</p>
-                        <p className="text-white">{item.totalOrders} đơn</p>
-                        <p className="text-green-400">{formatCurrency(item.totalRevenue, language, usdToVnd)}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {selectedChartType === 'area' ? (
+                    <RevenueAreaChart chartData={dashboardStats.chart} />
+                  ) : (
+                    <RevenueBarChart chartData={dashboardStats.chart} />
+                  )}
                 </div>
               )}
+            </div>
+
+            {/* Revenue Distribution Pie Chart */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <PieChartIcon className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-medium text-white">Phân bổ doanh thu theo kỳ</h3>
+              </div>
+              <RevenuePieChart periods={pieChartData} />
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-6">

@@ -19,6 +19,7 @@ import SupportPage from './pages/SupportPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import PublicProxyPage from './pages/PublicProxyPage';
+import SellerProfilePage from './pages/SellerProfilePage';
 import ToastContainer from './components/ui/ToastContainer';
 import ScrollToTop from './components/ScrollToTop';
 import RainEffect from './components/RainEffect';
@@ -204,6 +205,14 @@ function App() {
             element={
               <SellerRoute>
                 <TopupPage />
+              </SellerRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <SellerRoute>
+                <SellerProfilePage />
               </SellerRoute>
             }
           />

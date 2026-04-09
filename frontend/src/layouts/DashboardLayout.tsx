@@ -18,11 +18,13 @@ import {
   Activity,
   Menu,
   X,
+  User,
 } from 'lucide-react';
 import { formatBalance } from '@/utils/format';
 
 const sellerNavItems = [
   { path: '/app/generate', labelKey: 'nav.generate' as const, icon: Sparkles },
+  { path: '/app/profile', labelKey: 'nav.profile' as const, icon: User },
   { path: '/app/stats', labelKey: 'nav.stats' as const, icon: BarChart3 },
   { path: '/app/history', labelKey: 'nav.history' as const, icon: Clock },
   { path: '/app/transactions', labelKey: 'nav.transactions' as const, icon: DollarSign },

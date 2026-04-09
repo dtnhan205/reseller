@@ -1,6 +1,8 @@
 const { HttpError } = require("../utils/httpError");
 const { signToken } = require("../utils/jwt");
 const { User } = require("../models/User");
+const { Payment } = require("../models/Payment");
+const { Order } = require("../models/Order");
 
 async function login(req, res) {
   const { email, password } = req.body || {};
@@ -57,15 +59,66 @@ async function register(req, res) {
 async function me(req, res) {
   const user = await User.findById(req.user._id);
   if (!user) throw new HttpError(404, "User not found");
-  res.json({
+
+  const payload = {
     _id: user._id,
     email: user.email,
     role: user.role,
     wallet: user.walletBalance || 0,
-    createdAt: user.createdAt
-  });
+    createdAt: user.createdAt,
+  };
+
+  if (user.role === "seller") {
+    const [topupAgg, spentAgg] = await Promise.all([
+      Payment.aggregate([
+        {
+          $match: {
+            sellerId: user._id,
+            status: "completed",
+            $expr: { $gte: [{ $ifNull: ["$amountUSD", 0] }, 0] },
+          },
+        },
+        { $group: { _id: null, total: { $sum: "$amountUSD" } } },
+      ]),
+      Order.aggregate([
+        { $match: { sellerId: user._id } },
+        { $group: { _id: null, total: { $sum: "$price" } } },
+      ]),
+    ]);
+    payload.totalTopup = topupAgg.length > 0 ? topupAgg[0].total : 0;
+    payload.totalSpent = spentAgg.length > 0 ? spentAgg[0].total : 0;
+  }
+
+  res.json(payload);
 }
 
-module.exports = { login, register, me };
+// Đổi mật khẩu (Seller và Admin đều có thể dùng)
+async function changePassword(req, res) {
+  const userId = req.user._id;
+  const { currentPassword, newPassword } = req.body || {};
+
+  if (!currentPassword || !newPassword) {
+    throw new HttpError(400, "Missing currentPassword or newPassword");
+  }
+
+  if (typeof newPassword !== "string" || newPassword.length < 6) {
+    throw new HttpError(400, "New password must be at least 6 characters");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new HttpError(404, "User not found");
+
+  // Kiểm tra mật khẩu cũ
+  const isValid = await user.verifyPassword(String(currentPassword));
+  if (!isValid) throw new HttpError(401, "Current password is incorrect");
+
+  // Hash mật khẩu mới và lưu
+  user.passwordHash = await User.hashPassword(String(newPassword));
+  await user.save();
+
+  res.json({ message: "Password changed successfully" });
+}
+
+module.exports = { login, register, me, changePassword };
 
 

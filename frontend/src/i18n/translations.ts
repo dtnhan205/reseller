@@ -44,6 +44,31 @@ export type TranslationKey =
   | 'nav.transactions'
   | 'nav.topup'
   | 'nav.hacks'
+  | 'nav.profile'
+
+  // Profile Page
+  | 'profile.title'
+  | 'profile.subtitle'
+  | 'profile.accountInfo'
+  | 'profile.email'
+  | 'profile.role'
+  | 'profile.balance'
+  | 'profile.memberSince'
+  | 'profile.changePassword'
+  | 'profile.currentPassword'
+  | 'profile.enterCurrentPassword'
+  | 'profile.newPassword'
+  | 'profile.enterNewPassword'
+  | 'profile.confirmPassword'
+  | 'profile.confirmNewPassword'
+  | 'profile.passwordMatch'
+  | 'profile.passwordMismatch'
+  | 'profile.changePasswordButton'
+  | 'profile.changing'
+  | 'profile.totalTopup'
+  | 'profile.totalSpent'
+  | 'profile.tabInfo'
+  | 'profile.tabStats'
   
   // Generate Page
   | 'generate.title'
@@ -398,7 +423,32 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'nav.transactions': 'GIAO DỊCH',
     'nav.topup': 'NẠP TIỀN',
     'nav.hacks': 'STATUS HACK',
-    
+    'nav.profile': 'HỒ SƠ',
+
+    // Profile Page
+    'profile.title': 'Hồ Sơ Cá Nhân',
+    'profile.subtitle': 'Quản lý thông tin tài khoản',
+    'profile.accountInfo': 'Thông tin tài khoản',
+    'profile.email': 'Email',
+    'profile.role': 'Vai trò',
+    'profile.balance': 'Số dư ví',
+    'profile.memberSince': 'Ngày tham gia',
+    'profile.changePassword': 'Đổi mật khẩu',
+    'profile.currentPassword': 'Mật khẩu cũ',
+    'profile.enterCurrentPassword': 'Nhập mật khẩu cũ',
+    'profile.newPassword': 'Mật khẩu mới',
+    'profile.enterNewPassword': 'Nhập mật khẩu mới',
+    'profile.confirmPassword': 'Xác nhận mật khẩu mới',
+    'profile.confirmNewPassword': 'Nhập lại mật khẩu mới',
+    'profile.passwordMatch': 'Mật khẩu khớp',
+    'profile.passwordMismatch': 'Mật khẩu không khớp',
+    'profile.changePasswordButton': 'Đổi mật khẩu',
+    'profile.changing': 'Đang đổi mật khẩu...',
+    'profile.totalTopup': 'Tổng nạp',
+    'profile.totalSpent': 'Đã dùng',
+    'profile.tabInfo': 'Thông tin',
+    'profile.tabStats': 'Thống kê',
+
     // Generate Page
     'generate.title': 'Tạo key',
     'generate.subtitle': 'Mua key cho sản phẩm của bạn',
@@ -754,7 +804,32 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'nav.transactions': 'TRANSACTIONS',
     'nav.topup': 'TOPUP',
     'nav.hacks': 'HACK STATUS',
-    
+    'nav.profile': 'PROFILE',
+
+    // Profile Page
+    'profile.title': 'My Profile',
+    'profile.subtitle': 'Manage your account information',
+    'profile.accountInfo': 'Account Information',
+    'profile.email': 'Email',
+    'profile.role': 'Role',
+    'profile.balance': 'Wallet Balance',
+    'profile.memberSince': 'Member Since',
+    'profile.changePassword': 'Change Password',
+    'profile.currentPassword': 'Current Password',
+    'profile.enterCurrentPassword': 'Enter current password',
+    'profile.newPassword': 'New Password',
+    'profile.enterNewPassword': 'Enter new password',
+    'profile.confirmPassword': 'Confirm New Password',
+    'profile.confirmNewPassword': 'Re-enter new password',
+    'profile.passwordMatch': 'Passwords match',
+    'profile.passwordMismatch': 'Passwords do not match',
+    'profile.changePasswordButton': 'Change Password',
+    'profile.changing': 'Changing password...',
+    'profile.totalTopup': 'Total top-up',
+    'profile.totalSpent': 'Total spent',
+    'profile.tabInfo': 'Profile',
+    'profile.tabStats': 'Statistics',
+
     // Generate Page
     'generate.title': 'Key Generator',
     'generate.subtitle': 'Purchase keys for your products',
