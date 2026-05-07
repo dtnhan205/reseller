@@ -715,7 +715,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'terms.prohibitedTitle': 'Hành vi bị cấm',
     'terms.prohibitedText': 'Bạn không được: chia sẻ key với người khác, sử dụng key cho mục đích thương mại trái phép, cố gắng hack hoặc phá hoại hệ thống, hoặc thực hiện bất kỳ hành vi nào vi phạm pháp luật.',
     'terms.liabilityTitle': 'Trách nhiệm',
-    'terms.liabilityText': 'Chúng tôi không chịu trách nhiệm về bất kỳ thiệt hại nào phát sinh từ việc sử dụng dịch vụ. Bạn sử dụng dịch vụ với rủi ro của chính mình.',
+    'terms.liabilityText': 'Reseller Platform chỉ cung cấp hạ tầng kết nối và công cụ hỗ trợ giao dịch, không phải là bên bán hàng trực tiếp và không bảo đảm doanh thu/lợi nhuận cho seller. Mỗi seller tự nguyện đăng ký tài khoản để kinh doanh và tự chịu trách nhiệm pháp lý đối với sản phẩm, nguồn hàng, nội dung đăng bán, nghĩa vụ thuế và việc tuân thủ pháp luật. Trong mọi trường hợp seller gặp rủi ro, tổn thất, tranh chấp, vi phạm hoặc sự cố phát sinh trong quá trình kinh doanh, trách nhiệm thuộc về seller liên quan; Reseller Platform không bị quy trách nhiệm hoặc bồi thường cho các thiệt hại đó. Reseller Platform có quyền tạm khóa/chấm dứt tài khoản, tạm giữ giao dịch/số dư để phục vụ điều tra khi có dấu hiệu vi phạm hoặc gian lận. Seller đồng ý bồi hoàn cho Reseller Platform đối với mọi khiếu nại, chi phí, thiệt hại phát sinh từ hành vi vi phạm của seller.',
     'terms.contact': 'Nếu bạn có bất kỳ câu hỏi nào về điều khoản sử dụng, vui lòng liên hệ với chúng tôi qua Zalo hoặc Telegram.',
     
     'admin.completedAt': 'Hoàn thành lúc',
@@ -1094,7 +1094,7 @@ export const translations: Record<Language, Record<TranslationKey, string>> = {
     'terms.prohibitedTitle': 'Prohibited Conduct',
     'terms.prohibitedText': 'You may not: share keys with others, use keys for illegal commercial purposes, attempt to hack or damage the system, or perform any illegal activities.',
     'terms.liabilityTitle': 'Liability',
-    'terms.liabilityText': 'We are not responsible for any damages arising from the use of the service. You use the service at your own risk.',
+    'terms.liabilityText': 'Reseller Platform only provides infrastructure and transaction support tools, is not the direct seller, and does not guarantee seller revenue or profit. Each seller voluntarily registers an account for business purposes and is solely legally responsible for their products, inventory source, listed content, tax obligations, and legal compliance. In all cases where a seller faces risks, losses, disputes, violations, or incidents arising from business activities, such responsibility belongs to the relevant seller; Reseller Platform shall not be held liable and is not obligated to compensate such damages. Reseller Platform reserves the right to temporarily suspend/terminate accounts and hold transactions/balances for investigation when signs of violations or fraud are detected. Sellers agree to indemnify Reseller Platform for any claims, costs, or damages arising from the seller’s violations.',
     'terms.contact': 'If you have any questions about the terms of service, please contact us via Zalo or Telegram.',
     
     'admin.completedAt': 'Completed At',
