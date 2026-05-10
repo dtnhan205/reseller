@@ -1095,6 +1095,7 @@ async function getAllOrders(req, res) {
   const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
   const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
   const searchQuery = req.query.search ? String(req.query.search).trim() : null;
+  const sellerEmailQuery = req.query.sellerEmail ? String(req.query.sellerEmail).trim() : null;
 
   // Validate pagination params
   if (page < 1) throw new HttpError(400, "Page must be >= 1");
@@ -1147,20 +1148,35 @@ async function getAllOrders(req, res) {
     };
   }
 
-  // Combine filters
-  const combinedFilter = { ...dateFilter };
-  if (Object.keys(searchFilter).length > 0) {
-    if (combinedFilter.$or) {
-      // If date filter already has $or, we need to combine with $and
-      combinedFilter.$and = [
-        { $or: combinedFilter.$or },
-        searchFilter
-      ];
-      delete combinedFilter.$or;
-    } else {
-      Object.assign(combinedFilter, searchFilter);
-    }
+  // Build seller email filter (for populated seller relation)
+  let sellerIdsFilter = null;
+  if (sellerEmailQuery && sellerEmailQuery.length > 0) {
+    const sellerEmailRegex = new RegExp(sellerEmailQuery, 'i');
+    const matchedSellers = await User.find({
+      role: 'seller',
+      email: sellerEmailRegex
+    }).select('_id').lean();
+
+    const matchedSellerIds = matchedSellers.map((s) => s._id);
+    sellerIdsFilter = { sellerId: { $in: matchedSellerIds } };
   }
+
+  // Combine filters
+  const andConditions = [];
+
+  if (Object.keys(dateFilter).length > 0) {
+    andConditions.push(dateFilter);
+  }
+
+  if (Object.keys(searchFilter).length > 0) {
+    andConditions.push(searchFilter);
+  }
+
+  if (sellerIdsFilter) {
+    andConditions.push(sellerIdsFilter);
+  }
+
+  const combinedFilter = andConditions.length > 0 ? { $and: andConditions } : {};
 
   // Get total count for pagination (with all filters)
   const totalOrders = await Order.countDocuments(combinedFilter);
