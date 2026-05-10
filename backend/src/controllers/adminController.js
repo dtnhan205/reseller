@@ -1140,15 +1140,24 @@ async function getAllOrders(req, res) {
   let searchFilter = {};
   if (searchQuery && searchQuery.length > 0) {
     const searchRegex = new RegExp(searchQuery, 'i'); // Case-insensitive search
+
+    // Support searching by seller email directly in the same search box
+    const matchedSellersBySearch = await User.find({
+      role: 'seller',
+      email: searchRegex
+    }).select('_id').lean();
+    const matchedSellerIdsBySearch = matchedSellersBySearch.map((s) => s._id);
+
     searchFilter = {
       $or: [
         { keyValue: searchRegex },
-        { productName: searchRegex }
+        { productName: searchRegex },
+        ...(matchedSellerIdsBySearch.length > 0 ? [{ sellerId: { $in: matchedSellerIdsBySearch } }] : [])
       ]
     };
   }
 
-  // Build seller email filter (for populated seller relation)
+  // Build seller email filter (dedicated param)
   let sellerIdsFilter = null;
   if (sellerEmailQuery && sellerEmailQuery.length > 0) {
     const sellerEmailRegex = new RegExp(sellerEmailQuery, 'i');
@@ -1190,18 +1199,6 @@ async function getAllOrders(req, res) {
     .limit(limit)
     .lean();
 
-  // Filter by seller email if search query exists (after populate)
-  if (searchQuery && searchQuery.length > 0) {
-    const searchLower = searchQuery.toLowerCase();
-    orders = orders.filter(order => {
-      const sellerEmail = order.sellerId?.email || '';
-      return (
-        order.keyValue?.toLowerCase().includes(searchLower) ||
-        order.productName?.toLowerCase().includes(searchLower) ||
-        sellerEmail.toLowerCase().includes(searchLower)
-      );
-    });
-  }
 
   const formattedOrders = orders.map((order) => ({
     _id: order._id,
