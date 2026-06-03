@@ -103,8 +103,10 @@ export default function TopupPage() {
       const amountVNDValue = currentPayment.amountVND || currentPayment.amount;
       const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accountNumber}-compact2.jpg?amount=${amountVNDValue}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(accountName)}`;
       setQrCodeUrl(qrUrl);
+      setIsQrVisible(true);
     } else {
       setQrCodeUrl('');
+      setIsQrVisible(false);
     }
   }, [currentPayment]);
 
@@ -216,7 +218,8 @@ export default function TopupPage() {
     setIsLoading(true);
     try {
       const payment = await sellerApi.topup({ amountUSD: numUSD });
-      setCurrentPayment(payment);
+      const fullPayment = await sellerApi.getPaymentDetail(payment._id);
+      setCurrentPayment(fullPayment);
       showSuccess(t('topup.paymentCreated'));
       setInputValue('');
       await loadPendingPayments();
@@ -450,7 +453,6 @@ export default function TopupPage() {
             <div className="space-y-6">
               {qrCodeUrl && (
                 <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-2xl p-8 border border-gray-700/50 shadow-xl">
-                  {isQrVisible || setIsQrVisible(true)}
                   <div className="flex items-center justify-center gap-2 mb-6">
                     <QrCode className="w-6 h-6 text-purple-400" />
                     <h3 className="text-xl font-semibold text-gray-200">{t('topup.scanQR')}</h3>
