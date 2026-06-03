@@ -264,10 +264,16 @@ export default function TopupHistoryTab() {
                         : item.transactionType === 'manual_deduct'
                           ? 'Trừ'
                           : 'Nạp';
-                    const beforeVND =
-                      item.walletBeforeVND ?? Math.round((item.walletBeforeUSD ?? 0) * usdToVnd);
-                    const afterVND =
-                      item.walletAfterVND ?? Math.round((item.walletAfterUSD ?? 0) * usdToVnd);
+                    const beforeVND = item.walletBeforeVND;
+                    const afterVND = item.walletAfterVND;
+                    const beforeLabel =
+                      beforeVND != null
+                        ? formatCurrency(beforeVND / usdToVnd, language, usdToVnd)
+                        : '—';
+                    const afterLabel =
+                      afterVND != null
+                        ? formatCurrency(afterVND / usdToVnd, language, usdToVnd)
+                        : '—';
                     return (
                       <tr
                         key={item._id}
@@ -290,13 +296,13 @@ export default function TopupHistoryTab() {
                         <td className="py-3 px-4 align-top">
                           <div className="text-sm text-white/80">
                             <p className="text-white/50 text-xs mb-1">Trước</p>
-                            <p>{formatCurrency(beforeVND / usdToVnd, language, usdToVnd)}</p>
+                            <p>{beforeLabel}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4 align-top">
                           <div className="text-sm text-white/80">
                             <p className="text-white/50 text-xs mb-1">Sau</p>
-                            <p>{formatCurrency(afterVND / usdToVnd, language, usdToVnd)}</p>
+                            <p>{afterLabel}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4 align-top">
