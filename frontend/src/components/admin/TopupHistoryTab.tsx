@@ -13,9 +13,23 @@ interface AdminTopupHistoryItem {
   sellerEmail: string;
   amount: number; // VND (backward compatibility)
   amountUSD?: number; // USD
+  amountVND?: number;
   transferContent?: string;
   note?: string;
+  status?: string;
   createdAt: string;
+  completedAt?: string;
+  transactionType?: 'topup' | 'purchase' | 'manual_topup' | 'manual_deduct' | 'adjustment';
+  source?: string | null;
+  walletBeforeUSD?: number | null;
+  walletAfterUSD?: number | null;
+  walletBeforeVND?: number | null;
+  walletAfterVND?: number | null;
+  bankAccount?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountHolder?: string;
+  } | null;
 }
 
 export default function TopupHistoryTab() {
@@ -231,7 +245,10 @@ export default function TopupHistoryTab() {
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Gmail</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Nội dung nạp</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Loại</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Trước</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Sau</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-white/80">Nội dung</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-white/80">Số tiền</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-white/80">Ngày giờ</th>
                   </tr>
@@ -241,18 +258,51 @@ export default function TopupHistoryTab() {
                     const amountUSD =
                       item.amountUSD != null ? item.amountUSD : item.amount / usdToVnd;
                     const content = item.note || item.transferContent || '-';
+                    const txTypeLabel =
+                      item.transactionType === 'purchase'
+                        ? 'Mua'
+                        : item.transactionType === 'manual_deduct'
+                          ? 'Trừ'
+                          : 'Nạp';
+                    const beforeVND =
+                      item.walletBeforeVND ?? Math.round((item.walletBeforeUSD ?? 0) * usdToVnd);
+                    const afterVND =
+                      item.walletAfterVND ?? Math.round((item.walletAfterUSD ?? 0) * usdToVnd);
                     return (
                       <tr
                         key={item._id}
                         className="border-b border-white/5 hover:bg-white/5 transition-colors"
                       >
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-4 align-top">
                           <p className="text-white text-sm break-all">{item.sellerEmail}</p>
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-4 align-top">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${
+                              item.transactionType === 'purchase' || item.transactionType === 'manual_deduct'
+                                ? 'border-red-500/30 text-red-300 bg-red-500/10'
+                                : 'border-green-500/30 text-green-300 bg-green-500/10'
+                            }`}
+                          >
+                            {txTypeLabel}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 align-top">
+                          <div className="text-sm text-white/80">
+                            <p className="text-white/50 text-xs mb-1">Trước</p>
+                            <p>{formatCurrency(beforeVND / usdToVnd, language, usdToVnd)}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 align-top">
+                          <div className="text-sm text-white/80">
+                            <p className="text-white/50 text-xs mb-1">Sau</p>
+                            <p>{formatCurrency(afterVND / usdToVnd, language, usdToVnd)}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 align-top">
                           <p className="text-white/80 text-sm break-all">{content}</p>
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-4 text-right align-top">
                           <p
                             className={`text-sm font-semibold ${
                               amountUSD < 0 ? 'text-red-400' : 'text-green-400'
@@ -262,8 +312,8 @@ export default function TopupHistoryTab() {
                             {formatCurrency(amountUSD, language, usdToVnd)}
                           </p>
                         </td>
-                        <td className="py-3 px-4 text-right">
-                          <p className="text-white/70 text-sm">{formatDateShort(item.createdAt)}</p>
+                        <td className="py-3 px-4 text-right align-top">
+                          <p className="text-white/70 text-sm">{formatDateShort(item.completedAt || item.createdAt)}</p>
                         </td>
                       </tr>
                     );
