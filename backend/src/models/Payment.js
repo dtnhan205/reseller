@@ -47,10 +47,10 @@ const paymentSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
-      // Tự động hết hạn sau 15 phút nếu chưa thanh toán
+      // Tự động hết hạn sau 10 tiếng nếu chưa thanh toán
       default: function() {
         const date = new Date();
-        date.setMinutes(date.getMinutes() + 15);
+        date.setHours(date.getHours() + 10);
         return date;
       },
     },

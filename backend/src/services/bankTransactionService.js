@@ -93,10 +93,12 @@ async function checkAndUpdatePayments() {
   try {
     const now = new Date();
 
-    // Lấy tất cả payment pending
+    // Chỉ ưu tiên kiểm tra các payment pending mới tạo gần đây để giảm độ trễ
+    const recentWindowStart = new Date(now.getTime() - 15 * 60 * 1000);
     const pendingPayments = await Payment.find({
       status: "pending",
-      expiresAt: { $gt: now }, // Chưa hết hạn
+      expiresAt: { $gt: now },
+      createdAt: { $gte: recentWindowStart },
     }).populate("bankAccountId");
 
     if (pendingPayments.length === 0) {
@@ -190,15 +192,28 @@ async function checkAndUpdatePayments() {
           // Tìm thấy giao dịch khớp, cộng tiền vào wallet (USD)
           const seller = await User.findById(payment.sellerId);
           if (seller) {
-            // Cộng USD vào wallet (wallet lưu USD)
+            const walletBeforeUSD = Number(seller.walletBalance || 0);
             const usdAmount = Number(payment.amountUSD || (payment.amount / 25000)); // Fallback nếu không có amountUSD
-            seller.walletBalance = Number(seller.walletBalance || 0) + usdAmount;
+            const walletAfterUSD = walletBeforeUSD + usdAmount;
+
+            seller.walletBalance = walletAfterUSD;
             await seller.save();
+
+            payment.walletBeforeUSD = walletBeforeUSD;
+            payment.walletAfterUSD = walletAfterUSD;
+            payment.walletBeforeVND = Math.round(walletBeforeUSD * 25000);
+            payment.walletAfterVND = Math.round(walletAfterUSD * 25000);
           }
 
           // Cập nhật trạng thái payment
-          payment.status = "completed";
-          payment.completedAt = new Date();
+          payment.set({
+            walletBeforeUSD: walletBeforeUSD ?? payment.walletBeforeUSD ?? null,
+            walletAfterUSD: walletAfterUSD ?? payment.walletAfterUSD ?? null,
+            walletBeforeVND: Math.round((walletBeforeUSD ?? payment.walletBeforeUSD ?? 0) * 25000),
+            walletAfterVND: Math.round((walletAfterUSD ?? payment.walletAfterUSD ?? 0) * 25000),
+            status: "completed",
+            completedAt: new Date(),
+          });
           await payment.save();
           completedContentSet.add(transferContentKey);
 
@@ -210,14 +225,14 @@ async function checkAndUpdatePayments() {
       }
     }
 
-    // Xóa các payment đã hết hạn (quá 15 phút)
+    // Xóa các payment đã hết hạn (quá 10 tiếng)
     const deletedCount = await Payment.deleteMany({
       status: "pending",
       expiresAt: { $lte: now },
     });
 
     if (deletedCount.deletedCount > 0) {
-      console.log(`[BankTransactionService] Đã xóa ${deletedCount.deletedCount} payment(s) đã hết hạn (quá 15 phút)`);
+      console.log(`[BankTransactionService] Đã xóa ${deletedCount.deletedCount} payment(s) đã hết hạn (quá 10 tiếng)`);
     }
 
     return { checked, updated, deleted: deletedCount.deletedCount || 0 };

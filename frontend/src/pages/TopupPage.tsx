@@ -25,6 +25,7 @@ export default function TopupPage() {
   const [currentPayment, setCurrentPayment] = useState<Payment | null>(null);
   const [pendingPayments, setPendingPayments] = useState<Payment[]>([]);
   const [copied, setCopied] = useState(false);
+  const [isQrVisible, setIsQrVisible] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const { usdToVnd } = useExchangeRate();
   const pollingIntervalRef = useRef<number | null>(null);
@@ -108,42 +109,52 @@ export default function TopupPage() {
   }, [currentPayment]);
 
   useEffect(() => {
-    if (currentPayment && currentPayment.status === 'pending') {
-      pollingIntervalRef.current = window.setInterval(async () => {
-        try {
-          const updatedPayment = await sellerApi.getPaymentDetail(currentPayment._id);
-          
-          if (updatedPayment.status === 'completed' && currentPayment.status === 'pending') {
-            if (pollingIntervalRef.current) {
-              window.clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
-            }
-            
-            setCurrentPayment(updatedPayment);
-            
-            try {
-              const updatedUser = await authApi.me();
-              updateUser(updatedUser);
-            } catch (err) {}
-            
-            await loadPendingPayments();
-            showSuccess(t('topup.paymentCompleted') || `Success! Balance updated.`);
-            
-            setTimeout(() => {
-              navigate('/app/generate');
-            }, 1500);
-          } else if (updatedPayment.status !== currentPayment.status) {
-            setCurrentPayment(updatedPayment);
-            await loadPendingPayments();
-          }
-        } catch (err) {}
-      }, 5000);
-    } else {
+    if (!currentPayment || currentPayment.status !== 'pending') {
       if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+        window.clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
+      return;
     }
+
+    const intervalMs = isQrVisible && !!qrCodeUrl ? 1500 : 60000;
+
+    const tick = async () => {
+      try {
+        const updatedPayment = await sellerApi.getPaymentDetail(currentPayment._id);
+
+        if (updatedPayment.status === 'completed' && currentPayment.status === 'pending') {
+          if (pollingIntervalRef.current) {
+            window.clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+
+          setCurrentPayment(updatedPayment);
+
+          try {
+            const updatedUser = await authApi.me();
+            updateUser(updatedUser);
+          } catch (err) {}
+
+          await loadPendingPayments();
+          showSuccess(t('topup.paymentCompleted') || `Success! Balance updated.`);
+
+          setTimeout(() => {
+            navigate('/app/generate');
+          }, 1500);
+        } else if (updatedPayment.status !== currentPayment.status) {
+          setCurrentPayment(updatedPayment);
+          await loadPendingPayments();
+        }
+      } catch (err) {}
+    };
+
+    if (pollingIntervalRef.current) {
+      window.clearInterval(pollingIntervalRef.current);
+    }
+
+    tick();
+    pollingIntervalRef.current = window.setInterval(tick, intervalMs);
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -151,7 +162,7 @@ export default function TopupPage() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentPayment, updateUser, showSuccess, t, navigate]);
+  }, [currentPayment, isQrVisible, qrCodeUrl, updateUser, showSuccess, t, navigate]);
 
   const loadPendingPayments = async () => {
     try {
@@ -165,6 +176,7 @@ export default function TopupPage() {
     try {
       const fullPayment = await sellerApi.getPaymentDetail(payment._id);
       setCurrentPayment(fullPayment);
+      setIsQrVisible(false);
       
       setTimeout(() => {
         const paymentSection = document.getElementById('payment-information');
@@ -438,6 +450,7 @@ export default function TopupPage() {
             <div className="space-y-6">
               {qrCodeUrl && (
                 <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-2xl p-8 border border-gray-700/50 shadow-xl">
+                  {isQrVisible || setIsQrVisible(true)}
                   <div className="flex items-center justify-center gap-2 mb-6">
                     <QrCode className="w-6 h-6 text-purple-400" />
                     <h3 className="text-xl font-semibold text-gray-200">{t('topup.scanQR')}</h3>

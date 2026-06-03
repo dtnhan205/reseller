@@ -151,9 +151,23 @@ export const adminApi = {
       sellerEmail: string;
       amount: number;
       amountUSD?: number;
+      amountVND?: number;
       transferContent?: string;
       note?: string;
+      status?: string;
       createdAt: string;
+      completedAt?: string;
+      transactionType?: 'topup' | 'purchase' | 'manual_topup' | 'manual_deduct' | 'adjustment';
+      source?: string | null;
+      walletBeforeUSD?: number | null;
+      walletAfterUSD?: number | null;
+      walletBeforeVND?: number | null;
+      walletAfterVND?: number | null;
+      bankAccount?: {
+        bankName?: string;
+        accountNumber?: string;
+        accountHolder?: string;
+      } | null;
     }>;
     totalItems: number;
     totalAmountUSD: number;

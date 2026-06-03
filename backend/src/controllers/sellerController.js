@@ -27,37 +27,30 @@ async function topupWallet(req, res) {
   if (!user) throw new HttpError(404, "User not found");
   if (user.role !== "seller") throw new HttpError(403, "Only seller can topup");
 
+  const walletBeforeUSD = Number(user.walletBalance || 0);
+  const walletAfterUSD = walletBeforeUSD + numUSD;
+
   // Kiểm tra số lượng đơn chưa thanh toán (pending)
   const pendingPayments = await Payment.countDocuments({
     sellerId: req.user._id,
     status: "pending",
   });
 
-  if (pendingPayments >= 3) {
-    throw new HttpError(400, "Bạn đã có 3 đơn chưa thanh toán. Vui lòng thanh toán hoặc xóa đơn cũ trước khi tạo đơn mới.");
+  if (pendingPayments >= 5) {
+    throw new HttpError(429, "Bạn chỉ có thể tạo tối đa 5 mã nạp tiền chưa thanh toán. Vui lòng thanh toán hoặc đợi bill cũ hết hạn.");
   }
 
-  // Kiểm tra chống spam: không cho tạo payment mới nếu đã tạo payment PENDING trong 5 phút gần đây
-  const fiveMinutesAgo = new Date();
-  fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+  // Kiểm tra chống spam: giới hạn 5 mã / 1 phút
+  const oneMinuteAgo = new Date();
+  oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
 
-  const recentPendingPayment = await Payment.findOne({
+  const recentPaymentsCount = await Payment.countDocuments({
     sellerId: req.user._id,
-    status: "pending",
-    createdAt: { $gte: fiveMinutesAgo },
-  }).sort({ createdAt: -1 });
+    createdAt: { $gte: oneMinuteAgo },
+  });
 
-  if (recentPendingPayment) {
-    const paymentTime = new Date(recentPendingPayment.createdAt);
-    const fiveMinutesAfterPayment = new Date(paymentTime.getTime() + 5 * 60000);
-    const now = new Date();
-    const timeRemainingMs = fiveMinutesAfterPayment.getTime() - now.getTime();
-
-    if (timeRemainingMs > 0) {
-      const timeRemainingSeconds = Math.ceil(timeRemainingMs / 1000);
-      const timeRemainingMinutes = Math.ceil(timeRemainingMs / 60000);
-      throw new HttpError(429, `Bạn đã tạo hóa đơn chưa thanh toán gần đây. Vui lòng đợi ${timeRemainingMinutes} phút nữa hoặc thanh toán/xóa đơn cũ trước khi tạo hóa đơn mới.`);
-    }
+  if (recentPaymentsCount >= 5) {
+    throw new HttpError(429, "Bạn đang tạo mã quá nhanh. Chỉ được tạo tối đa 5 mã trong 1 phút.");
   }
 
   // Lấy tài khoản ngân hàng active
@@ -77,6 +70,12 @@ async function topupWallet(req, res) {
     amountVND: amountVND,
     transferContent,
     bankAccountId: bankAccount._id,
+    walletBeforeUSD,
+    walletAfterUSD,
+    walletBeforeVND: Math.round(walletBeforeUSD * exchangeRate.usdToVnd),
+    walletAfterVND: Math.round(walletAfterUSD * exchangeRate.usdToVnd),
+    transactionType: "topup",
+    source: "sellerController.topupWallet",
   });
 
   // Populate bank account để trả về thông tin đầy đủ

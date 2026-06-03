@@ -17,6 +17,7 @@ const { Order } = require("../models/Order");
 
 const PROXYVIP_SOURCES = new Set(["v1", "v2", "v3"]);
 const PROXYVIP_DURATIONS = new Set(["1h", "2h", "1d", "1w", "1m", "1y"]);
+const TOPUP_WALLET_TRACKING_ENABLED_AT = new Date("2026-06-03T00:00:00+07:00");
 
 function normalizeProxyVipSource(value) {
   const v = String(value || "").trim().toLowerCase();
@@ -620,6 +621,45 @@ async function getSellerTopupHistory(req, res) {
     .sort({ createdAt: -1 })
     .lean();
 
+  let runningBalanceUSD = null;
+  const topupPayments = payments
+    .slice()
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  for (const payment of topupPayments) {
+    const amountUSD = Number(payment.amountUSD || 0);
+    const isRelevant = payment.status === "completed" && amountUSD !== 0;
+
+    if (!isRelevant) {
+      continue;
+    }
+
+    if (payment.walletBeforeUSD == null || payment.walletAfterUSD == null) {
+      if (runningBalanceUSD == null) {
+        const deltaBefore = topupPayments
+          .filter((p) => new Date(p.createdAt) < new Date(payment.createdAt) && p.status === "completed")
+          .reduce((sum, p) => sum + Number(p.amountUSD || 0), 0);
+        runningBalanceUSD = Number(seller.walletBalance || 0) - topupPayments
+          .filter((p) => p.status === "completed" && new Date(p.createdAt) >= new Date(payment.createdAt))
+          .reduce((sum, p) => sum + Number(p.amountUSD || 0), 0);
+        if (!Number.isFinite(runningBalanceUSD)) {
+          runningBalanceUSD = deltaBefore;
+        }
+      }
+    }
+
+    if (payment.walletBeforeUSD == null) {
+      payment.walletBeforeUSD = runningBalanceUSD;
+    }
+    if (payment.walletAfterUSD == null) {
+      payment.walletAfterUSD = payment.walletBeforeUSD + amountUSD;
+    }
+    payment.walletBeforeVND = payment.walletBeforeVND ?? Math.round(Number(payment.walletBeforeUSD || 0) * 25000);
+    payment.walletAfterVND = payment.walletAfterVND ?? Math.round(Number(payment.walletAfterUSD || 0) * 25000);
+
+    runningBalanceUSD = payment.walletAfterUSD;
+  }
+
   const formatted = payments.map((payment) => ({
     _id: payment._id,
     sellerId: payment.sellerId,
@@ -724,6 +764,12 @@ async function manualDeductSeller(req, res) {
     completedAt: new Date(),
     expiresAt: new Date(),
     note: note || "Manual deduction by admin",
+    walletBeforeUSD: balance,
+    walletAfterUSD: balance - numUSD,
+    walletBeforeVND: Math.round(balance * 25000),
+    walletAfterVND: Math.round((balance - numUSD) * 25000),
+    transactionType: "manual_deduct",
+    source: "adminController.manualDeductSeller",
   });
 
   res.status(201).json({
@@ -1392,9 +1438,25 @@ async function getAllTopupHistory(req, res) {
     sellerEmail: payment.sellerId?.email || "Unknown",
     amount: payment.amount || 0,
     amountUSD: payment.amountUSD,
+    amountVND: payment.amountVND,
     transferContent: payment.transferContent,
     note: payment.note,
+    status: payment.status,
     createdAt: payment.createdAt,
+    completedAt: payment.completedAt,
+    transactionType: payment.transactionType,
+    source: payment.source,
+    walletBeforeUSD: payment.walletBeforeUSD,
+    walletAfterUSD: payment.walletAfterUSD,
+    walletBeforeVND: payment.walletBeforeVND,
+    walletAfterVND: payment.walletAfterVND,
+    bankAccount: payment.bankAccountId
+      ? {
+          bankName: payment.bankAccountId.bankName,
+          accountNumber: payment.bankAccountId.accountNumber,
+          accountHolder: payment.bankAccountId.accountHolder,
+        }
+      : null,
   }));
 
   const totalPages = Math.ceil(totalItems / limit) || 1;
@@ -1407,6 +1469,7 @@ async function getAllTopupHistory(req, res) {
     currentPage: page,
     totalPages,
     limit,
+    walletTrackingEnabledAt: TOPUP_WALLET_TRACKING_ENABLED_AT.toISOString(),
   });
 }
 

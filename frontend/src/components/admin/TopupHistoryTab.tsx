@@ -257,6 +257,7 @@ export default function TopupHistoryTab() {
                   {history.map((item) => {
                     const amountUSD =
                       item.amountUSD != null ? item.amountUSD : item.amount / usdToVnd;
+                    const showWalletColumns = true;
                     const content = item.note || item.transferContent || '-';
                     const txTypeLabel =
                       item.transactionType === 'purchase'
@@ -264,16 +265,16 @@ export default function TopupHistoryTab() {
                         : item.transactionType === 'manual_deduct'
                           ? 'Trừ'
                           : 'Nạp';
-                    const beforeVND = item.walletBeforeVND;
-                    const afterVND = item.walletAfterVND;
-                    const beforeLabel =
-                      beforeVND != null
-                        ? formatCurrency(beforeVND / usdToVnd, language, usdToVnd)
-                        : '—';
-                    const afterLabel =
-                      afterVND != null
-                        ? formatCurrency(afterVND / usdToVnd, language, usdToVnd)
-                        : '—';
+                    const beforeVND =
+                      item.walletBeforeVND ??
+                      (item.walletBeforeUSD != null ? Math.round(item.walletBeforeUSD * usdToVnd) : null);
+                    const afterVND =
+                      item.walletAfterVND ??
+                      (item.walletAfterUSD != null ? Math.round(item.walletAfterUSD * usdToVnd) : null);
+                    const formatVndOnly = (value: number) =>
+                      new Intl.NumberFormat(language === 'vi' ? 'vi-VN' : 'en-US').format(value) + ' VND';
+                    const beforeLabel = beforeVND != null ? formatVndOnly(beforeVND) : '—';
+                    const afterLabel = afterVND != null ? formatVndOnly(afterVND) : '—';
                     return (
                       <tr
                         key={item._id}
@@ -296,13 +297,13 @@ export default function TopupHistoryTab() {
                         <td className="py-3 px-4 align-top">
                           <div className="text-sm text-white/80">
                             <p className="text-white/50 text-xs mb-1">Trước</p>
-                            <p>{beforeLabel}</p>
+                            <p>{showWalletColumns && beforeVND != null ? beforeLabel : '—'}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4 align-top">
                           <div className="text-sm text-white/80">
                             <p className="text-white/50 text-xs mb-1">Sau</p>
-                            <p>{afterLabel}</p>
+                            <p>{showWalletColumns && afterVND != null ? afterLabel : '—'}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4 align-top">
