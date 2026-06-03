@@ -63,12 +63,14 @@ async function fetchBankTransactions(bankAccount) {
       
       // Xác định type: "C" hoặc "CD" = "+" là tiền vào, "D" hoặc "DorCCode" = "D" là tiền ra
       const isIncoming = txn.CD === "+" || txn.DorCCode === "C";
+      const transactionId = String(txn.Reference || txn.SeqNo || "").trim();
+      const description = String(txn.Description || txn.Remark || "").trim();
       
       return {
-        transactionID: txn.Reference || txn.SeqNo || "",
+        transactionID: transactionId,
         amount: amount,
-        content: txn.Description || txn.Remark || "",
-        description: txn.Description || txn.Remark || "",
+        content: description,
+        description: description,
         date: txn.tranDate || txn.TransactionDate || "", // "02/04/2024"
         time: txn.PCTime || txn.PostingTime || "",
         type: isIncoming ? "IN" : "OUT",
@@ -89,17 +91,19 @@ async function fetchBankTransactions(bankAccount) {
  */
 async function checkAndUpdatePayments() {
   try {
+    const now = new Date();
+
     // Lấy tất cả payment pending
     const pendingPayments = await Payment.find({
       status: "pending",
-      expiresAt: { $gt: new Date() }, // Chưa hết hạn
+      expiresAt: { $gt: now }, // Chưa hết hạn
     }).populate("bankAccountId");
 
     if (pendingPayments.length === 0) {
       // Vẫn cần kiểm tra và xóa các payment đã hết hạn
       const deletedCount = await Payment.deleteMany({
         status: "pending",
-        expiresAt: { $lte: new Date() },
+        expiresAt: { $lte: now },
       });
       return { checked: 0, updated: 0, deleted: deletedCount.deletedCount || 0 };
     }
@@ -132,7 +136,18 @@ async function checkAndUpdatePayments() {
       
       // Lấy lịch sử giao dịch từ API URL của bank account
       const transactions = await fetchBankTransactions(bankAccount);
-      
+      const completedContentSet = new Set(
+        (await Payment.find({
+          bankAccountId: bankAccount._id,
+          status: "completed",
+          amountUSD: { $gt: 0 },
+        }).select("transferContent amount amountVND amountUSD")).map((payment) => {
+          const normalizedContent = String(payment.transferContent || "").trim().toLowerCase();
+          const normalizedAmount = Number(payment.amountVND || payment.amount || 0);
+          return `${normalizedAmount}::${normalizedContent}`;
+        })
+      );
+
       console.log(`[BankTransactionService] Lấy được ${transactions.length} giao dịch từ API`);
 
       checked += payments.length;
@@ -162,12 +177,22 @@ async function checkAndUpdatePayments() {
         });
 
         if (matchingTransaction) {
+          const transferContentKey = `${Number(payment.amountVND || payment.amount || 0)}::${String(payment.transferContent || "").trim().toLowerCase()}`;
+
+          if (completedContentSet.has(transferContentKey)) {
+            console.log(`[BankTransactionService] - Payment ${payment._id} (${payment.transferContent}, ${payment.amount} VNĐ) đã được ghi nhận trước đó, bỏ qua cộng wallet`);
+            payment.status = "completed";
+            payment.completedAt = payment.completedAt || new Date();
+            await payment.save();
+            continue;
+          }
+
           // Tìm thấy giao dịch khớp, cộng tiền vào wallet (USD)
           const seller = await User.findById(payment.sellerId);
           if (seller) {
             // Cộng USD vào wallet (wallet lưu USD)
-            const usdAmount = payment.amountUSD || (payment.amount / 25000); // Fallback nếu không có amountUSD
-            seller.walletBalance = (seller.walletBalance || 0) + usdAmount;
+            const usdAmount = Number(payment.amountUSD || (payment.amount / 25000)); // Fallback nếu không có amountUSD
+            seller.walletBalance = Number(seller.walletBalance || 0) + usdAmount;
             await seller.save();
           }
 
@@ -175,6 +200,7 @@ async function checkAndUpdatePayments() {
           payment.status = "completed";
           payment.completedAt = new Date();
           await payment.save();
+          completedContentSet.add(transferContentKey);
 
           updated++;
           console.log(`[BankTransactionService] ✓ Payment ${payment._id} (${payment.transferContent}, ${payment.amount} VNĐ) đã được xác minh và cộng tiền vào wallet cho seller ${payment.sellerId}`);
@@ -187,7 +213,7 @@ async function checkAndUpdatePayments() {
     // Xóa các payment đã hết hạn (quá 15 phút)
     const deletedCount = await Payment.deleteMany({
       status: "pending",
-      expiresAt: { $lte: new Date() },
+      expiresAt: { $lte: now },
     });
 
     if (deletedCount.deletedCount > 0) {

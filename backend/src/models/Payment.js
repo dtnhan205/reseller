@@ -54,6 +54,26 @@ const paymentSchema = new mongoose.Schema(
         return date;
       },
     },
+    walletBeforeUSD: {
+      type: Number,
+    },
+    walletAfterUSD: {
+      type: Number,
+    },
+    walletBeforeVND: {
+      type: Number,
+    },
+    walletAfterVND: {
+      type: Number,
+    },
+    transactionType: {
+      type: String,
+      enum: ["topup", "purchase", "manual_topup", "manual_deduct", "adjustment"],
+    },
+    source: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

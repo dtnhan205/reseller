@@ -131,7 +131,34 @@ async function purchase(req, res) {
       product.totalQtyAvailable = Math.max(0, (product.totalQtyAvailable || 0) - 1);
       product.totalQtySold = (product.totalQtySold || 0) + 1;
 
-      seller.walletBalance -= price;
+      const beforeUSD = Number(seller.walletBalance || 0);
+      const afterUSD = beforeUSD - price;
+      seller.walletBalance = afterUSD;
+
+      // Tạo payment record để ghi nhận việc trừ tiền khi mua hàng
+      await Payment.create(
+        [
+          {
+            sellerId: seller._id,
+            amount: 0,
+            amountUSD: -price,
+            amountVND: 0,
+            transferContent: `ORDER_PURCHASE_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            bankAccountId: null,
+            status: "completed",
+            completedAt: new Date(),
+            expiresAt: new Date(),
+            note: `Purchase: ${product.name}`,
+            walletBeforeUSD: beforeUSD,
+            walletAfterUSD: afterUSD,
+            walletBeforeVND: Math.round(beforeUSD * 25000),
+            walletAfterVND: Math.round(afterUSD * 25000),
+            transactionType: "purchase",
+            source: "sellerController.purchase",
+          }
+        ],
+        { session }
+      );
 
       createdOrder = await Order.create(
         [
@@ -227,6 +254,26 @@ async function createProxyVipRequest(req, res) {
       createdLicenseKey = await createProxyVipLicenseKey(licenseDuration, licenseSource);
 
       seller.walletBalance -= price;
+
+      // Tạo payment record để ghi nhận việc trừ tiền khi mua Proxy VIP
+      await Payment.create(
+        [
+          {
+            sellerId: seller._id,
+            amount: 0,
+            amountUSD: -price,
+            amountVND: 0,
+            transferContent: `ORDER_PROXYVIP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            bankAccountId: null,
+            status: "completed",
+            completedAt: new Date(),
+            expiresAt: new Date(),
+            note: `Proxy VIP Purchase: ${product.name}`
+          }
+        ],
+        { session }
+      );
+
       product.totalQtySold = (product.totalQtySold || 0) + 1;
 
       createdOrder = await Order.create(

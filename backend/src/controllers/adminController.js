@@ -619,8 +619,29 @@ async function getSellerTopupHistory(req, res) {
     .populate("bankAccountId", "bankName accountNumber accountHolder")
     .sort({ createdAt: -1 })
     .lean();
+
+  const formatted = payments.map((payment) => ({
+    _id: payment._id,
+    sellerId: payment.sellerId,
+    sellerEmail: seller.email,
+    amount: payment.amount || 0,
+    amountUSD: payment.amountUSD || 0,
+    amountVND: payment.amountVND || 0,
+    transferContent: payment.transferContent,
+    note: payment.note,
+    status: payment.status,
+    completedAt: payment.completedAt,
+    createdAt: payment.createdAt,
+    transactionType: payment.transactionType || (payment.amountUSD > 0 ? "topup" : payment.amountUSD < 0 ? "purchase" : "adjustment"),
+    source: payment.source || null,
+    walletBeforeUSD: payment.walletBeforeUSD ?? null,
+    walletAfterUSD: payment.walletAfterUSD ?? null,
+    walletBeforeVND: payment.walletBeforeVND ?? null,
+    walletAfterVND: payment.walletAfterVND ?? null,
+    bankAccount: payment.bankAccountId || null,
+  }));
   
-  res.json(payments);
+  res.json(formatted);
 }
 
 // POST /api/admin/sellers/:id/topup - Admin: Nạp tiền thủ công cho seller
@@ -638,9 +659,11 @@ async function manualTopupSeller(req, res) {
   if (seller.role !== "seller") throw new HttpError(400, "User is not a seller");
   
   // Cập nhật số dư wallet
-  seller.walletBalance = (seller.walletBalance || 0) + numUSD;
+  const walletBeforeUSD = Number(seller.walletBalance || 0);
+  const walletAfterUSD = walletBeforeUSD + numUSD;
+  seller.walletBalance = walletAfterUSD;
   await seller.save();
-  
+
   // Tạo payment record để lưu lịch sử (status: completed, không cần bank account)
   const payment = await Payment.create({
     sellerId: seller._id,
@@ -653,6 +676,12 @@ async function manualTopupSeller(req, res) {
     completedAt: new Date(),
     expiresAt: new Date(), // Set ngay để không bị xóa
     note: note || "Manual topup by admin",
+    walletBeforeUSD,
+    walletAfterUSD,
+    walletBeforeVND: Math.round(walletBeforeUSD * 25000),
+    walletAfterVND: Math.round(walletAfterUSD * 25000),
+    transactionType: "manual_topup",
+    source: "adminController.manualTopupSeller",
   });
   
   res.status(201).json({
