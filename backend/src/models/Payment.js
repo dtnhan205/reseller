@@ -74,12 +74,18 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    // Dùng để lock payment khi đang xử lý, tránh 2 backend cùng xử lý 1 payment
+    processingAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
 
 // Index để tìm payment pending dễ dàng
 paymentSchema.index({ status: 1, expiresAt: 1 });
+// Index để lock payment khi xử lý
+paymentSchema.index({ status: 1, processingAt: 1 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
 module.exports = { Payment };

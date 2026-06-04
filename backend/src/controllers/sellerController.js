@@ -19,7 +19,6 @@ async function topupWallet(req, res) {
   const numUSD = Number(amountUSD);
   if (!Number.isFinite(numUSD) || numUSD <= 0) throw new HttpError(400, "Invalid amount");
 
-  // Lấy tỷ giá hiện tại
   const exchangeRate = await ExchangeRate.getRate();
   const amountVND = Math.round(numUSD * exchangeRate.usdToVnd);
 

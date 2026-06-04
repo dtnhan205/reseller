@@ -75,10 +75,10 @@ async function me(req, res) {
           $match: {
             sellerId: user._id,
             status: "completed",
-            $expr: { $gte: [{ $ifNull: ["$amountUSD", 0] }, 0] },
+            $expr: { $gte: [{ $ifNull: ["$amountVND", 0] }, 0] },
           },
         },
-        { $group: { _id: null, total: { $sum: "$amountUSD" } } },
+        { $group: { _id: null, total: { $sum: "$amountVND" } } },
       ]),
       Order.aggregate([
         { $match: { sellerId: user._id } },

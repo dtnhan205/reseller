@@ -12,6 +12,9 @@ import { formatCurrency, formatBalance, formatVND } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import type { Payment, BankAccount } from '@/types';
 
+const MAX_TOPUP_USD = 1000;
+const MAX_TOPUP_VND = 25000000;
+
 export default function TopupPage() {
   const { t, language } = useTranslation();
   const navigate = useNavigate();
@@ -205,11 +208,19 @@ export default function TopupPage() {
         showError('Vui lòng nhập số tiền hợp lệ');
         return;
       }
+      if (numVND > MAX_TOPUP_VND) {
+        showError(isVi ? `Số tiền nạp tối đa là ${formatVND(MAX_TOPUP_VND)}` : `Maximum topup is ${formatVND(MAX_TOPUP_VND)}`);
+        return;
+      }
       numUSD = calculateUSDFromVND(numVND);
     } else {
       const parsedUSD = parseFloat(trimmedAmount);
       if (isNaN(parsedUSD) || parsedUSD <= 0) {
         showError('Please enter a valid amount');
+        return;
+      }
+      if (parsedUSD > MAX_TOPUP_USD) {
+        showError(isVi ? `Số tiền nạp tối đa là ${formatCurrency(MAX_TOPUP_USD, language, usdToVnd)}` : `Maximum topup is ${formatCurrency(MAX_TOPUP_USD, language, usdToVnd)}`);
         return;
       }
       numUSD = parsedUSD;
@@ -279,6 +290,12 @@ export default function TopupPage() {
 
   const amountNumeric = isVi ? parseInt(inputValue, 10) : parseFloat(inputValue);
   const isValidAmount = !isNaN(amountNumeric) && amountNumeric > 0;
+  const isAmountWithinLimit = isVi ? amountNumeric <= MAX_TOPUP_VND : amountNumeric <= MAX_TOPUP_USD;
+  const amountErrorMessage = isValidAmount && !isAmountWithinLimit
+    ? (isVi
+        ? `Số tiền nạp tối đa là ${formatVND(MAX_TOPUP_VND)}`
+        : `Maximum topup is ${formatCurrency(MAX_TOPUP_USD, language, usdToVnd)}`)
+    : '';
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -353,11 +370,18 @@ export default function TopupPage() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     min={isVi ? "1000" : "1"}
+                    max={isVi ? MAX_TOPUP_VND : MAX_TOPUP_USD}
                     step={isVi ? "1000" : "0.1"}
                     className="pl-10 h-14 sm:h-16 bg-black/50 border-gray-800 focus:border-cyan-500 text-lg sm:text-xl rounded-xl"
                   />
+
                 </div>
-                {isValidAmount && (
+                {isValidAmount && amountErrorMessage && (
+                  <div className="mt-2 text-sm text-red-400 font-medium">
+                    {amountErrorMessage}
+                  </div>
+                )}
+                {isValidAmount && isAmountWithinLimit && (
                   <div className="mt-2 text-sm text-gray-400 flex justify-between">
                     {isVi ? (
                       <>
@@ -418,7 +442,7 @@ export default function TopupPage() {
                 onClick={handleTopup}
                 className="w-full h-14 sm:h-16 text-base sm:text-lg font-bold bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 shadow-lg rounded-xl"
                 isLoading={isLoading}
-                disabled={!inputValue || (isVi ? parseInt(inputValue, 10) < 1000 : parseFloat(inputValue) <= 0)}
+                disabled={!inputValue || !isValidAmount || !isAmountWithinLimit}
               >
                 <Plus className="w-5 h-5 inline mr-2" />
                 {isLoading ? t('topup.processing') : t('topup.topupWallet')}

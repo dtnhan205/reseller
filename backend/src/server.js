@@ -151,37 +151,46 @@ connectDb()
       console.log("[Cron] Đang khởi động cron job kiểm tra thanh toán mỗi 5 giây...");
     });
 
-    // Cron job: Check thanh toán mỗi 5 giây
+    const enableCron = process.env.ENABLE_PAYMENT_CRON !== 'false';
+    if (enableCron) {
+      console.log("[Cron] ✓ Cron kiểm tra thanh toán được BẬT");
+    } else {
+      console.log("[Cron] ✗ Cron kiểm tra thanh toán được TẮT (ENABLE_PAYMENT_CRON=false)");
+    }
+
+    // Cron job: Check thanh toán mỗi 5 giây (chỉ chạy nếu ENABLE_PAYMENT_CRON != false)
     setInterval(async () => {
+      if (!enableCron) return;
       try {
         const result = await checkAndUpdatePayments();
         if (result.checked > 0) {
-          console.log(`[Cron] ✓ Đã kiểm tra ${result.checked}payment(s)`);
+          console.log(`[Cron] ✓ Đã kiểm tra ${result.checked} payment(s)`);
         }
         if (result.updated > 0) {
-          console.log(`[Cron] ✓ Đã cập nhật ${result.updated}payment(s) thành công!`);
+          console.log(`[Cron] ✓ Đã cập nhật ${result.updated} payment(s) thành công!`);
         }
         if (result.deleted > 0) {
-          console.log(`[Cron] ✓ Đã xóa ${result.deleted}payment(s) đã hết hạn!`);
+          console.log(`[Cron] ✓ Đã xóa ${result.deleted} payment(s) đã hết hạn!`);
         }
         if (result.error) {
           console.error(`[Cron] ✗ Lỗi: ${result.error}`);
         }
-      }catch (error) {
+      } catch (error) {
         console.error("[Cron] ✗ Lỗi khi check thanh toán:", error.message);
       }
-    }, 5000); // 5 giây
+    }, 5000);
 
     // Chạy ngay lần đầu sau 5 giây khi server start
     setTimeout(async () => {
+      if (!enableCron) return;
       try {
         console.log("[Cron] Chạy kiểm tra thanh toán lần đầu...");
         const result = await checkAndUpdatePayments();
-        console.log(`[Cron] ✓ Lần đầu: Đã kiểm tra ${result.checked}payment(s), cập nhật ${result.updated}payment(s).`);
-      }catch (error) {
+        console.log(`[Cron] ✓ Lần đầu: Đã kiểm tra ${result.checked} payment(s), cập nhật ${result.updated} payment(s).`);
+      } catch (error) {
         console.error("[Cron] ✗ Lỗi khi check thanh toán lần đầu:", error.message);
       }
-    }, 5000); // 5 giây
+    }, 5000);
   })
   .catch((err) => {
     // eslint-disable-next-line no-console
