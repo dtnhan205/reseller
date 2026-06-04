@@ -127,20 +127,29 @@ async function checkAndUpdatePayments() {
 
         console.log(`[BankTransactionService] Tìm thấy giao dịch khớp cho payment ${payment._id} (${paymentAmountVND} VND)`);
 
-        // 3d. CÓ giao dịch khớp → ATOMIC CLAIM + COMPLETE trong 1 findOneAndUpdate
+        // 3d. CÓ giao dịch khớp → ATOMIC CLAIM + COMPLETE trong 1 MongoDB transaction
         // Điều kiện: _id đúng, status vẫn là "pending" (chưa bị backend khác xử lý)
-        // Thao tác: đổi status thành "completed", ghi completedAt, cộng tiền wallet
         const usdAmount = Number(payment.amountUSD ?? (paymentAmountVND / 25000));
 
-        // ATOMIC: vừa update payment vừa cộng tiền seller trong 1 transaction
         const session = await require("mongoose").startSession();
         try {
           await session.withTransaction(async () => {
-            // Bước 1: Claim payment bằng findOneAndUpdate
+            // Bước 1: Kiểm tra chắc chắn payment chưa completed (double-check trong transaction)
+            const existingCompleted = await Payment.findOne({
+              _id: payment._id,
+              status: "completed",
+            }).session(session);
+            if (existingCompleted) {
+              console.log(`[BankTransactionService] Payment ${payment._id} đã completed trước đó, bỏ qua`);
+              return;
+            }
+
+            // Bước 2: Claim payment = mark completed trong 1 atomic findOneAndUpdate
+            // Nếu backend khác đã claim rồi thì operation này trả về null → abort
             const claimed = await Payment.findOneAndUpdate(
               {
                 _id: payment._id,
-                status: "pending", // chỉ claim nếu vẫn còn pending
+                status: "pending",
               },
               {
                 $set: {
@@ -152,12 +161,11 @@ async function checkAndUpdatePayments() {
             );
 
             if (!claimed) {
-              // Backend khác đã claim rồi → bỏ qua
-              console.log(`[BankTransactionService] Payment ${payment._id} đã bị backend khác xử lý, bỏ qua`);
+              console.log(`[BankTransactionService] Payment ${payment._id} đã bị backend khác claim, bỏ qua`);
               return;
             }
 
-            // Bước 2: Atomic wallet update
+            // Bước 3: Atomic wallet update ($inc)
             const seller = await User.findOneAndUpdate(
               { _id: payment.sellerId },
               { $inc: { walletBalance: usdAmount } },
@@ -166,11 +174,11 @@ async function checkAndUpdatePayments() {
 
             if (!seller) {
               console.error(`[BankTransactionService] Không tìm thấy seller ${payment.sellerId}`);
-              // Payment đã mark completed rồi → không rollback (seller không tồn tại = lỗi data)
-              return;
+              // Seller không tồn tại → abort transaction, payment quay về pending
+              throw new Error(`Seller ${payment.sellerId} not found`);
             }
 
-            // Bước 3: Ghi lại wallet balance vào payment record
+            // Bước 4: Ghi wallet balance vào payment record
             const walletBeforeUSD = Number(seller.walletBalance || 0) - usdAmount;
             const walletAfterUSD = Number(seller.walletBalance || 0);
 
@@ -192,6 +200,14 @@ async function checkAndUpdatePayments() {
               `${walletBeforeUSD.toFixed(2)} → ${walletAfterUSD.toFixed(2)} USD`
             );
           });
+        } catch (err) {
+          // Transaction bị abort (rollback hoàn toàn) nếu có lỗi
+          // Payment sẽ quay về pending → cron sau sẽ thử lại
+          if (err.message.includes("Seller")) {
+            console.error(`[BankTransactionService] Lỗi xử lý payment ${payment._id}: ${err.message}`);
+          } else {
+            console.error(`[BankTransactionService] Transaction thất bại cho payment ${payment._id}: ${err.message}`);
+          }
         } finally {
           session.endSession();
         }
