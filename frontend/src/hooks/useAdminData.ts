@@ -190,7 +190,7 @@ export function useProducts() {
         aimLink?: string;
         installText?: string;
         installVideoUrl?: string;
-        source?: 'v1' | 'v2' | 'v3';
+        source?: 'v1' | 'v2' | 'v3' | 'v4';
         duration?: '1h' | '2h' | '1d' | '1w' | '1m' | '1y';
       } | null;
       status?: 'active' | 'inactive';
@@ -239,7 +239,7 @@ export function useProducts() {
           aimLink?: string;
           installText?: string;
           installVideoUrl?: string;
-          source?: 'v1' | 'v2' | 'v3';
+          source?: 'v1' | 'v2' | 'v3' | 'v4';
           duration?: '1h' | '2h' | '1d' | '1w' | '1m' | '1y';
         } | null;
         status?: 'active' | 'inactive';

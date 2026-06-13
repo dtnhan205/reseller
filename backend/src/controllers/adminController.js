@@ -15,7 +15,7 @@ const { ProxyVipRequest } = require("../models/ProxyVipRequest");
 const { ProxyVipAccessKey } = require("../models/ProxyVipAccessKey");
 const { Order } = require("../models/Order");
 
-const PROXYVIP_SOURCES = new Set(["v1", "v2", "v3"]);
+const PROXYVIP_SOURCES = new Set(["v1", "v2", "v3", "v4"]);
 const PROXYVIP_DURATIONS = new Set(["1h", "2h", "1d", "1w", "1m", "1y"]);
 const TOPUP_WALLET_TRACKING_ENABLED_AT = new Date("2026-06-03T00:00:00+07:00");
 

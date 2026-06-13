@@ -54,6 +54,9 @@ function deriveDurationFromProductName(name) {
 
 function deriveSourceFromProductName(name) {
   const s = String(name || "").toLowerCase();
+  if (s.includes("v4") || s.includes("magic") || s.includes("aim magic") || s.includes("aim-magic")) {
+    return "v4";
+  }
   if (s.includes("v3") || s.includes("no-antena-v3") || s.includes("no antenna v3") || s.includes("nov3") || s.includes("nov3")) {
     return "v3";
   }

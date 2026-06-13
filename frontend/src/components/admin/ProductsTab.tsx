@@ -13,7 +13,7 @@ import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 
-type ProxyVipSource = 'v1' | 'v2' | 'v3'
+type ProxyVipSource = 'v1' | 'v2' | 'v3' | 'v4'
 type ProxyVipDuration = '1h' | '2h' | '1d' | '1w' | '1m' | '1y'
 
 const PROXY_VIP_DURATIONS: ProxyVipDuration[] = ['1h', '2h', '1d', '1w', '1m', '1y']
@@ -183,7 +183,7 @@ export default function ProductsTab({
       proxyInstallVideoUrl: (product as any).proxyvipConfig?.installVideoUrl || '',
       proxySource: ((): ProxyVipSource => {
         const s = (product as any).proxyvipConfig?.source
-        return s === 'v2' || s === 'v3' ? s : 'v1'
+        return s === 'v2' || s === 'v3' || s === 'v4' ? s : 'v1'
       })(),
       proxyDuration: ((): ProxyVipDuration => {
         const d = (product as any).proxyvipConfig?.duration
@@ -472,6 +472,7 @@ export default function ProductsTab({
                     <option value="v1">Proxy v1</option>
                     <option value="v2">Proxy v2</option>
                     <option value="v3">Proxy v3</option>
+                    <option value="v4">Proxy v4</option>
                   </select>
                 </div>
                 <div className="space-y-1">

@@ -236,7 +236,7 @@ async function createProxyVipRequest(req, res) {
 
       // Create license key from key-server BEFORE charging, so if it fails the transaction aborts.
       const allowedDurations = new Set(["1h", "2h", "1d", "1w", "1m", "1y"]);
-      const allowedSources = new Set(["v1", "v2", "v3"]);
+      const allowedSources = new Set(["v1", "v2", "v3", "v4"]);
       licenseDuration = product.proxyvipConfig?.duration
         ? String(product.proxyvipConfig.duration).trim().toLowerCase()
         : deriveDurationFromProductName(product.name);
